@@ -15,6 +15,7 @@ class Request {
    */
   doGet(basics) {
     this.sendStatus(basics, 501);
+    basics.response.end();
   }
 
   /**
@@ -31,6 +32,7 @@ class Request {
    */
   doPost(basics) {
     this.sendStatus(basics, 501);
+    basics.response.end();
   }
 
   /**
@@ -47,6 +49,7 @@ class Request {
    */
   doPatch(basics) {
     this.sendStatus(basics, 501);
+    basics.response.end();
   }
 
   /**
@@ -63,6 +66,7 @@ class Request {
    */
   doDelete(basics) {
     this.sendStatus(basics, 501);
+    basics.response.end();
   }
 
   /**
@@ -79,6 +83,7 @@ class Request {
    */
   doPut(basics) {
     this.sendStatus(basics, 501);
+    basics.response.end();
   }
 
   /**

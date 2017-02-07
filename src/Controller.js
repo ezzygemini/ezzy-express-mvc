@@ -4,6 +4,7 @@ const fsPlus = require('fs-plus');
 const error500 = fsPlus.readFilePromise(__dirname + '/../errors/500.hbs');
 const error404 = fsPlus.readFilePromise(__dirname + '/../errors/404.hbs');
 const error401 = fsPlus.readFilePromise(__dirname + '/../errors/401.hbs');
+const logger = require('logger').logger;
 
 class Controller extends Request {
 
@@ -15,18 +16,43 @@ class Controller extends Request {
   constructor(viewFile, model) {
     super();
 
+    this._viewFile = viewFile;
+
     /**
      * The template that will be rendered with the view.
      *
      * @type {Promise.<Function>}
      */
-    this.template = fsPlus.readFilePromise(viewFile)
-      .then(content => handlebars.compile(content.toString()));
+    this.template =
+      (!viewFile ? Promise.resolve('') : fsPlus.readFilePromise(viewFile))
+        .then(
+          content => handlebars.compile(content.toString()),
+          e => {
+            logger.error(e);
+            return handlebars.compile('');
+          }
+        );
 
     /**
      * The reference to the model to be used with the view.
      */
     this.model = model;
+  }
+
+  /**
+   * Checks if we have a view.
+   * @returns {boolean}
+   */
+  get hasView() {
+    return !!this._viewFile;
+  }
+
+  /**
+   * Checks if we have a model.
+   * @returns {boolean}
+   */
+  get hasModel() {
+    return !!this.model;
   }
 
   /**
@@ -46,7 +72,7 @@ class Controller extends Request {
    * @param {HttpBasics} basics The http basics.
    */
   doGet(basics) {
-    this.render(basics);
+    this.send(basics);
   }
 
   /**
@@ -54,40 +80,37 @@ class Controller extends Request {
    * @param {HttpBasics} basics The http basics.
    */
   doPost(basics) {
-    this.render(basics);
+    this.send(basics);
   }
 
   /**
    * The render function that merges the template with the model.
-   * @param {HttpBasics} basics The http basics.
-   * constructor.
+   * @param {HttpBasics=} basics The http basics.
+   * @returns {Promise.<string>}
    */
-  render(basics) {
-    this.template.then(template => {
+  render(basics = {}) {
+    return this.template.then(template => {
       let model;
       if (this.model) {
         const Model = this.model;
-        try {
-          model = new Model(basics);
-        } catch (e) {
-          logger.error(e);
-          return this.serverError(basics);
-        }
+        model = new Model(basics);
       } else {
         model = basics.request;
       }
-      try {
-        model.data.then(obj => {
-          basics.response.send(template(obj));
-        }, e => {
-          logger.error(e);
-          this.serverError(basics);
-        });
-      } catch (e) {
-        logger.error(e);
-        this.serverError(basics);
-      }
+      return model.data.then(obj => template(obj));
     });
+  }
+
+  /**
+   * Sends the content to the browser.
+   * @param {HttpBasics} basics The http basics.
+   * @returns {void}
+   */
+  send(basics) {
+    this.render().then(
+      parsed => basics.response.send(parsed),
+      e => this.serverError(basics)
+    );
   }
 
   /**
