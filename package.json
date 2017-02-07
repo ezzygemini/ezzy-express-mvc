@@ -1,0 +1,23 @@
+{
+  "name": "express-mvc",
+  "description": "A complete mvc infrastructure to render pages from a specific directory based.",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:ezzygemini/express-mvc.git"
+  },
+  "scripts": {
+    "testing": "node node_modules/testing"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.14.1",
+    "express-basics": "git://github.com/ezzygemini/express-basics.git",
+    "fs-plus": "git://github.com/ezzygemini/fs-plus.git",
+    "logger": "git://github.com/ezzygemini/logger.git",
+    "recursive-fs": "^1.0.0"
+  },
+  "devDependencies": {
+    "testing": "git://github.com/ezzygemini/testing.git"
+  }
+}
