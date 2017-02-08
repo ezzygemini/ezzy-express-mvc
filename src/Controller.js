@@ -92,12 +92,15 @@ class Controller extends Request {
     return this.template.then(template => {
       let model;
       if (this.model) {
-        const Model = this.model;
-        model = new Model(basics);
-      } else {
-        model = basics.request;
+        try{
+          const Model = this.model;
+          model = new Model(basics);
+          return model.data.then(obj => template(obj));
+        }catch(e){
+          logger.error(e);
+        }
       }
-      return model.data.then(obj => template(obj));
+      return template(basics.request);
     });
   }
 
