@@ -4,7 +4,7 @@ const recursive = require('recursive-fs');
 const path = require('path');
 const Api = require('./Api');
 const Controller = require('./Controller');
-const CONTROLLER_REG = /^((.*\/)(.)(.*))(Ctrl|Controller)(\.js)$/i;
+const CONTROLLER_REG = /^((.*[\/\\])(.)(.*))(Ctrl|Controller)(\.js)$/i;
 const JS_EXT_REG = /\.js$/i;
 const cache = require('./cache');
 const ExpressBasics = require('express-basics');
@@ -265,7 +265,7 @@ class ExpressMvc {
   listen (...args) {
     return Promise.all([this._controllers, this._apis])
       .then(() => {
-        this.expressBasics.use((req, res) => res.status(404).end());
+        this.expressBasics.use(basics => basics.response.status(404).end());
         this.expressBasics.listen.apply(this.expressBasics, args);
         logger.highlight({
           title: 'SERVER',
