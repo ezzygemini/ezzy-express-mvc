@@ -110,7 +110,7 @@ class Controller extends Request {
    * @returns {void}
    */
   send(basics) {
-    this.render().then(
+    this.render(basics).then(
       parsed => basics.response.send(parsed),
       e => this.serverError(basics)
     );
