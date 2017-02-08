@@ -4,18 +4,26 @@ const recursive = require('recursive-fs');
 const path = require('path');
 const Api = require('./Api');
 const Controller = require('./Controller');
-const CONTROLLER_REG = /^(.*)(Ctrl|Controller)(\.js)$/i;
+const CONTROLLER_REG = /^((.*\/)(.)(.*))(Ctrl|Controller)(\.js)$/i;
 const JS_EXT_REG = /\.js$/i;
 const cache = require('./cache');
 const ExpressBasics = require('express-basics');
+const environment = require('environment');
 
 class ExpressMvc {
 
   /**
    * @param {string=} directory The directory of the mvc sources.
-   * @param {express=} expressInstance The express instance to be used.
+   * @param {express=} expressVersion The express instance to be used.
    */
-  constructor (directory, expressInstance) {
+  constructor (directory, expressVersion) {
+
+    /**
+     * The express version we'll be using.
+     * @type {*}
+     * @private
+     */
+    const expr = expressVersion || express;
 
     /**
      * The directory where we'll be looking for controllers and apis.
@@ -25,7 +33,7 @@ class ExpressMvc {
     /**
      * The express instance.
      */
-    this.expressBasics = new ExpressBasics(expressInstance || express());
+    this.expressBasics = new ExpressBasics(expr());
 
     /**
      * Obtains all the js files.
@@ -56,7 +64,7 @@ class ExpressMvc {
             const apiKey = path.basename(file).replace(JS_EXT_REG, '');
             const SubApi = require(file.toString());
             const subApi = new SubApi();
-            cache.getLibrary('apis').addPerm(apiKey, subApi);
+            cache.getLibrary('apis').add(apiKey, subApi);
             this._bindApi(subApi, file);
             return subApi;
 
@@ -80,12 +88,12 @@ class ExpressMvc {
           try {
 
             let viewFile =
-              file.replace(CONTROLLER_REG, (a, b, c, d) => `${b}View.hbs`);
+              file.replace(CONTROLLER_REG, (a, b) => `${b}View.hbs`);
 
             let Model;
             try {
               const modelFile =
-                file.replace(CONTROLLER_REG, (a, b, c, d) => `${b}Model${d}`);
+                file.replace(CONTROLLER_REG, (a, b) => `${b}Model.js`);
               logger.debug('Looking for model ' + modelFile);
               Model = require(modelFile);
             } catch (e) {
@@ -97,12 +105,15 @@ class ExpressMvc {
             const Ctrl = require(file);
             const ctrl = new Ctrl(viewFile, Model);
             const ctrlKey = path.basename(file).replace(JS_EXT_REG, '');
-            cache.getLibrary('controllers').addPerm(ctrlKey, ctrl);
+
+            cache.getLibrary('controllers').add(ctrlKey, ctrl);
+
             this._bindController(ctrl, file);
+
             return ctrl;
 
           } catch (e) {
-            logger.error(file + ' is not a Controller');
+            logger.error(e);
             return null;
           }
         })
@@ -131,13 +142,70 @@ class ExpressMvc {
    */
   _bindController (controller, file) {
     const context = this._getRelativeContext(file);
+
+    this._bindControllerAssets(context, file);
+
+    const handler = basics => {
+
+      cache.getLibrary('assets')
+        .getOrElse(file, () => new Promise(resolve => {
+
+          const assetsDir = ExpressMvc._getAssetDirectoryName(file);
+          logger.debug('Looking for assets in ' + assetsDir);
+          recursive.readdirr(assetsDir,
+            (e, dirs, files) => {
+              if (e) {
+                logger.error(e);
+                return resolve({css: [], js: []});
+              }
+              logger.debug({
+                title: 'Assets',
+                message: files
+              });
+              resolve({
+                css: files.filter(file => /\.css$/i.test(file)),
+                js: files.filter(file => /\.js$/i.test(file))
+              });
+            });
+
+        }), environment.development ? 100 : 0)
+        .then(assets => {
+          controller.requestHandler(Object.assign(basics, {assets}));
+        });
+    };
+
     if (context) {
-      this.expressBasics
-        .use('/' + context, basics => controller.requestHandler(basics));
+      this.expressBasics.use('/' + context, handler);
     } else {
-      this.expressBasics.use(basics => controller.requestHandler(basics));
+      this.expressBasics.use(handler);
     }
+
     logger.debug('Controller bound to express on route: ' + (context || '/'));
+  }
+
+  /**
+   * Binds the assets to the controller.
+   * @param {string=} context The context where the assets will be.
+   * @param {string=} file The file.
+   * @private
+   */
+  _bindControllerAssets (context, file) {
+    const dir = ExpressMvc._getAssetDirectoryName(file);
+    context = (context || '/') + path.basename(dir);
+    this.express.use(['/:version' + context, context], express.static(dir));
+    logger.debug('Static assets bound to route: ' +
+      context + ' & /:version' + context);
+  }
+
+  /**
+   * Obtains the name of the assets directory based on a file path.
+   * @param {string} file The file name.
+   * @returns {string}
+   * @private
+   */
+  static _getAssetDirectoryName (file) {
+    const matches = file.match(CONTROLLER_REG);
+    return matches[2] + matches[3].toLowerCase() + matches[4] + 'Assets';
   }
 
   /**

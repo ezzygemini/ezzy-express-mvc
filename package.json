@@ -11,7 +11,9 @@
   },
   "license": "MIT",
   "dependencies": {
+    "argument": "git://github.com/ezzygemini/argument.git",
     "cache": "git://github.com/ezzygemini/cache.git",
+    "environment": "git://github.com/ezzygemini/environment.git",
     "express": "^4.14.1",
     "express-basics": "git://github.com/ezzygemini/express-basics.git",
     "fs-plus": "git://github.com/ezzygemini/fs-plus.git",

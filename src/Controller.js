@@ -5,6 +5,7 @@ const error500 = fsPlus.readFilePromise(__dirname + '/../errors/500.hbs');
 const error404 = fsPlus.readFilePromise(__dirname + '/../errors/404.hbs');
 const error401 = fsPlus.readFilePromise(__dirname + '/../errors/401.hbs');
 const logger = require('logger').logger;
+const environment = require('environment');
 
 class Controller extends Request {
 
