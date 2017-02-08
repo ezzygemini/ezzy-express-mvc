@@ -1,1 +1,3 @@
-module.exports = require('./src/Controller');
+/** @type {Controller} */
+const Controller = require('./src/Controller');
+module.exports = Controller;
