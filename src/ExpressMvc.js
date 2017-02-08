@@ -16,7 +16,7 @@ class ExpressMvc {
    * @param {string=} directory The directory of the mvc sources.
    * @param {express=} expressVersion The express instance to be used.
    */
-  constructor (directory, expressVersion) {
+  constructor(directory, expressVersion) {
 
     /**
      * The express version we'll be using.
@@ -127,7 +127,7 @@ class ExpressMvc {
    * @returns {string}
    * @private
    */
-  _getRelativeContext (file) {
+  _getRelativeContext(file) {
     let context = path.relative(this._directory, path.dirname(file));
     if (context) {
       return '/' + context.replace(/\\/g, '/');
@@ -140,7 +140,7 @@ class ExpressMvc {
    * @param {string=} file The file.
    * @private
    */
-  _bindController (controller, file) {
+  _bindController(controller, file) {
     const context = this._getRelativeContext(file);
 
     this._bindControllerAssets(context, file);
@@ -163,14 +163,20 @@ class ExpressMvc {
                 message: files
               });
               resolve({
-                css: files.filter(file => /\.css$/i.test(file)),
-                js: files.filter(file => /\.js$/i.test(file))
+                css: files.filter(file =>
+                /\.scss/.test(file) && !/[\/\\]_.*/.test(file))
+                  .map(file => '/' + path.relative(this._directory, file)
+                    .replace(/\\/g, '/').replace(/scss/g, 'css')),
+                js: files
+                  .filter(file => /\.js/.test(file) && !/\.min\./.test(file))
+                  .map(file => '/' + path.relative(this._directory, file)
+                    .replace(/\\/g, '/'))
               });
             });
 
         }), environment.development ? 100 : 0)
         .then(assets => {
-          controller.requestHandler(Object.assign(basics, {assets}));
+          controller.doRequest(Object.assign(basics, {assets}));
         });
     };
 
@@ -189,7 +195,7 @@ class ExpressMvc {
    * @param {string=} file The file.
    * @private
    */
-  _bindControllerAssets (context, file) {
+  _bindControllerAssets(context, file) {
     const dir = ExpressMvc._getAssetDirectoryName(file);
     context = (context || '/') + path.basename(dir);
     this.express.use(['/:version' + context, context], express.static(dir));
@@ -203,7 +209,7 @@ class ExpressMvc {
    * @returns {string}
    * @private
    */
-  static _getAssetDirectoryName (file) {
+  static _getAssetDirectoryName(file) {
     const matches = file.match(CONTROLLER_REG);
     return matches[2] + matches[3].toLowerCase() + matches[4] + 'Assets';
   }
@@ -214,10 +220,10 @@ class ExpressMvc {
    * @param {string=} file The file.
    * @private
    */
-  _bindApi (api, file) {
+  _bindApi(api, file) {
     const context = this._getRelativeContext(file) + '/' + path.basename(file)
         .replace(/^(.)(.*)Api\.js$/i, (a, b, c) => b.toLowerCase() + c);
-    this.expressBasics.use(context, basics => api.requestHandler(basics));
+    this.expressBasics.use(context, basics => api.doRequest(basics));
     logger.debug('Api bound to express on route: ' + (context || '/'));
   }
 
@@ -225,7 +231,7 @@ class ExpressMvc {
    * Obtains the list of apis.
    * @returns {Promise.<Api[]>}
    */
-  get apis () {
+  get apis() {
     return this._apis;
   }
 
@@ -233,7 +239,7 @@ class ExpressMvc {
    * Obtains the list of controllers.
    * @returns {Promise.<Controller[]>}
    */
-  get controllers () {
+  get controllers() {
     return this._controllers;
   }
 
@@ -242,7 +248,7 @@ class ExpressMvc {
    * @param {String} name The name of the controller.
    * @returns {Promise.<Controller>}}
    */
-  getController (name) {
+  getController(name) {
     return this._controllers
       .then(() => cache.getLibrary('controllers').get(name));
   }
@@ -252,9 +258,8 @@ class ExpressMvc {
    * @param {String} name The name of the api.
    * @returns {Promise.<Api>}}
    */
-  getApi (name) {
-    return this._apis
-      .then(() => cache.getLibrary('apis').get(name));
+  getApi(name) {
+    return this._apis.then(() => cache.getLibrary('apis').get(name));
   }
 
   /**
@@ -262,7 +267,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {Promise.<express>}
    */
-  listen (...args) {
+  listen(...args) {
     return Promise.all([this._controllers, this._apis])
       .then(() => {
         this.expressBasics.use(basics => basics.response.status(404).end());
@@ -282,7 +287,7 @@ class ExpressMvc {
    * Simple getter of the express instance.
    * @returns {express}
    */
-  get express () {
+  get express() {
     return this.expressBasics.express;
   }
 
@@ -291,7 +296,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  use (...args) {
+  use(...args) {
     return this.expressBasics.use.apply(this.expressBasics, args);
   }
 
@@ -300,7 +305,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  get (...args) {
+  get(...args) {
     return this.expressBasics.get.apply(this.expressBasics, args);
   }
 
@@ -309,7 +314,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  put (...args) {
+  put(...args) {
     return this.expressBasics.put.apply(this.expressBasics, args);
   }
 
@@ -318,7 +323,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  post (...args) {
+  post(...args) {
     return this.expressBasics.post.apply(this.expressBasics, args);
   }
 
@@ -327,7 +332,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  patch (...args) {
+  patch(...args) {
     return this.expressBasics.patch.apply(this.expressBasics, args);
   }
 
@@ -336,7 +341,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  delete (...args) {
+  delete(...args) {
     return this.expressBasics.delete.apply(this.expressBasics, args);
   }
 

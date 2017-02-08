@@ -1,11 +1,12 @@
 const Request = require('./Request');
-const handlebars = require('handlebars');
+const handlebars = require('./handlebars');
 const fsPlus = require('fs-plus');
 const error500 = fsPlus.readFilePromise(__dirname + '/../errors/500.hbs');
 const error404 = fsPlus.readFilePromise(__dirname + '/../errors/404.hbs');
 const error401 = fsPlus.readFilePromise(__dirname + '/../errors/401.hbs');
 const logger = require('logger').logger;
 const environment = require('environment');
+const cache = require('./cache');
 
 class Controller extends Request {
 
@@ -18,21 +19,6 @@ class Controller extends Request {
     super();
 
     this._viewFile = viewFile;
-
-    /**
-     * The template that will be rendered with the view.
-     *
-     * @type {Promise.<Function>}
-     */
-    this.template =
-      (!viewFile ? Promise.resolve('') : fsPlus.readFilePromise(viewFile))
-        .then(
-          content => handlebars.compile(content.toString()),
-          e => {
-            logger.error(e);
-            return handlebars.compile('');
-          }
-        );
 
     /**
      * The reference to the model to be used with the view.
@@ -57,18 +43,6 @@ class Controller extends Request {
   }
 
   /**
-   * Handles the request.
-   * @param {HttpBasics} basics The http basics.
-   */
-  requestHandler(basics) {
-    if (basics.request.method === 'POST') {
-      this.doPost(basics);
-    } else {
-      this.doGet(basics);
-    }
-  }
-
-  /**
    * Default controller get method.
    * @param {HttpBasics} basics The http basics.
    */
@@ -90,19 +64,48 @@ class Controller extends Request {
    * @returns {Promise.<string>}
    */
   render(basics = {}) {
-    return this.template.then(template => {
-      let model;
-      if (this.model) {
-        try{
-          const Model = this.model;
-          model = new Model(basics);
-          return model.data.then(obj => template(obj));
-        }catch(e){
-          logger.error(e);
-        }
+    let dataPromise;
+    if (this.model) {
+      try {
+        const Model = this.model;
+        const model = new Model(basics);
+        dataPromise = model.data;
+      } catch (e) {
+        logger.error(e);
+        dataPromise = Promise.resolve(basics);
       }
-      return template(basics.request);
-    });
+    } else {
+      dataPromise = Promise.resolve(basics);
+    }
+    return dataPromise.then(data => this._parseTemplate(data));
+  }
+
+  /**
+   * Parses the template.
+   * @param data
+   * @returns {*}
+   * @private
+   */
+  _parseTemplate(data) {
+    return cache.getLibrary('templates')
+      .getOrElse(this._viewFile, () => {
+        let contentPromise;
+        if (!this._viewFile) {
+          contentPromise = Promise.resolve('');
+        } else {
+          contentPromise = fsPlus.readFilePromise(this._viewFile);
+        }
+        return contentPromise
+          .then(content => handlebars.compile(content.toString()));
+      }, environment.development ? 100 : 0)
+      .then(template => {
+        try {
+          return template(data);
+        } catch (e) {
+          logger.error(e);
+          return e;
+        }
+      });
   }
 
   /**

@@ -7,32 +7,6 @@ const API_CONTENT_TYPE = '*/*';
 class Api extends Request {
 
   /**
-   * Handles the request based on method.
-   * @param {HttpBasics} basics The HTTP Bascis.
-   */
-  requestHandler(basics) {
-    switch (basics.request.method) {
-      case 'GET':
-        this.doGet(basics);
-        break;
-      case 'POST':
-        this.doPost(basics);
-        break;
-      case 'PATCH':
-        this.doPatch(basics);
-        break;
-      case 'DELETE':
-        this.doDelete(basics);
-        break;
-      case 'PUT':
-        this.doPut(basics);
-        break;
-      default:
-        this.badRequest(basics);
-    }
-  }
-
-  /**
    * Obtains the context of the application.
    * @returns {string}
    */
