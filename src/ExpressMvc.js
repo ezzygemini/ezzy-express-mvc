@@ -152,51 +152,20 @@ class ExpressMvc {
 
     this._bindControllerAssets(context, file);
 
-    const handler = basics => {
-
-      cache.getLibrary('assets').getOrElse(file, () => {
-
-        const assetsDir = ExpressMvc._getAssetDirectoryName(file);
-        logger.debug('Looking for assets in ' + assetsDir);
-
-        return Promise.all([
-          new Promise(resolve => {
-            recursive.readdirr(path.normalize(assetsDir + '/scss/'),
-              (e, dirs, files) => {
-                if (e) {
-                  logger.error(e);
-                  return resolve([]);
-                }
-                resolve(files.filter(file =>
-                /\.scss/.test(file) && !/[\/\\]_.*/.test(file))
-                  .map(file => '/' + path.relative(this._directory, file)
-                    .replace(/\\/g, '/').replace(/scss/g, 'css')));
-              });
-          }),
-          new Promise(resolve => {
-            recursive.readdirr(path.normalize(assetsDir + '/js/'),
-              (e, dirs, files) => {
-                if (e) {
-                  logger.error(e);
-                  return resolve([]);
-                }
-                resolve(files
-                  .filter(file => /\.js/.test(file) && !/\.min\./.test(file))
-                  .map(file => '/' + path.relative(this._directory, file)
-                    .replace(/\\/g, '/')));
-              });
-          })
-        ])
+    const handler = basics => cache.getLibrary('assets')
+      .getOrElse(file, () => {
+        return this._getAssets(file)
           .then(([css, js]) => {
             logger.debug({
               title: 'Assets',
               message: {css, js}
             });
-            controller.doRequest(Object.assign(basics, {assets: {js, css}}));
+            return {js, css};
           });
+      }, environment.development ? 100 : 0)
+      .then(assets => {
+        controller.doRequest(Object.assign(basics, {assets}));
       });
-
-    };
 
     if (context) {
       this.expressBasics.use('/' + context, handler);
@@ -205,6 +174,91 @@ class ExpressMvc {
     }
 
     logger.debug('Controller bound to express on route: ' + (context || '/'));
+  }
+
+  /**
+   * Obtains the assets dynamically.
+   * @param {string} file The file to obtain assets from.
+   * @returns {Promise.<Array[]>}
+   * @private
+   */
+  _getAssets(file) {
+    const dir = ExpressMvc._getAssetDirectoryName(file);
+    logger.debug('Looking for assets in ' + dir);
+    return environment.development ?
+      this._getDevelopmentAssets(dir) : this._getProductionAssets(dir);
+  }
+
+  /**
+   * Obtains the development assets.
+   * @param {string} assetsDir The assets directory.
+   * @returns {Promise.<Array[]>}
+   * @private
+   */
+  _getDevelopmentAssets(assetsDir) {
+    return Promise.all([
+      new Promise(resolve => {
+        recursive.readdirr(path.normalize(assetsDir + '/scss/'),
+          (e, dirs, files) => {
+            if (e) {
+              logger.error(e);
+              return resolve([]);
+            }
+            resolve(files.filter(file =>
+            /\.scss/.test(file) && !/[\/\\]_.*/.test(file))
+              .map(file => '/' + path.relative(this._directory, file)
+                .replace(/\\/g, '/').replace(/scss/g, 'css')));
+          });
+      }),
+      new Promise(resolve => {
+        recursive.readdirr(path.normalize(assetsDir + '/js/'),
+          (e, dirs, files) => {
+            if (e) {
+              logger.error(e);
+              return resolve([]);
+            }
+            resolve(files
+              .filter(file => /\.js/.test(file) && !/\.min\./.test(file))
+              .map(file => '/' + path.relative(this._directory, file)
+                .replace(/\\/g, '/')));
+          });
+      })
+    ]);
+  }
+
+  /**
+   * Obtains the production assets.
+   * @param {string} assetsDir The assets directory.
+   * @returns {Promise.<Array[]>}
+   * @private
+   */
+  _getProductionAssets(assetsDir) {
+    return Promise.all([
+      new Promise(resolve => {
+        recursive.readdirr(path.normalize(assetsDir + '/css/'),
+          (e, dirs, files) => {
+            if (e) {
+              logger.error(e);
+              return resolve([]);
+            }
+            resolve(files.filter(file => /\.min\.css$/.test(file))
+              .map(file => '/' + path.relative(this._directory, file)
+                .replace(/\\/g, '/')));
+          });
+      }),
+      new Promise(resolve => {
+        recursive.readdirr(path.normalize(assetsDir + '/js/'),
+          (e, dirs, files) => {
+            if (e) {
+              logger.error(e);
+              return resolve([]);
+            }
+            resolve(files.filter(file => /\.min\.js/.test(file))
+              .map(file => '/' + path.relative(this._directory, file)
+                .replace(/\\/g, '/')));
+          });
+      })
+    ]);
   }
 
   /**
