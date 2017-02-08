@@ -277,8 +277,7 @@ class ExpressMvc {
    * Obtains the list of apis.
    * @returns {Promise.<Api[]>}
    */
-  get
-  apis() {
+  get apis() {
     return this._apis;
   }
 
@@ -286,8 +285,7 @@ class ExpressMvc {
    * Obtains the list of controllers.
    * @returns {Promise.<Controller[]>}
    */
-  get
-  controllers() {
+  get controllers() {
     return this._controllers;
   }
 
@@ -335,8 +333,7 @@ class ExpressMvc {
    * Simple getter of the express instance.
    * @returns {express}
    */
-  get
-  express() {
+  get express() {
     return this.expressBasics.express;
   }
 
@@ -390,10 +387,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  delete(
-    ...
-      args
-  ) {
+  delete(...args) {
     return this.expressBasics.delete.apply(this.expressBasics, args);
   }
 
