@@ -1,14 +1,10 @@
 const ExpressMvc = require('../../src/ExpressMvc');
 const request = require('testing/request');
 let app;
-const logger = require('logger').logger;
-let origTimeout;
 
 describe('Api', () => {
 
   beforeAll(() => {
-    origTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
     const expressMvc = new ExpressMvc(__dirname + '/../root/');
     app = expressMvc.listen(3001);
   });
@@ -20,6 +16,15 @@ describe('Api', () => {
         .expect(200, {
           success: true
         })
+        .end(e => e ? fail(e) : done());
+    });
+  });
+
+  it('should obtain bad requests on methods not implemented (post)', done => {
+    app.then(app => {
+      request(app)
+        .post('/apis/express')
+        .expect(501)
         .end(e => e ? fail(e) : done());
     });
   });
@@ -42,9 +47,17 @@ describe('Api', () => {
     });
   });
 
+  it('should obtain bad requests on methods not implemented (delete)', done => {
+    app.then(app => {
+      request(app)
+        .delete('/apis/express')
+        .expect(501)
+        .end(e => e ? fail(e) : done());
+    });
+  });
+
   afterAll(() => {
     app.then(app => app.close());
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = origTimeout;
   });
 
 });
