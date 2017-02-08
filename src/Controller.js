@@ -14,16 +14,31 @@ class Controller extends Request {
    * An initializer of the controller.
    * @param {string} viewFile The raw path of the view template.
    * @param {Model} model The model to be used when rendering.
+   * @param {string} modelName The name of the model.
    */
-  constructor(viewFile, model) {
+  constructor(viewFile, model, modelName) {
     super();
 
+    /**
+     * The view that will be rendered.
+     * @type {string}
+     * @private
+     */
     this._viewFile = viewFile;
 
     /**
      * The reference to the model to be used with the view.
+     * @type {Model}
+     * @private
      */
-    this.model = model;
+    this._model = model;
+
+    /**
+     * The name of the model
+     * @type {string}
+     * @private
+     */
+    this._modelName = modelName;
   }
 
   /**
@@ -39,7 +54,7 @@ class Controller extends Request {
    * @returns {boolean}
    */
   get hasModel() {
-    return !!this.model;
+    return !!this._model;
   }
 
   /**
@@ -65,11 +80,12 @@ class Controller extends Request {
    */
   render(basics = {}) {
     let dataPromise;
-    if (this.model) {
+    if (this._model) {
       try {
-        const Model = this.model;
+        const Model = this._model;
         const model = new Model(basics);
-        dataPromise = model.data;
+        dataPromise = model.data
+          .then(model => Object.assign(basics, {[this._modelName]: model}));
       } catch (e) {
         logger.error(e);
         dataPromise = Promise.resolve(basics);

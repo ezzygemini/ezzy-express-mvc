@@ -9,6 +9,13 @@ const JS_EXT_REG = /\.js$/i;
 const cache = require('./cache');
 const ExpressBasics = require('express-basics');
 const environment = require('environment');
+const exec = require('child_process').exec;
+const SKIP_COMPASS = environment.argument('SKIP_COMPASS', false);
+const COMPASS = environment.argument('COMPASS', 'compass');
+const COMPASS_CMD = COMPASS +
+  ' compile --relative-assets --output-style=expanded ' +
+  '--css-dir=css --sass-dir=scss --images-dir=images --trace';
+const CSS_REG = /\.css(\?.*)?$/;
 
 class ExpressMvc {
 
@@ -87,13 +94,13 @@ class ExpressMvc {
           file = file.toString();
           try {
 
-            let viewFile =
-              file.replace(CONTROLLER_REG, (a, b) => `${b}View.hbs`);
+            const matches = file.match(CONTROLLER_REG);
+            const modelName = matches[3].toLowerCase() + matches[4] + 'Model';
+            let viewFile = matches[1] + 'View.hbs';
 
             let Model;
             try {
-              const modelFile =
-                file.replace(CONTROLLER_REG, (a, b) => `${b}Model.js`);
+              const modelFile = matches[1] + 'Model.js';
               logger.debug('Looking for model ' + modelFile);
               Model = require(modelFile);
             } catch (e) {
@@ -103,7 +110,7 @@ class ExpressMvc {
             }
 
             const Ctrl = require(file);
-            const ctrl = new Ctrl(viewFile, Model);
+            const ctrl = new Ctrl(viewFile, Model, modelName);
             const ctrlKey = path.basename(file).replace(JS_EXT_REG, '');
 
             cache.getLibrary('controllers').add(ctrlKey, ctrl);
@@ -147,37 +154,48 @@ class ExpressMvc {
 
     const handler = basics => {
 
-      cache.getLibrary('assets')
-        .getOrElse(file, () => new Promise(resolve => {
+      cache.getLibrary('assets').getOrElse(file, () => {
 
-          const assetsDir = ExpressMvc._getAssetDirectoryName(file);
-          logger.debug('Looking for assets in ' + assetsDir);
-          recursive.readdirr(assetsDir,
-            (e, dirs, files) => {
-              if (e) {
-                logger.error(e);
-                return resolve({css: [], js: []});
-              }
-              logger.debug({
-                title: 'Assets',
-                message: files
-              });
-              resolve({
-                css: files.filter(file =>
+        const assetsDir = ExpressMvc._getAssetDirectoryName(file);
+        logger.debug('Looking for assets in ' + assetsDir);
+
+        return Promise.all([
+          new Promise(resolve => {
+            recursive.readdirr(path.normalize(assetsDir + '/scss/'),
+              (e, dirs, files) => {
+                if (e) {
+                  logger.error(e);
+                  return resolve([]);
+                }
+                resolve(files.filter(file =>
                 /\.scss/.test(file) && !/[\/\\]_.*/.test(file))
                   .map(file => '/' + path.relative(this._directory, file)
-                    .replace(/\\/g, '/').replace(/scss/g, 'css')),
-                js: files
+                    .replace(/\\/g, '/').replace(/scss/g, 'css')));
+              });
+          }),
+          new Promise(resolve => {
+            recursive.readdirr(path.normalize(assetsDir + '/js/'),
+              (e, dirs, files) => {
+                if (e) {
+                  logger.error(e);
+                  return resolve([]);
+                }
+                resolve(files
                   .filter(file => /\.js/.test(file) && !/\.min\./.test(file))
                   .map(file => '/' + path.relative(this._directory, file)
-                    .replace(/\\/g, '/'))
+                    .replace(/\\/g, '/')));
               });
+          })
+        ])
+          .then(([css, js]) => {
+            logger.debug({
+              title: 'Assets',
+              message: {css, js}
             });
+            controller.doRequest(Object.assign(basics, {assets: {js, css}}));
+          });
+      });
 
-        }), environment.development ? 100 : 0)
-        .then(assets => {
-          controller.doRequest(Object.assign(basics, {assets}));
-        });
     };
 
     if (context) {
@@ -198,9 +216,36 @@ class ExpressMvc {
   _bindControllerAssets(context, file) {
     const dir = ExpressMvc._getAssetDirectoryName(file);
     context = (context || '/') + path.basename(dir);
+    this._bindCompass(context, dir);
     this.express.use(['/:version' + context, context], express.static(dir));
     logger.debug('Static assets bound to route: ' +
       context + ' & /:version' + context);
+  }
+
+  /**
+   * Binds compass on the static assets.
+   * @param context
+   * @param dir
+   * @private
+   */
+  _bindCompass(context, dir) {
+    if (environment.development && !SKIP_COMPASS) {
+      this.expressBasics.use(['/:version' + context, context], basics => {
+        if (!CSS_REG.test(basics.request.originalUrl)) {
+          return basics.next();
+        }
+        exec(COMPASS_CMD, {cwd: dir}, (e, output) => {
+          if (e) {
+            logger.error({title: 'Compass', message: e});
+          } else if (output) {
+            logger.debug({title: 'Compass', message: output});
+          }
+          basics.next();
+        });
+      });
+      logger.debug('Compass compilation bound to route: ' + context + ' & ' +
+        '/:version' + context);
+    }
   }
 
   /**
@@ -209,7 +254,8 @@ class ExpressMvc {
    * @returns {string}
    * @private
    */
-  static _getAssetDirectoryName(file) {
+  static
+  _getAssetDirectoryName(file) {
     const matches = file.match(CONTROLLER_REG);
     return matches[2] + matches[3].toLowerCase() + matches[4] + 'Assets';
   }
@@ -231,7 +277,8 @@ class ExpressMvc {
    * Obtains the list of apis.
    * @returns {Promise.<Api[]>}
    */
-  get apis() {
+  get
+  apis() {
     return this._apis;
   }
 
@@ -239,7 +286,8 @@ class ExpressMvc {
    * Obtains the list of controllers.
    * @returns {Promise.<Controller[]>}
    */
-  get controllers() {
+  get
+  controllers() {
     return this._controllers;
   }
 
@@ -287,7 +335,8 @@ class ExpressMvc {
    * Simple getter of the express instance.
    * @returns {express}
    */
-  get express() {
+  get
+  express() {
     return this.expressBasics.express;
   }
 
@@ -341,10 +390,14 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  delete(...args) {
+  delete(
+    ...
+      args
+  ) {
     return this.expressBasics.delete.apply(this.expressBasics, args);
   }
 
 }
 
-module.exports = ExpressMvc;
+module
+  .exports = ExpressMvc;
