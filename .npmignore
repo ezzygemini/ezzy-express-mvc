@@ -64,3 +64,7 @@ src/*Test.js
 
 # System
 .DS_Store
+
+# Travis & Coveralls
+.travis.yml
+.coveralls.yml
