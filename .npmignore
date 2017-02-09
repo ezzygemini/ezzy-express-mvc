@@ -48,5 +48,19 @@ jspm_packages
 # Yarn Integrity file
 .yarn-integrity
 
-# Test folder
+# Test folder and files
 test
+src/*Test.js
+
+# This file
+.npmignore
+
+# IntelliJ
+.idea
+*.iml
+
+# Sass
+.sass-cache
+
+# System
+.DS_Store
