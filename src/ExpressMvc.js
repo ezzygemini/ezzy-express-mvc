@@ -16,6 +16,7 @@ const COMPASS_CMD = COMPASS +
   ' compile --relative-assets --output-style=expanded ' +
   '--css-dir=css --sass-dir=scss --images-dir=images --trace';
 const CSS_REG = /\.css(\?.*)?$/;
+const fs = require('fs-plus');
 
 class ExpressMvc {
 
@@ -23,7 +24,7 @@ class ExpressMvc {
    * @param {string=} directory The directory of the mvc sources.
    * @param {express=} expressVersion The express instance to be used.
    */
-  constructor(directory, expressVersion) {
+  constructor (directory, expressVersion) {
 
     /**
      * The express version we'll be using.
@@ -129,43 +130,28 @@ class ExpressMvc {
   }
 
   /**
-   * Obtains the context based on the file path.
-   * @param {string} file The destination.
-   * @returns {string}
-   * @private
-   */
-  _getRelativeContext(file) {
-    let context = path.relative(this._directory, path.dirname(file));
-    if (context) {
-      return '/' + context.replace(/\\/g, '/');
-    }
-  }
-
-  /**
    * Binds a controller to the express application.
    * @param {Controller} controller The controller to bind.
    * @param {string=} file The file.
    * @private
    */
-  _bindController(controller, file) {
-    const context = this._getRelativeContext(file);
+  _bindController (controller, file) {
 
-    this._bindControllerAssets(context, file);
+    this._bindControllerAssets(file);
 
     const handler = basics => cache.getLibrary('assets')
       .getOrElse(file, () => {
         return this._getAssets(file)
-          .then(([css, js]) => {
-            logger.debug({
-              title: 'Assets',
-              message: {css, js}
-            });
-            return {js, css};
+          .then(assets => {
+            logger.debug({title: 'Assets', message: assets});
+            return assets;
           });
       }, environment.development ? 100 : 0)
       .then(assets => {
         controller.doRequest(Object.assign(basics, {assets}));
       });
+
+    const context = this._getAbsPath(path.dirname(file));
 
     if (context) {
       this.expressBasics.use('/' + context, handler);
@@ -182,11 +168,52 @@ class ExpressMvc {
    * @returns {Promise.<Array[]>}
    * @private
    */
-  _getAssets(file) {
-    const dir = ExpressMvc._getAssetDirectoryName(file);
-    logger.debug('Looking for assets in ' + dir);
-    return environment.development ?
-      this._getDevelopmentAssets(dir) : this._getProductionAssets(dir);
+  _getAssets (file) {
+    const {assetsDir, configFile} = this._getControllerAssetNames(file);
+
+    logger.debug('Looking for assets in ' + assetsDir);
+
+    let promise = environment.development ?
+      this._getDevelopmentAssets(assetsDir) :
+      this._getProductionAssets(assetsDir);
+
+    return promise.then(([css, js]) => this._getConfiguration(configFile)
+      .then(cnf => {
+        (cnf.dependencies || []).forEach(dependency => {
+          if (CSS_REG.test(dependency)) {
+            css.unshift(dependency);
+          } else {
+            js.unshift(dependency);
+          }
+        });
+        return {js, css};
+      }));
+  }
+
+  /**
+   * Obtains the configuration.
+   * @param configFile
+   * @returns {Promise.<Object>}
+   * @private
+   */
+  _getConfiguration (configFile) {
+    return cache.getLibrary('configurations')
+      .getOrElse(configFile, () => fs.readFilePromise(configFile)
+        .then(
+          config => {
+            config = JSON.parse(config.toString());
+            if (config[environment.name]) {
+              Object.assign(config, config[environment.name]);
+              delete config[environment.name];
+            }
+            logger.debug({title: 'Controller Config', message: config});
+            return config;
+          },
+          e => {
+            logger.warn(e);
+            return {};
+          }
+        ), environment.development ? 100 : 0);
   }
 
   /**
@@ -195,7 +222,7 @@ class ExpressMvc {
    * @returns {Promise.<Array[]>}
    * @private
    */
-  _getDevelopmentAssets(assetsDir) {
+  _getDevelopmentAssets (assetsDir) {
     return Promise.all([
       new Promise(resolve => {
         recursive.readdirr(path.normalize(assetsDir + '/scss/'),
@@ -206,8 +233,8 @@ class ExpressMvc {
             }
             resolve(files.filter(file =>
             /\.scss/.test(file) && !/[\/\\]_.*/.test(file))
-              .map(file => '/' + path.relative(this._directory, file)
-                .replace(/\\/g, '/').replace(/scss/g, 'css')));
+              .map(file => this._getAbsPath(file)
+                .replace(/scss/g, 'css')));
           });
       }),
       new Promise(resolve => {
@@ -219,8 +246,7 @@ class ExpressMvc {
             }
             resolve(files
               .filter(file => /\.js/.test(file) && !/\.min\./.test(file))
-              .map(file => '/' + path.relative(this._directory, file)
-                .replace(/\\/g, '/')));
+              .map(file => this._getAbsPath(file)));
           });
       })
     ]);
@@ -232,7 +258,7 @@ class ExpressMvc {
    * @returns {Promise.<Array[]>}
    * @private
    */
-  _getProductionAssets(assetsDir) {
+  _getProductionAssets (assetsDir) {
     return Promise.all([
       new Promise(resolve => {
         recursive.readdirr(path.normalize(assetsDir + '/css/'),
@@ -263,26 +289,49 @@ class ExpressMvc {
 
   /**
    * Binds the assets to the controller.
-   * @param {string=} context The context where the assets will be.
-   * @param {string=} file The file.
+   * @param {string} file The file.
    * @private
    */
-  _bindControllerAssets(context, file) {
-    const dir = ExpressMvc._getAssetDirectoryName(file);
-    context = (context || '/') + path.basename(dir);
-    this._bindCompass(context, dir);
-    this.express.use(['/:version' + context, context], express.static(dir));
+  _bindControllerAssets (file) {
+    const {assetsDir, rootDir} = this._getControllerAssetNames(file);
+    this._bindNodeModules(rootDir);
+    this._bindCompass(assetsDir);
+    this._bindStaticAssets(assetsDir);
+  }
+
+  /**
+   * Binds the static assets to the application.
+   * @param {string} dir The directory of the assets.
+   * @private
+   */
+  _bindStaticAssets(dir){
+    const context = this._getAbsPath(dir) + '/';
+    this.express
+      .use(['/:version' + context, context], express.static(dir));
     logger.debug('Static assets bound to route: ' +
-      context + ' & /:version' + context);
+      context + ' & /:version' + context + ' on directory ' + dir);
+  }
+
+  /**
+   * Binds the node modules as a static resource.
+   * @private
+   */
+  _bindNodeModules (dir) {
+    const context = this._getAbsPath(dir + '/node_modules') + '/';
+    this.express.use(['/:version' + context, context],
+      express.static(environment.nodeModules));
+    logger.debug('Node modules bound to route: ' + context +
+      ' & /:version' + context +
+      ' on directory' + environment.nodeModules);
   }
 
   /**
    * Binds compass on the static assets.
-   * @param context
-   * @param dir
+   * @param {string} dir The directory of the assets.
    * @private
    */
-  _bindCompass(context, dir) {
+  _bindCompass (dir) {
+    const context = this._getAbsPath(dir) + '/';
     if (environment.development && !SKIP_COMPASS) {
       this.expressBasics.use(['/:version' + context, context], basics => {
         if (!CSS_REG.test(basics.request.originalUrl)) {
@@ -297,21 +346,36 @@ class ExpressMvc {
           basics.next();
         });
       });
-      logger.debug('Compass compilation bound to route: ' + context + ' & ' +
-        '/:version' + context);
+      logger.debug('Compass compilation bound to route: ' +
+        context + ' & ' + '/:version' + context);
     }
   }
 
   /**
    * Obtains the name of the assets directory based on a file path.
    * @param {string} file The file name.
+   * @returns {{assets:string,package:string}}
+   * @private
+   */
+  _getControllerAssetNames (file) {
+    const matches = file.match(CONTROLLER_REG);
+    const prefix = matches[2] + matches[3].toLowerCase() + matches[4];
+    return {
+      rootDir: matches[2],
+      assetsDir: prefix + 'Assets',
+      configFile: prefix + 'Package.json'
+    };
+  }
+
+  /**
+   * Gets a relative path to a destination based on controller directory.
+   * @param {string} destination The destination.
    * @returns {string}
    * @private
    */
-  static
-  _getAssetDirectoryName(file) {
-    const matches = file.match(CONTROLLER_REG);
-    return matches[2] + matches[3].toLowerCase() + matches[4] + 'Assets';
+  _getAbsPath(destination){
+    return '/' + path
+        .relative(this._directory, destination).replace(/\\/g, '/');
   }
 
   /**
@@ -320,8 +384,8 @@ class ExpressMvc {
    * @param {string=} file The file.
    * @private
    */
-  _bindApi(api, file) {
-    const context = this._getRelativeContext(file) + '/' + path.basename(file)
+  _bindApi (api, file) {
+    const context = this._getAbsPath(file) + '/' + path.basename(file)
         .replace(/^(.)(.*)Api\.js$/i, (a, b, c) => b.toLowerCase() + c);
     this.expressBasics.use(context, basics => api.doRequest(basics));
     logger.debug('Api bound to express on route: ' + (context || '/'));
@@ -331,7 +395,7 @@ class ExpressMvc {
    * Obtains the list of apis.
    * @returns {Promise.<Api[]>}
    */
-  get apis() {
+  get apis () {
     return this._apis;
   }
 
@@ -339,7 +403,7 @@ class ExpressMvc {
    * Obtains the list of controllers.
    * @returns {Promise.<Controller[]>}
    */
-  get controllers() {
+  get controllers () {
     return this._controllers;
   }
 
@@ -348,7 +412,7 @@ class ExpressMvc {
    * @param {String} name The name of the controller.
    * @returns {Promise.<Controller>}}
    */
-  getController(name) {
+  getController (name) {
     return this._controllers
       .then(() => cache.getLibrary('controllers').get(name));
   }
@@ -358,7 +422,7 @@ class ExpressMvc {
    * @param {String} name The name of the api.
    * @returns {Promise.<Api>}}
    */
-  getApi(name) {
+  getApi (name) {
     return this._apis.then(() => cache.getLibrary('apis').get(name));
   }
 
@@ -367,7 +431,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {Promise.<express>}
    */
-  listen(...args) {
+  listen (...args) {
     return Promise.all([this._controllers, this._apis])
       .then(() => {
         this.expressBasics.use(basics => basics.response.status(404).end());
@@ -387,7 +451,7 @@ class ExpressMvc {
    * Simple getter of the express instance.
    * @returns {express}
    */
-  get express() {
+  get express () {
     return this.expressBasics.express;
   }
 
@@ -396,7 +460,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  use(...args) {
+  use (...args) {
     return this.expressBasics.use.apply(this.expressBasics, args);
   }
 
@@ -405,7 +469,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  get(...args) {
+  get (...args) {
     return this.expressBasics.get.apply(this.expressBasics, args);
   }
 
@@ -414,7 +478,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  put(...args) {
+  put (...args) {
     return this.expressBasics.put.apply(this.expressBasics, args);
   }
 
@@ -423,7 +487,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  post(...args) {
+  post (...args) {
     return this.expressBasics.post.apply(this.expressBasics, args);
   }
 
@@ -432,7 +496,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  patch(...args) {
+  patch (...args) {
     return this.expressBasics.patch.apply(this.expressBasics, args);
   }
 
@@ -441,7 +505,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  delete(...args) {
+  delete (...args) {
     return this.expressBasics.delete.apply(this.expressBasics, args);
   }
 
