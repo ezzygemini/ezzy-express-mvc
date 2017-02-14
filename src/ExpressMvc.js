@@ -354,7 +354,7 @@ class ExpressMvc {
   /**
    * Obtains the name of the assets directory based on a file path.
    * @param {string} file The file name.
-   * @returns {{assets:string,package:string}}
+   * @returns {{assetsDir:string,configFile:string,rootDir:string}}
    * @private
    */
   _getControllerAssetNames(file) {
@@ -363,7 +363,7 @@ class ExpressMvc {
     return {
       rootDir: matches[2],
       assetsDir: prefix + 'Assets',
-      configFile: prefix + 'Package.json'
+      configFile: prefix + 'Config.json'
     };
   }
 
