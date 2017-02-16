@@ -4,7 +4,7 @@ let expressMvc;
 describe('Express MVC', () => {
 
   beforeEach(() => {
-    expressMvc = new ExpressMvc(__dirname + '/../root/');
+    expressMvc = new ExpressMvc('./root');
   });
 
   it('should be able to traverse and find controllers', done => {

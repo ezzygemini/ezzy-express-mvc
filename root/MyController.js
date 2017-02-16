@@ -1,4 +1,4 @@
-const Controller = require('../../src/Controller');
+const Controller = require('../src/Controller');
 
 class MyController extends Controller {
 }

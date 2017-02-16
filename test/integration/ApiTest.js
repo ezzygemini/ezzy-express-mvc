@@ -5,7 +5,7 @@ let app;
 describe('Api', () => {
 
   beforeAll(() => {
-    const expressMvc = new ExpressMvc(__dirname + '/../root/');
+    const expressMvc = new ExpressMvc('./root');
     app = expressMvc.listen(3001);
   });
 

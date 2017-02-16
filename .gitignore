@@ -42,6 +42,8 @@ jspm_packages
 
 # Sass
 .sass-cache
+css
+*.css
 
 # System
 .DS_Store

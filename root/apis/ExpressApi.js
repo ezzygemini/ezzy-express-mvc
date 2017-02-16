@@ -1,4 +1,4 @@
-const Api = require('../../../src/Api');
+const Api = require('../../src/Api');
 
 class ExpressApi extends Api {
 

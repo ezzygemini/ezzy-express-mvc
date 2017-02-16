@@ -1,4 +1,4 @@
-const Model = require('../../src/Model');
+const Model = require('../src/Model');
 
 class MyModel extends Model {
 

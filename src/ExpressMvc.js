@@ -36,7 +36,7 @@ class ExpressMvc {
     /**
      * The directory where we'll be looking for controllers and apis.
      */
-    this._directory = path.normalize(directory) || process.cwd();
+    this._directory = path.normalize(process.cwd() + '/' + (directory || ''));
 
     /**
      * The express instance.
@@ -127,6 +127,9 @@ class ExpressMvc {
         })
         .filter(ctrl => ctrl instanceof Controller));
 
+    // Bind the node modules.
+    this._bindNodeModules(this._directory);
+
   }
 
   /**
@@ -171,23 +174,34 @@ class ExpressMvc {
   _getAssets(file) {
     const {assetsDir, configFile} = this._getControllerAssetNames(file);
 
-    logger.debug('Looking for assets in ' + assetsDir);
+    return fs.existsPromise(assetsDir)
+      .then(exists => {
 
-    let promise = environment.development ?
-      this._getDevelopmentAssets(assetsDir) :
-      this._getProductionAssets(assetsDir);
+        if (!exists) {
+          logger.warn(`No assets found ${assetsDir}`);
+          return {js: [], css: []};
+        }
 
-    return promise.then(([css, js]) => this._getConfiguration(configFile)
-      .then(cnf => {
-        (cnf.dependencies || []).forEach(dependency => {
-          if (CSS_REG.test(dependency)) {
-            css.unshift(dependency);
-          } else {
-            js.unshift(dependency);
-          }
-        });
-        return {js, css};
-      }));
+        logger.debug('Looking for assets in ' + assetsDir);
+
+        let promise = environment.development ?
+          this._getDevelopmentAssets(assetsDir) :
+          this._getProductionAssets(assetsDir);
+
+        return promise.then(([css, js]) => this._getConfiguration(configFile)
+          .then(cnf => {
+            (cnf.dependencies || []).forEach(dependency => {
+              if (CSS_REG.test(dependency)) {
+                css.unshift(dependency);
+              } else {
+                js.unshift(dependency);
+              }
+            });
+            logger.debug({title: 'Assets', message: {js, css}});
+            return {js, css};
+          }));
+
+      });
   }
 
   /**
@@ -293,8 +307,7 @@ class ExpressMvc {
    * @private
    */
   _bindControllerAssets(file) {
-    const {assetsDir, rootDir} = this._getControllerAssetNames(file);
-    this._bindNodeModules(rootDir);
+    const {assetsDir} = this._getControllerAssetNames(file);
     this._bindCompass(assetsDir);
     this._bindStaticAssets(assetsDir);
   }
@@ -322,7 +335,7 @@ class ExpressMvc {
       express.static(environment.nodeModules));
     logger.debug('Node modules bound to route: ' + context +
       ' & /:version' + context +
-      ' on directory' + environment.nodeModules);
+      ' on directory ' + environment.nodeModules);
   }
 
   /**
@@ -345,6 +358,7 @@ class ExpressMvc {
           }
           basics.next();
         });
+
       });
       logger.debug('Compass compilation bound to route: ' +
         context + ' & ' + '/:version' + context);
@@ -386,7 +400,8 @@ class ExpressMvc {
    * @private
    */
   _bindApi(api, file) {
-    const context = this._getAbsPath(file) + '/' + path.basename(file)
+    const context = path.dirname(this._getAbsPath(file)) + '/' +
+      path.basename(file)
         .replace(/^(.)(.*)Api\.js$/i, (a, b, c) => b.toLowerCase() + c);
     this.expressBasics.use(context, basics => api.doRequest(basics));
     logger.debug('Api bound to express on route: ' + (context || '/'));
