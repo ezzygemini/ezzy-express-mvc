@@ -36,7 +36,7 @@ class ExpressMvc {
     /**
      * The directory where we'll be looking for controllers and apis.
      */
-    this._directory = path.normalize(process.cwd() + '/' + (directory || ''));
+    this._directory = path.normalize(directory);
 
     /**
      * The express instance.
