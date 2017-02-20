@@ -97,7 +97,8 @@ class ExpressMvc {
 
             const matches = file.match(CONTROLLER_REG);
             const modelName = matches[3].toLowerCase() + matches[4] + 'Model';
-            let viewFile = matches[1] + 'View.hbs';
+            let viewFile =
+              matches[2] + matches[3].toLowerCase() + matches[4] + 'View.hbs';
 
             let Model;
             try {
