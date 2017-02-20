@@ -137,7 +137,10 @@ class Controller extends Request {
         this.sendStatus(basics, 200);
         basics.response.send(parsed);
       },
-      e => this.serverError(basics)
+      e => {
+        logger.error(e);
+        this.serverError(basics);
+      }
     );
   }
 
