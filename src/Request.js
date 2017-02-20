@@ -131,7 +131,11 @@ class Request {
    * @param {number} status The request status to send.
    */
   sendStatus(basics, status = 200) {
-    logger.warn(`Sending ${status} status`);
+    if (status !== 200) {
+      logger.warn(`Sending ${status} status`);
+    } else {
+      logger.debug(`Sending ${status} status`);
+    }
     basics.response.status(status);
   }
 
