@@ -116,7 +116,9 @@ class Controller extends Request {
       }, environment.development ? 100 : 0)
       .then(template => {
         try {
-          return template(data);
+          const rendered = template(data);
+          logger.debug({title: 'Rendered', message: rendered});
+          return rendered;
         } catch (e) {
           logger.error(e);
           return e;
@@ -131,7 +133,7 @@ class Controller extends Request {
    */
   send(basics) {
     this.render(basics).then(
-      parsed => basics.response.send(parsed),
+      parsed => basics.response.status(200).send(parsed),
       e => this.serverError(basics)
     );
   }
