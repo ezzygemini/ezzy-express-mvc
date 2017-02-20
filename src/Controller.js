@@ -133,7 +133,10 @@ class Controller extends Request {
    */
   send(basics) {
     this.render(basics).then(
-      parsed => basics.response.status(200).send(parsed),
+      parsed => {
+        this.sendStatus(basics, 200);
+        basics.response.send(parsed);
+      },
       e => this.serverError(basics)
     );
   }
@@ -144,7 +147,7 @@ class Controller extends Request {
    */
   serverError(basics) {
     error500.then(content => {
-      super.sendStatus(basics, 500);
+      this.sendStatus(basics, 500);
       basics.response.send(content);
     });
   }
@@ -155,7 +158,7 @@ class Controller extends Request {
    */
   notFound(basics) {
     error404.then(content => {
-      super.sendStatus(basics, 404);
+      this.sendStatus(basics, 404);
       basics.response.send(content);
     });
   }
@@ -166,7 +169,7 @@ class Controller extends Request {
    */
   unauthorized(basics) {
     error401.then(content => {
-      super.sendStatus(basics, 401);
+      this.sendStatus(basics, 401);
       basics.response.send(content);
     });
   }

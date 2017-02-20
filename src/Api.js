@@ -75,7 +75,7 @@ class Api extends Request {
    * @param {object=} metaData Additional meta data to send.
    */
   sendData(basics, data, metaData) {
-    super.sendStatus(basics, 200);
+    this.sendStatus(basics, 200);
     basics.response.json(Api._decorateData(basics, 200, data, metaData));
   }
 
@@ -85,7 +85,7 @@ class Api extends Request {
    * @param {object=} metaData Additional meta data to send.
    */
   badRequest(basics, metaData) {
-    super.sendStatus(basics, 400);
+    this.sendStatus(basics, 400);
     basics.response
       .json(Api._decorateData(basics, 400, 'Bad Request', metaData));
   }
@@ -96,7 +96,7 @@ class Api extends Request {
    * @param {object=} metaData Additional meta data to send.
    */
   unauthorized(basics, metaData) {
-    super.sendStatus(basics, 401);
+    this.sendStatus(basics, 401);
     basics.response
       .json(Api._decorateData(basics, 401, 'Unauthorized', metaData));
   }
