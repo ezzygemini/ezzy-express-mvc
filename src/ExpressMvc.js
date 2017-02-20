@@ -162,7 +162,7 @@ class ExpressMvc {
       this.expressBasics.use(handler);
     }
 
-    logger.debug('Controller bound to express on route: ' + (context || '/'));
+    logger.debug(`Controller bound to express on route: '${context}'`);
   }
 
   /**
