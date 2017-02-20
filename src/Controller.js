@@ -116,9 +116,7 @@ class Controller extends Request {
       }, environment.development ? 100 : 0)
       .then(template => {
         try {
-          const rendered = template(data);
-          logger.debug({title: 'Rendered', message: rendered});
-          return rendered;
+          return template(data);
         } catch (e) {
           logger.error(e);
           return e;
