@@ -1,3 +1,4 @@
+const logger = require('logger').logger;
 const DEFAULT_CONTENT_TYPE = '*/*';
 
 class Request {
@@ -7,6 +8,10 @@ class Request {
    * @param {HttpBasics} basics The HTTP Bascis.
    */
   doRequest(basics) {
+    logger.debug({
+      title: 'Request',
+      message: `[${basics.request.method}] ${basics.request.url}`
+    });
     switch (basics.request.method) {
       case 'GET':
         this.doGet(basics);

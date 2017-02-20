@@ -344,8 +344,8 @@ class ExpressMvc {
    * @private
    */
   _bindCompass(dir) {
-    const context = this._getAbsPath(dir) + '/';
     if (environment.development && !SKIP_COMPASS) {
+      const context = this._getAbsPath(dir) + '/';
       this.expressBasics.use(['/:version' + context, context], basics => {
         if (!CSS_REG.test(basics.request.originalUrl)) {
           return basics.next();
