@@ -404,7 +404,7 @@ class ExpressMvc {
       path.basename(file)
         .replace(/^(.)(.*)Api\.js$/i, (a, b, c) => b.toLowerCase() + c);
     this.expressBasics.use(context, basics => api.doRequest(basics));
-    logger.debug('Api bound to express on route: ' + (context || '/'));
+    logger.debug(`Api bound to express on route: ${context}`);
   }
 
   /**
