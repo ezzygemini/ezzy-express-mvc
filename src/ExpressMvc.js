@@ -85,7 +85,8 @@ class ExpressMvc {
             return subApi;
 
           } catch (e) {
-            logger.error(file.toString() + ' is not an Api');
+            logger.error(e);
+            logger.error(file.toString() + ' could not be bound as an Api');
             return null;
           }
         })
