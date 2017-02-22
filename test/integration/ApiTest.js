@@ -1,18 +1,31 @@
 const ExpressMvc = require('../../src/ExpressMvc');
 const request = require('testing/request');
+const logger = require('logger').logger;
 let app;
 
 describe('Api', () => {
 
   beforeAll(() => {
-    const expressMvc = new ExpressMvc('./root');
-    app = expressMvc.listen(3001);
+    logger.silence();
+    const expressMvc = new ExpressMvc(__dirname + '/../../root');
+    app = expressMvc.listen(9001);
   });
 
   it('should bind the api properly', done => {
     app.then(app => {
       request(app)
         .get('/apis/express')
+        .expect(200, {
+          success: true
+        })
+        .end(e => e ? fail(e) : done());
+    });
+  });
+
+  it('should bind a second api properly', done => {
+    app.then(app => {
+      request(app)
+        .get('/apis/secondExpress')
         .expect(200, {
           success: true
         })
@@ -58,6 +71,7 @@ describe('Api', () => {
 
   afterAll(() => {
     app.then(app => app.close());
+    logger.talk();
   });
 
 });

@@ -1,18 +1,19 @@
 const ExpressMvc = require('../../src/ExpressMvc');
 let expressMvc;
+const logger = require('logger').logger;
 
 describe('Express MVC', () => {
 
-  beforeEach(() => {
-    expressMvc = new ExpressMvc('./root');
-  });
+  beforeAll(() => logger.silence());
+
+  beforeEach(() => expressMvc = new ExpressMvc(__dirname + '/../../root'));
 
   it('should be able to traverse and find controllers', done => {
 
     expressMvc.controllers
       .then(controllers => expect(controllers.length).toBe(2))
       .then(() => expressMvc.apis)
-      .then(apis => expect(apis.length).toBe(1))
+      .then(apis => expect(apis.length).toBe(2))
       .then(done);
 
     expressMvc.getController('YourController')
@@ -30,5 +31,7 @@ describe('Express MVC', () => {
       });
 
   });
+
+  afterAll(() => logger.talk());
 
 });
