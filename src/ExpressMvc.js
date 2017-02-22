@@ -526,6 +526,15 @@ class ExpressMvc {
     return this.expressBasics.delete.apply(this.expressBasics, args);
   }
 
+  /**
+   * Returns the promises made by the controllers and apis.
+   * @returns {Promise.<ExpressMvc>}
+   */
+  promise() {
+    return Promise.all([this._controllers, this._apis])
+      .then(() => this);
+  }
+
 }
 
 module
