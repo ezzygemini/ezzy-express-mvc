@@ -47,6 +47,13 @@ class ExpressMvc {
     this._directory = path.normalize(directory);
 
     /**
+     * Bound MVC applications.
+     * @type {Array}
+     * @private
+     */
+    this._boundMvcs = [];
+
+    /**
      * The express instance.
      */
     this.expressBasics = new ExpressBasics(expr());
@@ -488,20 +495,19 @@ class ExpressMvc {
    * @returns {Promise.<express>}
    */
   listen (...args) {
-    return Promise.all([this._controllers, this._apis])
-      .then(() => {
-        this.expressBasics.use(basics => this
-          ._domainHandle(basics, basics => basics.response.status(404).end()));
-        const app = this.expressBasics.listen.apply(this.expressBasics, args);
-        logger.highlight({
-          title: 'SERVER',
-          message: `Listening on port ${args[0]}`
-        });
-        return app;
-      }, e => {
-        logger.error(e);
-        return this.express;
+    return this.promise.then(() => {
+      this.expressBasics.use(basics => this
+        ._domainHandle(basics, basics => basics.response.status(404).end()));
+      const app = this.expressBasics.listen.apply(this.expressBasics, args);
+      logger.highlight({
+        title: 'SERVER',
+        message: `Listening on port ${args[0]}`
       });
+      return app;
+    }, e => {
+      logger.error(e);
+      return this.express;
+    });
   }
 
   /**
@@ -571,7 +577,7 @@ class ExpressMvc {
    * @returns {Promise.<ExpressMvc>}
    */
   get promise () {
-    return Promise.all([this._controllers, this._apis])
+    return Promise.all([this._controllers, this._apis, this._boundMvcs])
       .then(() => this);
   }
 
@@ -581,10 +587,12 @@ class ExpressMvc {
    * @returns {Promise.<ExpressMvc>}
    */
   bindExpressMvc (expressMvc) {
-    return this.promise.then(() => expressMvc.promise.then(() => {
+    const promise = this.promise.then(() => expressMvc.promise.then(() => {
       this.express.use(expressMvc.express);
       return this;
     }));
+    this._boundMvcs.push(promise);
+    return promise;
   }
 
 }
