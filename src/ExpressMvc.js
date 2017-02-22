@@ -151,17 +151,18 @@ class ExpressMvc {
 
     this._bindControllerAssets(file);
 
-    const handler = basics => cache.getLibrary('assets')
-      .getOrElse(file, () => {
-        return this._getAssets(file)
-          .then(assets => {
-            logger.debug({title: 'Assets', message: assets});
-            return assets;
-          });
-      }, environment.development ? 100 : 0)
-      .then(assets => {
-        controller.doRequest(Object.assign(basics, {assets}));
-      });
+    const handler = basics =>
+      this._domainHandle(basics, basics => cache.getLibrary('assets')
+        .getOrElse(file, () => {
+          return this._getAssets(file)
+            .then(assets => {
+              logger.debug({title: 'Assets', message: assets});
+              return assets;
+            });
+        }, environment.development ? 100 : 0)
+        .then(assets => {
+          controller.doRequest(Object.assign(basics, {assets}));
+        }));
 
     const context = this._getAbsPath(path.dirname(file));
 
@@ -357,8 +358,8 @@ class ExpressMvc {
    * @private
    */
   _static(dir) {
-    return ({request, response, next}) =>
-      express.static(dir)(request, response, next);
+    const staticApp = express.static(dir);
+    return basics => staticApp(basics.request, basics.response, basics.next);
   }
 
   /**
@@ -442,6 +443,7 @@ class ExpressMvc {
    */
   _domainHandle(basics, handler) {
     if (!this._domainReg.test(basics.request.hostname)) {
+      logger.debug('Route found but not in the same domain');
       return basics.next();
     }
     return handler(basics);
