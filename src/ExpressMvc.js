@@ -52,6 +52,13 @@ class ExpressMvc {
     this.expressBasics = new ExpressBasics(expr());
 
     /**
+     * The listening object.
+     * @type {*}
+     * @private
+     */
+    this._listener = null;
+
+    /**
      * Obtains all the js files.
      *
      * @type {Promise}
@@ -494,12 +501,12 @@ class ExpressMvc {
     return this.promise.then(() => {
       this.expressBasics.use(basics => this
         ._domainHandle(basics, basics => basics.response.status(404).end()));
-      const app = this.expressBasics.listen.apply(this.expressBasics, args);
+      this._listener = this.expressBasics.listen.apply(this.expressBasics, args);
       logger.highlight({
         title: 'SERVER',
         message: `Listening on port ${args[0]}`
       });
-      return app;
+      return this;
     }, e => {
       logger.error(e);
       return this.express;
@@ -586,6 +593,18 @@ class ExpressMvc {
     return this.promise
       .then(() => Promise.all(expressMvc.map(app => app.promise))
         .then(() => expressMvc.forEach(app => this.express.use(app.express))));
+  }
+
+  /**
+   * Closes the connection if it's active.
+   * @returns {ExpressMvc}
+   */
+  close() {
+    if (!this._listener) {
+      return logger.error('Application is not listening to any ports.');
+    }
+    this._listener.close();
+    return this;
   }
 
 }
