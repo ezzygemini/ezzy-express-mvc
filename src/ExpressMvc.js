@@ -518,6 +518,14 @@ class ExpressMvc {
   }
 
   /**
+   * Obtains the listener.
+   * @returns {Promise.<express>}
+   */
+  get listener(){
+    return this.promise.then(() => this._listener);
+  }
+
+  /**
    * Simple getter of the express instance.
    * @returns {express}
    */
@@ -601,15 +609,14 @@ class ExpressMvc {
 
   /**
    * Closes the connection if it's active.
-   * @returns {ExpressMvc}
+   * @returns {Promise.<ExpressMvc>}
    */
   close() {
     if (!this._listener) {
-      return logger.error('Application is not listening to any ports.');
+      return logger.warn('Application is not listening to any ports.');
     }
-    this._listener.close();
-    this._listener = null;
-    return this;
+    return this.listener
+      .then(listener => listener.close());
   }
 
 }
