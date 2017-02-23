@@ -522,7 +522,13 @@ class ExpressMvc {
    * @returns {Promise.<express>}
    */
   get listener(){
-    return this.promise.then(() => this._listener);
+    return new Promise((resolve, reject) => {
+      if(this._listener){
+        return resolve(this._listener);
+      }
+      setTimeout(() => resolve(this.listener), 10);
+    });
+    return this._listener;
   }
 
   /**
@@ -609,14 +615,15 @@ class ExpressMvc {
 
   /**
    * Closes the connection if it's active.
-   * @returns {Promise.<ExpressMvc>}
+   * @returns {ExpressMvc}
    */
   close() {
     if (!this._listener) {
       return logger.warn('Application is not listening to any ports.');
     }
-    return this.listener
-      .then(listener => listener.close());
+    this._listener.close();
+    this._listener = null;
+    return this;
   }
 
 }
