@@ -495,9 +495,13 @@ class ExpressMvc {
   /**
    * Forwards the request to the listen method.
    * @param {*} args The arguments to send.
-   * @returns {Promise.<express>}
+   * @returns {Promise.<ExpressMvc>}
    */
   listen(...args) {
+    if (this._listener) {
+      logger.error('Application already listening.');
+      return Promise.resolve(this);
+    }
     return this.promise.then(() => {
       this.expressBasics.use(basics => this
         ._domainHandle(basics, basics => basics.response.status(404).end()));
@@ -509,7 +513,7 @@ class ExpressMvc {
       return this;
     }, e => {
       logger.error(e);
-      return this.express;
+      return this;
     });
   }
 
@@ -604,6 +608,7 @@ class ExpressMvc {
       return logger.error('Application is not listening to any ports.');
     }
     this._listener.close();
+    this._listener = null;
     return this;
   }
 
