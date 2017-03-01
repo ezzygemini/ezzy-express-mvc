@@ -551,7 +551,6 @@ class ExpressMvc {
       }
       setTimeout(() => resolve(this.listener), 10);
     });
-    return this._listener;
   }
 
   /**
