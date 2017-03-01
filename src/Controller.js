@@ -84,7 +84,7 @@ class Controller extends Request {
       try {
         const Model = this._model;
         const model = new Model(basics);
-        dataPromise = model.data
+        dataPromise = model.data(basics)
           .then(model => Object.assign(basics, {[this._modelName]: model}));
       } catch (e) {
         logger.error(e);
