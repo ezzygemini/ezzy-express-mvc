@@ -70,8 +70,11 @@ class ExpressMvc {
           logger.error(e);
           return reject(e);
         }
+        files = files.map(file => ({file, rank: file.split(/[\\/]/).length}))
+          .sort((a, b) => b.rank - a.rank)
+          .map(item => item.file);
         if (files) {
-          logger.debug({title: 'All JS Files', message: files});
+          logger.debug({title: 'All Files', message: files});
         }
         resolve(files);
       });
@@ -181,14 +184,15 @@ class ExpressMvc {
     const context = this._getAbsPath(path.dirname(file));
 
     if (context) {
-      this.expressBasics.use('/' + context, handler);
+      this.expressBasics.use([context, context + '/'], handler);
     } else {
       this.expressBasics.use(handler);
     }
 
     logger.debug({
       title: 'Controller',
-      message: `Controller bound to express on route: '${context}'`
+      message: `Controller bound to express on route: '${context}' ` +
+      `on domain ${this._domainReg}`
     });
   }
 
@@ -351,7 +355,8 @@ class ExpressMvc {
       this._domainHandle(basics, staticApp));
     logger.debug({
       title: 'Assets', message: 'Static assets bound to route: ' +
-      context + ' & /:version' + context + ' on directory ' + dir
+      context + ' & /:version' + context + ' on directory ' + dir +
+      ' on domain ' + this._domainReg
     });
   }
 
@@ -622,13 +627,14 @@ class ExpressMvc {
 
   /**
    * Binds another express MVC application.
-   * @param {ExpressMvc} expressMvc Another express MVC app.
+   * @param {string} dir The directory to use.
+   * @param {RegExp=} reg The regular expression to use.
+   * @param {express} exp The express version to use.
    * @returns {Promise.<ExpressMvc>}
    */
-  bindExpressMvc(...expressMvc) {
-    return this.promise
-      .then(() => Promise.all(expressMvc.map(app => app.promise))
-        .then(() => expressMvc.forEach(app => this.express.use(app.express))));
+  bindExpressMvc(dir, reg, exp) {
+    return this.promise.then(() => new ExpressMvc(dir, reg, exp).promise
+      .then(app => this.express.use(app.express)));
   }
 
   /**
