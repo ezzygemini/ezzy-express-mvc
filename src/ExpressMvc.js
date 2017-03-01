@@ -17,6 +17,7 @@ const COMPASS_CMD = COMPASS +
   '--css-dir=css --sass-dir=scss --images-dir=images --trace';
 const CSS_REG = /\.css(\?.*)?$/;
 const fs = require('fs-plus');
+const {version} = require('../../../package.json');
 
 class ExpressMvc {
 
@@ -197,29 +198,29 @@ class ExpressMvc {
 
         if (!exists) {
           logger.warn(`No assets found ${assetsDir}`);
-          return {js: [], css: []};
+          return [[], []];
         }
 
         logger.debug('Looking for assets in ' + assetsDir);
 
-        let promise = environment.development ?
+        return environment.development ?
           this._getDevelopmentAssets(assetsDir) :
           this._getProductionAssets(assetsDir);
 
-        return promise.then(([css, js]) => this._getConfiguration(configFile)
-          .then(cnf => {
-            (cnf.dependencies || []).forEach(dependency => {
-              if (CSS_REG.test(dependency)) {
-                css.unshift(dependency);
-              } else {
-                js.unshift(dependency);
-              }
-            });
-            logger.debug({title: 'Assets', message: {js, css}});
-            return {js, css};
-          }));
-
-      });
+      }).then(([css, js]) => this._getConfiguration(configFile)
+        .then(cnf => {
+          (cnf.dependencies || []).forEach(dependency => {
+            if (CSS_REG.test(dependency)) {
+              css.unshift(dependency);
+            } else {
+              js.unshift(dependency);
+            }
+          });
+          logger.debug({title: 'Assets', message: {js, css}});
+          js = js.map(i => '/' + version + i);
+          css = css.map(i => '/' + version + i);
+          return {js, css};
+        }));
   }
 
   /**
@@ -505,7 +506,8 @@ class ExpressMvc {
     return this.promise.then(() => {
       this.expressBasics.use(basics => this
         ._domainHandle(basics, basics => basics.response.status(404).end()));
-      this._listener = this.expressBasics.listen.apply(this.expressBasics, args);
+      this._listener =
+        this.expressBasics.listen.apply(this.expressBasics, args);
       logger.highlight({
         title: 'SERVER',
         message: `Listening on port ${args[0]}`
@@ -521,9 +523,9 @@ class ExpressMvc {
    * Obtains the listener.
    * @returns {Promise.<express>}
    */
-  get listener(){
+  get listener() {
     return new Promise((resolve, reject) => {
-      if(this._listener){
+      if (this._listener) {
         return resolve(this._listener);
       }
       setTimeout(() => resolve(this.listener), 10);
