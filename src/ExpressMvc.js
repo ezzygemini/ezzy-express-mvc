@@ -70,7 +70,9 @@ class ExpressMvc {
           logger.error(e);
           return reject(e);
         }
-        logger.debug(files);
+        if (files) {
+          logger.debug({title: 'All JS Files', message: files});
+        }
         resolve(files);
       });
     });
@@ -120,7 +122,10 @@ class ExpressMvc {
             let Model;
             try {
               const modelFile = matches[1] + 'Model.js';
-              logger.debug('Looking for model ' + modelFile);
+              logger.debug({
+                title: 'Model Lookup',
+                message: 'Looking for model ' + modelFile
+              });
               Model = require(modelFile);
             } catch (e) {
               logger.warn('No model found for controller ' + file);
@@ -181,7 +186,10 @@ class ExpressMvc {
       this.expressBasics.use(handler);
     }
 
-    logger.debug(`Controller bound to express on route: '${context}'`);
+    logger.debug({
+      title: 'Controller',
+      message: `Controller bound to express on route: '${context}'`
+    });
   }
 
   /**
@@ -341,8 +349,10 @@ class ExpressMvc {
     const staticApp = this._static(dir);
     this.expressBasics.use(['/:version' + context, context], basics =>
       this._domainHandle(basics, staticApp));
-    logger.debug('Static assets bound to route: ' +
-      context + ' & /:version' + context + ' on directory ' + dir);
+    logger.debug({
+      title: 'Assets', message: 'Static assets bound to route: ' +
+      context + ' & /:version' + context + ' on directory ' + dir
+    });
   }
 
   /**
@@ -394,9 +404,12 @@ class ExpressMvc {
           });
 
         }));
-      logger.debug('Compass compilation bound to route: ' +
+      logger.debug({
+        title: 'Compass',
+        message: 'Compass compilation bound to route: ' +
         context + ' & ' + '/:version' + context +
-        ' on domain ' + this._domainReg);
+        ' on domain ' + this._domainReg
+      });
     }
   }
 
@@ -440,7 +453,10 @@ class ExpressMvc {
         .replace(/^(.)(.*)Api\.js$/i, (a, b, c) => b.toLowerCase() + c);
     this.expressBasics.use(context, basics =>
       this._domainHandle(basics, basics => api.doRequest(basics)));
-    logger.debug(`Api bound to express on route: ${context}`);
+    logger.debug({
+      title: 'API',
+      message: `Api bound to express on route: ${context}`
+    });
   }
 
   /**
