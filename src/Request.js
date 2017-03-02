@@ -8,11 +8,12 @@ class Request {
    * @param {HttpBasics} basics The HTTP Bascis.
    */
   doRequest(basics) {
+    const req = basics.request;
     logger.debug({
       title: 'Request',
-      message: `[${basics.request.method}] ${basics.request.url}`
+      message: `${req.method} ${req.hostname} ${req.url}`
     });
-    switch (basics.request.method) {
+    switch (req.method) {
       case 'GET':
         this.doGet(basics);
         break;

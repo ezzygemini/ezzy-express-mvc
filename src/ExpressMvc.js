@@ -453,14 +453,15 @@ class ExpressMvc {
    * @private
    */
   _bindApi(api, file) {
-    const context = path.dirname(this._getAbsPath(file)) + '/' +
+    const dirName = path.dirname(this._getAbsPath(file));
+    const context = dirName + (!dirName || dirName === '/' ? '' : '/') +
       path.basename(file)
         .replace(/^(.)(.*)Api\.js$/i, (a, b, c) => b.toLowerCase() + c);
     this.expressBasics.use(context, basics =>
       this._domainHandle(basics, basics => api.doRequest(basics)));
     logger.debug({
       title: 'API',
-      message: `Api bound to express on route: ${context}`
+      message: `Api bound to express on route: ${context} on ${this._domainReg}`
     });
   }
 
@@ -473,7 +474,8 @@ class ExpressMvc {
    */
   _domainHandle(basics, handler) {
     if (!this._domainReg.test(basics.request.hostname)) {
-      logger.debug('Route found but not in the same domain');
+      logger
+        .debug(`Route found but different domain ${basics.request.hostname}`);
       return basics.next();
     }
     return handler(basics);
