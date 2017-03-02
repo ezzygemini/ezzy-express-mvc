@@ -92,6 +92,17 @@ class Api extends Request {
   }
 
   /**
+   * Sends a server error message response.
+   * @param {HttpBasics} basics The http basics.
+   * @param {object=} metaData Additional meta data to send.
+   */
+  serverError(basics, metaData) {
+    this.sendStatus(basics, 500);
+    basics.response
+      .json(Api._decorateData(basics, 500, 'Server Error', metaData));
+  }
+
+  /**
    * Sends an unauthroized response.
    * @param {HttpBasics} basics The http basics.
    * @param {object=} metaData Additional meta data to send.
