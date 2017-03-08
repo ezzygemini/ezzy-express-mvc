@@ -9,28 +9,57 @@ class Request {
    */
   doRequest(basics) {
     const req = basics.request;
+
     logger.debug({
       title: 'Request',
       message: `${req.method} ${req.hostname} ${req.url}`
     });
+
+    const isForm = /multipart/i.test(basics.request.headers['content-type']);
+
     switch (req.method) {
       case 'GET':
-        this.doGet(basics);
+        return this.doGet(basics);
         break;
       case 'POST':
-        this.doPost(basics);
+        if(isForm){
+          return this.doPost(basics);
+        }else{
+          return basics.body()
+            .then(body => this.doPost(basics, body));
+        }
         break;
       case 'PATCH':
-        this.doPatch(basics);
+        if(isForm){
+          return this.doPatch(basics);
+        }else{
+          return basics.body()
+            .then(body => this.doPatch(basics, body));
+        }
         break;
       case 'DELETE':
-        this.doDelete(basics);
+        if(isForm){
+          return this.doDelete(basics);
+        }else{
+          return basics.body()
+            .then(body => this.doDelete(basics, body));
+        }
         break;
       case 'PUT':
-        this.doPut(basics);
+        if(isForm){
+          return this.doPut(basics);
+        }else{
+          return basics.body()
+            .then(body => this.doPut(basics, body));
+        }
         break;
       default:
-        this.badRequest(basics);
+        if(isForm){
+          return this.badRequest(basics);
+        }else{
+          return basics.body()
+            .then(body => this.badRequest(basics, body));
+        }
     }
   }
 
@@ -44,8 +73,9 @@ class Request {
   /**
    * Basic GET handler.
    * @param {HttpBasics} basics The http basics.
+   * @param {*=} data The data sent on the body.
    */
-  doGet(basics) {
+  doGet(basics, data) {
     this.sendStatus(basics, 501);
     basics.response.end();
   }
@@ -61,8 +91,9 @@ class Request {
   /**
    * Basic POST handler.
    * @param {HttpBasics} basics The http basics.
+   * @param {*=} data The data sent on the body.
    */
-  doPost(basics) {
+  doPost(basics, data) {
     this.sendStatus(basics, 501);
     basics.response.end();
   }
@@ -78,8 +109,9 @@ class Request {
   /**
    * Basic PATCH handler.
    * @param {HttpBasics} basics The http basics.
+   * @param {*=} data The data sent on the body.
    */
-  doPatch(basics) {
+  doPatch(basics, data) {
     this.sendStatus(basics, 501);
     basics.response.end();
   }
@@ -95,8 +127,9 @@ class Request {
   /**
    * Basic DELETE handler.
    * @param {HttpBasics} basics The http basics.
+   * @param {*=} data The data sent on the body.
    */
-  doDelete(basics) {
+  doDelete(basics, data) {
     this.sendStatus(basics, 501);
     basics.response.end();
   }
@@ -112,8 +145,9 @@ class Request {
   /**
    * Basic PUT handler.
    * @param {HttpBasics} basics The http basics.
+   * @param {*=} data The data sent on the body.
    */
-  doPut(basics) {
+  doPut(basics, data) {
     this.sendStatus(basics, 501);
     basics.response.end();
   }
