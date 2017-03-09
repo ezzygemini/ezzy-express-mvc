@@ -19,7 +19,7 @@ class Request {
 
     switch (req.method) {
       case 'GET':
-        return this.doGet(basics);
+        return this.doGet(basics, basics.request.query);
         break;
       case 'POST':
         if(isForm){
