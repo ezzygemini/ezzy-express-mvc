@@ -48,9 +48,14 @@ class ExpressMvc {
     this._directory = path.normalize(directory);
 
     /**
+     * The real express instance.
+     */
+    this._express = expr();
+
+    /**
      * The express instance.
      */
-    this.expressBasics = new ExpressBasics(expr());
+    this.expressBasics = new ExpressBasics(this._express);
 
     /**
      * The listening object.
@@ -588,6 +593,15 @@ class ExpressMvc {
    */
   put(...args) {
     return this.expressBasics.put.apply(this.expressBasics, args);
+  }
+
+  /**
+   * Applies a static route to the express application.
+   * @param {*} args The arguments to pass to the express instance.
+   * @returns {*}
+   */
+  static(...args) {
+    return this._express.static.apply(this._express, args);
   }
 
   /**
