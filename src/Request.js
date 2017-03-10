@@ -22,42 +22,47 @@ class Request {
         return this.doGet(basics, basics.request.query);
         break;
       case 'POST':
-        if(isForm){
+        if (isForm) {
           return this.doPost(basics);
-        }else{
+        } else {
           return basics.body()
+            .catch(() => basics.request.query)
             .then(body => this.doPost(basics, body));
         }
         break;
       case 'PATCH':
-        if(isForm){
+        if (isForm) {
           return this.doPatch(basics);
-        }else{
+        } else {
           return basics.body()
+            .catch(() => basics.request.query)
             .then(body => this.doPatch(basics, body));
         }
         break;
       case 'DELETE':
-        if(isForm){
+        if (isForm) {
           return this.doDelete(basics);
-        }else{
+        } else {
           return basics.body()
+            .catch(() => basics.request.query)
             .then(body => this.doDelete(basics, body));
         }
         break;
       case 'PUT':
-        if(isForm){
+        if (isForm) {
           return this.doPut(basics);
-        }else{
+        } else {
           return basics.body()
+            .catch(() => basics.request.query)
             .then(body => this.doPut(basics, body));
         }
         break;
       default:
-        if(isForm){
+        if (isForm) {
           return this.badRequest(basics);
-        }else{
+        } else {
           return basics.body()
+            .catch(() => basics.request.query)
             .then(body => this.badRequest(basics, body));
         }
     }
