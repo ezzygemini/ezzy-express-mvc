@@ -597,11 +597,12 @@ class ExpressMvc {
 
   /**
    * Applies a static route to the express application.
-   * @param {*} args The arguments to pass to the express instance.
+   * @param {string} dir The directory to bound as static.
    * @returns {*}
    */
-  static(...args) {
-    return this._express.static.apply(this._express, args);
+  static(dir) {
+    logger.debug({title: 'Static', message: 'Binding static app on ' + dir});
+    return this._static(dir);
   }
 
   /**
