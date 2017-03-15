@@ -1,6 +1,6 @@
 const Request = require('./Request');
 const API_CONTENT_TYPE = '*/*';
-const {version, name, description} = require('../../../package.json');
+const {version, name, description} = require('./package');
 
 /**
  * Basic API class

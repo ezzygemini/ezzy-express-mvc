@@ -7,13 +7,13 @@ describe('Api', () => {
 
   beforeAll(() => {
     logger.silence();
-    const expressMvc = new ExpressMvc(__dirname + '/../../root');
-    app = expressMvc.listen(9001);
+    app = new ExpressMvc(__dirname + '/../../root');
+    app.listen(9001);
   });
 
   it('should bind the api properly', done => {
-    app.then(app => {
-      request(app)
+    app.listener.then(listener => {
+      request(listener)
         .get('/apis/express')
         .expect(200, {
           success: true
@@ -23,8 +23,8 @@ describe('Api', () => {
   });
 
   it('should bind a second api properly', done => {
-    app.then(app => {
-      request(app)
+    app.listener.then(listener => {
+      request(listener)
         .get('/apis/secondExpress')
         .expect(200, {
           success: true
@@ -34,8 +34,8 @@ describe('Api', () => {
   });
 
   it('should obtain bad requests on methods not implemented (post)', done => {
-    app.then(app => {
-      request(app)
+    app.listener.then(listener => {
+      request(listener)
         .post('/apis/express')
         .expect(501)
         .end(e => e ? fail(e) : done());
@@ -43,8 +43,8 @@ describe('Api', () => {
   });
 
   it('should obtain bad requests on methods not implemented (patch)', done => {
-    app.then(app => {
-      request(app)
+    app.listener.then(listener => {
+      request(listener)
         .patch('/apis/express')
         .expect(501)
         .end(e => e ? fail(e) : done());
@@ -52,8 +52,8 @@ describe('Api', () => {
   });
 
   it('should obtain bad requests on methods not implemented (put)', done => {
-    app.then(app => {
-      request(app)
+    app.listener.then(listener => {
+      request(listener)
         .put('/apis/express')
         .expect(501)
         .end(e => e ? fail(e) : done());
@@ -61,8 +61,8 @@ describe('Api', () => {
   });
 
   it('should obtain bad requests on methods not implemented (delete)', done => {
-    app.then(app => {
-      request(app)
+    app.listener.then(listener => {
+      request(listener)
         .delete('/apis/express')
         .expect(501)
         .end(e => e ? fail(e) : done());
@@ -70,7 +70,7 @@ describe('Api', () => {
   });
 
   afterAll(() => {
-    app.then(app => app.close());
+    app.close();
     logger.talk();
   });
 

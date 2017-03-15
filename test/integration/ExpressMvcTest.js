@@ -7,15 +7,14 @@ describe('ExpressMvc', () => {
 
   beforeAll(() => {
     logger.silence();
-    const expressMvc =
-      new ExpressMvc(__dirname + '/../../root', /unknowndomain/);
-    expressMvc.bindExpressMvc(new ExpressMvc(__dirname + '/../../root2'));
-    app = expressMvc.listen(9002);
+    app = new ExpressMvc(__dirname + '/../../root', null, /unknowndomain/);
+    app.bindExpressMvc(__dirname + '/../../root2');
+    app.listen(9002);
   });
 
   it('should not render anything when called from a different domain', done => {
-    app.then(app => {
-      request(app)
+    app.listener.then(listener => {
+      request(listener)
         .get('/apis/secondExpress')
         .expect(404)
         .end(e => e ? fail(e) : done());
@@ -23,8 +22,8 @@ describe('ExpressMvc', () => {
   });
 
   it('should render from an alternate express app', done => {
-    app.then(app => {
-      request(app)
+    app.listener.then(listener => {
+      request(listener)
         .get('/apis/express')
         .expect(200, {
           success: true,
@@ -35,7 +34,7 @@ describe('ExpressMvc', () => {
   });
 
   afterAll(() => {
-    app.then(app => app.close());
+    app.close();
     logger.talk();
   });
 

@@ -17,16 +17,17 @@ const COMPASS_CMD = COMPASS +
   '--css-dir=css --sass-dir=scss --images-dir=images --trace';
 const CSS_REG = /\.css(\?.*)?$/;
 const fs = require('fs-plus');
-const {version} = require('../../../package.json');
+const {version} = require('./package');
 
 class ExpressMvc {
 
   /**
    * @param {string=} directory The directory of the mvc sources.
+   * @param {Function[]=} middleware Any middleware that's required.
    * @param {RegExp=} domainReg The regular expression for the domain.
    * @param {express=} expressVersion The express instance to be used.
    */
-  constructor(directory, domainReg = /.*/, expressVersion) {
+  constructor(directory, middleware, domainReg = /.*/, expressVersion) {
 
     /**
      * The express version we'll be using.
@@ -56,6 +57,13 @@ class ExpressMvc {
      * The express instance.
      */
     this.expressBasics = new ExpressBasics(this._express);
+
+    // Bind any middleware that's required.
+    if (middleware && middleware.length) {
+      middleware.forEach(handler => {
+        this.expressBasics.use(basics => this._domainHandle(basics, handler));
+      });
+    }
 
     /**
      * The listening object.
@@ -669,5 +677,4 @@ class ExpressMvc {
 
 }
 
-module
-  .exports = ExpressMvc;
+module.exports = ExpressMvc;
