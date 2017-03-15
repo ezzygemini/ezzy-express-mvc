@@ -59,10 +59,12 @@ class ExpressMvc {
     this.expressBasics = new ExpressBasics(this._express);
 
     // Bind any middleware that's required.
-    if (middleware && middleware.length) {
-      middleware.forEach(handler => {
-        this.expressBasics.use(basics => this._domainHandle(basics, handler));
-      });
+    if (middleware) {
+      (typeof middleware === 'function' ? [middleware] : middleware)
+        .forEach(handle => {
+          logger.debug('Middleware', 'Binding middleware on ' + domainReg);
+          this.expressBasics.use(basics => this._domainHandle(basics, handle));
+        });
     }
 
     /**
@@ -654,7 +656,7 @@ class ExpressMvc {
    * Binds another express MVC application.
    * @param {string} dir The directory to use.
    * @param {RegExp=} reg The regular expression to use.
-   * @param {express} exp The express version to use.
+   * @param {express=} exp The express version to use.
    * @returns {Promise.<ExpressMvc>}
    */
   bindExpressMvc(dir, reg, exp) {

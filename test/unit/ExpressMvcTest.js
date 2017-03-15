@@ -6,9 +6,9 @@ describe('Express MVC', () => {
 
   beforeAll(() => logger.silence());
 
-  beforeEach(() => expressMvc = new ExpressMvc(__dirname + '/../../root'));
-
   it('should be able to traverse and find controllers', done => {
+
+    expressMvc = new ExpressMvc(__dirname + '/../../root');
 
     expressMvc.controllers
       .then(controllers => expect(controllers.length).toBe(2))
