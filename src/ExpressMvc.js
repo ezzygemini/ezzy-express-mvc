@@ -655,13 +655,14 @@ class ExpressMvc {
   /**
    * Binds another express MVC application.
    * @param {string} dir The directory to use.
+   * @param {Function[]=} middleware The middleware to bind.
    * @param {RegExp=} reg The regular expression to use.
    * @param {express=} exp The express version to use.
    * @returns {Promise.<ExpressMvc>}
    */
-  bindExpressMvc(dir, reg, exp) {
-    return this.promise.then(() => new ExpressMvc(dir, reg, exp).promise
-      .then(app => this.express.use(app.express)));
+  bindExpressMvc(dir, middleware, reg, exp) {
+    return this.promise.then(() => new ExpressMvc(dir, middleware, reg, exp)
+      .promise.then(app => this.express.use(app.express)));
   }
 
   /**
