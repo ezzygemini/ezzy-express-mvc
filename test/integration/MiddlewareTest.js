@@ -3,13 +3,12 @@ const request = require('testing/request');
 const logger = require('logger').logger;
 let app;
 
-describe('Middleware', () => {
+xdescribe('Middleware', () => {
 
   beforeAll(() => {
     logger.silence();
     app = new ExpressMvc(__dirname + '/../../root', basics => {
       basics.request.client = 'some client';
-      logger.highlight(basics);
       basics.next();
     });
     app.listen(9002);
@@ -24,8 +23,8 @@ describe('Middleware', () => {
             return fail(e);
           }
           expect(body.text).toContain('<b>some client</b>');
-          done();
-        });
+        })
+        .end(e => e ? fail(e) : done());
     });
   });
 
@@ -35,3 +34,4 @@ describe('Middleware', () => {
   });
 
 });
+

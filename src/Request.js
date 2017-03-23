@@ -16,6 +16,8 @@ class Request {
     });
 
     const isForm = /multipart/i.test(basics.request.headers['content-type']);
+    const qry = () => basics.request.params.path ?
+      basics.request.params.path.split('+') : basics.request.query;
 
     switch (req.method) {
       case 'GET':
@@ -26,7 +28,7 @@ class Request {
           return this.doPost(basics);
         } else {
           return basics.body()
-            .catch(() => basics.request.query)
+            .catch(qry)
             .then(body => this.doPost(basics, body));
         }
         break;
@@ -35,7 +37,7 @@ class Request {
           return this.doPatch(basics);
         } else {
           return basics.body()
-            .catch(() => basics.request.query)
+            .catch(qry)
             .then(body => this.doPatch(basics, body));
         }
         break;
@@ -44,7 +46,7 @@ class Request {
           return this.doDelete(basics);
         } else {
           return basics.body()
-            .catch(() => basics.request.query)
+            .catch(qry)
             .then(body => this.doDelete(basics, body));
         }
         break;
@@ -53,7 +55,7 @@ class Request {
           return this.doPut(basics);
         } else {
           return basics.body()
-            .catch(() => basics.request.query)
+            .catch(qry)
             .then(body => this.doPut(basics, body));
         }
         break;
@@ -62,7 +64,7 @@ class Request {
           return this.badRequest(basics);
         } else {
           return basics.body()
-            .catch(() => basics.request.query)
+            .catch(qry)
             .then(body => this.badRequest(basics, body));
         }
     }

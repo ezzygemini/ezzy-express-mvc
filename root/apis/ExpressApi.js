@@ -12,6 +12,10 @@ class ExpressApi extends Api {
     });
   }
 
+  doPut(basics, data) {
+    basics.response.json({data});
+  }
+
 }
 
 module.exports = ExpressApi;

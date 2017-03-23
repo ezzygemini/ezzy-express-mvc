@@ -60,11 +60,16 @@ class ExpressMvc {
 
     // Bind any middleware that's required.
     if (middleware) {
-      (typeof middleware === 'function' ? [middleware] : middleware)
-        .forEach(handle => {
-          logger.debug('Middleware', 'Binding middleware on ' + domainReg);
-          this.expressBasics.use(basics => this._domainHandle(basics, handle));
-        });
+      this._middleware = new Promise(resolve => {
+        (typeof middleware === 'function' ? [middleware] : middleware)
+          .forEach(handle => {
+            logger.debug('Middleware', 'Binding middleware on ' + domainReg);
+            this.expressBasics.use(basics => this._domainHandle(basics, handle));
+          });
+        resolve(true);
+      });
+    }else{
+      this._middleware = Promise.resolve(true);
     }
 
     /**
@@ -472,7 +477,7 @@ class ExpressMvc {
     const context = dirName + (!dirName || dirName === '/' ? '' : '/') +
       path.basename(file)
         .replace(/^(.)(.*)Api\.js$/i, (a, b, c) => b.toLowerCase() + c);
-    this.expressBasics.use(context, basics =>
+    this.expressBasics.use([context + '/:path', context], basics =>
       this._domainHandle(basics, basics => api.doRequest(basics)));
     logger.debug({
       title: 'API',
@@ -648,7 +653,7 @@ class ExpressMvc {
    * @returns {Promise.<ExpressMvc>}
    */
   get promise() {
-    return Promise.all([this._controllers, this._apis])
+    return Promise.all([this._middleware, this._controllers, this._apis])
       .then(() => this);
   }
 

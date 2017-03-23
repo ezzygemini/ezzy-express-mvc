@@ -54,7 +54,7 @@ describe('Api', () => {
   it('should obtain bad requests on methods not implemented (put)', done => {
     app.listener.then(listener => {
       request(listener)
-        .put('/apis/express')
+        .patch('/apis/express')
         .expect(501)
         .end(e => e ? fail(e) : done());
     });
@@ -67,6 +67,15 @@ describe('Api', () => {
         .expect(501)
         .end(e => e ? fail(e) : done());
     });
+  });
+
+  it('should forward parameters as query params', done => {
+    app.listener.then(listener => {
+      request(listener)
+        .put('/apis/express/abc+def')
+        .expect(200, {data: ['abc','def']})
+        .end(e => e ? fail(e) : done());
+    })
   });
 
   afterAll(() => {
