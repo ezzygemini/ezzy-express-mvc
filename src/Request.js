@@ -21,7 +21,7 @@ class Request {
 
     switch (req.method) {
       case 'GET':
-        return this.doGet(basics, basics.request.query);
+        return this.doGet(basics, qry());
         break;
       case 'POST':
         if (isForm) {
