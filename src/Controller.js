@@ -92,7 +92,7 @@ class Controller extends Request {
         const Model = this._model;
         const model = new Model(basics);
         dataPromise = model.getData(basics)
-          .then(model => Object.assign(basics, {[this._modelName]: model}));
+          .then(model => ({model, [this._modelName]: model}));
       } catch (e) {
         logger.error(e);
         dataPromise = Promise.resolve(basics);
