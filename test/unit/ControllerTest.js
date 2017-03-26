@@ -18,6 +18,16 @@ describe('Controller', () => {
       });
   });
 
+  it('should contain a proper partial from the partials directory', done => {
+    expressMvc.getController('MyController')
+      .then(controller => {
+        controller.render().then(data => {
+          expect(data).toContain('<i>Testing Partial</i>');
+          done();
+        })
+      })
+  });
+
   afterAll(() => logger.talk());
 
 });

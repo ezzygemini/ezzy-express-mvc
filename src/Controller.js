@@ -1,5 +1,4 @@
 const Request = require('./Request');
-const handlebars = require('./handlebars');
 const fsPlus = require('fs-plus');
 const error500 = fsPlus.readFilePromise(__dirname + '/../errors/500.hbs');
 const error404 = fsPlus.readFilePromise(__dirname + '/../errors/404.hbs');
@@ -15,8 +14,9 @@ class Controller extends Request {
    * @param {string} viewFile The raw path of the view template.
    * @param {Model} model The model to be used when rendering.
    * @param {string} modelName The name of the model.
+   * @param {Promise.<Handlebars>} hbs The handlebars instance.
    */
-  constructor(viewFile, model, modelName) {
+  constructor(viewFile, model, modelName, hbs) {
     super();
 
     /**
@@ -39,6 +39,13 @@ class Controller extends Request {
      * @private
      */
     this._modelName = modelName;
+
+    /**
+     * The instance of handlebars to use for rendering.
+     * @type {object}
+     * @private
+     */
+    this._hbs = hbs;
   }
 
   /**
@@ -112,7 +119,8 @@ class Controller extends Request {
           contentPromise = fsPlus.readFilePromise(this._viewFile);
         }
         return contentPromise
-          .then(content => handlebars.compile(content.toString()));
+          .then(content => this._hbs
+            .then(hbs => hbs.compile(content.toString())));
       }, environment.development ? 100 : 0)
       .then(template => {
         try {

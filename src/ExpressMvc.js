@@ -3,6 +3,7 @@ const logger = require('logger').logger;
 const recursive = require('recursive-fs');
 const path = require('path');
 const Api = require('./Api');
+const handlebars = require('./handlebars');
 const Controller = require('./Controller');
 const CONTROLLER_REG = /^((.*[\/\\])(.)(.*))(Ctrl|Controller)(\.js)$/i;
 const JS_EXT_REG = /\.js$/i;
@@ -52,6 +53,12 @@ class ExpressMvc {
      * The real express instance.
      */
     this._express = expr();
+
+    /**
+     * The handlebars instance to use for rendering.
+     * @type {Promise.<Handlebars>}
+     */
+    this._hbs = handlebars(directory);
 
     /**
      * The express instance.
@@ -157,7 +164,7 @@ class ExpressMvc {
             }
 
             const Ctrl = require(file);
-            const ctrl = new Ctrl(viewFile, Model, modelName);
+            const ctrl = new Ctrl(viewFile, Model, modelName, this._hbs);
             const ctrlKey = path.basename(file).replace(JS_EXT_REG, '');
 
             cache.getLibrary('controllers').add(ctrlKey, ctrl);
