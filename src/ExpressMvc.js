@@ -204,7 +204,8 @@ class ExpressMvc {
     const context = this._getAbsPath(path.dirname(file));
 
     if (context) {
-      this.expressBasics.use([context, context + '/'], handler);
+      this.expressBasics
+        .use([context + '/:path', context, context + '/'], handler);
     } else {
       this.expressBasics.use(handler);
     }

@@ -17,7 +17,7 @@ class Request {
 
     const isForm = /multipart/i.test(basics.request.headers['content-type']);
     const qry = () => basics.request.params.path ?
-      basics.request.params.path.split('+') : basics.request.query;
+      basics.request.params.path : basics.request.query;
 
     switch (req.method) {
       case 'GET':
