@@ -2,7 +2,7 @@ const Model = require('../src/Model');
 
 class MyModel extends Model {
 
-  data(basics) {
+  getData(basics) {
     return Promise.resolve({
       title: 'Hello World',
       client: ((basics || {}).request || {}).client

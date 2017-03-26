@@ -7,7 +7,7 @@ class Model {
    * @param {HttpBasics} basics The HTTP basics.
    * @returns {Promise.<Model>}
    */
-  data(basics) {
+  getData(basics) {
     return Promise.resolve(this);
   }
 
