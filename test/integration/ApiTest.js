@@ -73,7 +73,7 @@ describe('Api', () => {
     app.listener.then(listener => {
       request(listener)
         .put('/apis/express/abc+def')
-        .expect(200, {data: ['abc','def']})
+        .expect(200, {data:'abc+def'})
         .end(e => e ? fail(e) : done());
     })
   });
