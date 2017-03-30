@@ -20,8 +20,9 @@ class Request {
       if (basics.request.params.path) {
         return isNaN(basics.request.params.path) ?
           basics.request.params.path : parseFloat(basics.request.params.path);
+      } else if (basics.request.originalUrl.indexOf('?') > -1) {
+        return basics.request.query;
       }
-      return basics.request.query;
     };
 
     switch (req.method) {
