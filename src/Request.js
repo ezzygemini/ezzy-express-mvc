@@ -16,8 +16,13 @@ class Request {
     });
 
     const isForm = /multipart/i.test(basics.request.headers['content-type']);
-    const qry = () => basics.request.params.path ?
-      basics.request.params.path : basics.request.query;
+    const qry = () => {
+      if (basics.request.params.path) {
+        return isNaN(basics.request.params.path) ?
+          basics.request.params.path : parseFloat(basics.request.params.path);
+      }
+      return basics.request.query;
+    };
 
     switch (req.method) {
       case 'GET':
