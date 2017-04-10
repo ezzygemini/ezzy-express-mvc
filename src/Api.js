@@ -64,9 +64,8 @@ class Api extends Request {
    * @returns {Object}
    */
   static _decorateData(basics, status, data, metaData = {}) {
-    return Object.assign(metaData, {
-      data, status, name, version, description
-    });
+    return Object
+      .assign({data}, metaData, {status, name, version, description});
   }
 
   /**
