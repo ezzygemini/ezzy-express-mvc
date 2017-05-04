@@ -59,57 +59,61 @@ class Api extends Request {
    * Decorates the data as an API call.
    * @param {HttpBasics} basics The http basics.
    * @param {number} status The http status.
-   * @param {*} data The data to use.
-   * @param {Object} metaData Additional meta data to send.
-   * @returns {Object}
+   * @param {Object} headers Additional headers that will be appended.
    */
-  static _decorateData(basics, status, data, metaData = {}) {
-    return Object
-      .assign({data}, metaData, {status, name, version, description});
+  static _decorateRequest(basics, status, headers = {}) {
+    Object.assign(headers, {status, name, version, description});
+    let header;
+    for (let prop in headers) {
+      if (headers.hasOwnProperty(prop)) {
+        basics.response.set(`x-${prop}`, headers[prop]);
+      }
+    }
   }
 
   /**
    * Sends the requested data to the browser.
    * @param {HttpBasics} basics The http basics.
    * @param {*} data The data to send.
-   * @param {object=} metaData Additional meta data to send.
+   * @param {object=} headers Additional headers to send.
    */
-  sendData(basics, data, metaData) {
+  sendData(basics, data, headers) {
     this.sendStatus(basics, 200);
-    basics.response.json(Api._decorateData(basics, 200, data, metaData));
+    Api._decorateRequest(basics, 200, headers);
+    basics.response.json(data);
   }
 
   /**
    * Sends a bad-request message response.
    * @param {HttpBasics} basics The http basics.
-   * @param {object=} metaData Additional meta data to send.
+   * @param {object=} headers Additional headers to send.
    */
-  badRequest(basics, metaData) {
+  badRequest(basics, headers) {
     this.sendStatus(basics, 400);
-    basics.response
-      .json(Api._decorateData(basics, 400, 'Bad Request', metaData));
+    Api._decorateRequest(basics, 400, headers);
+    basics.response.json(data);
   }
 
   /**
    * Sends a server error message response.
    * @param {HttpBasics} basics The http basics.
-   * @param {object=} metaData Additional meta data to send.
+   * @param {object=} headers Additional headers to send.
    */
-  serverError(basics, metaData) {
+  serverError(basics, headers) {
     this.sendStatus(basics, 500);
-    basics.response
-      .json(Api._decorateData(basics, 500, 'Server Error', metaData));
+    Api._decorateRequest(basics, 500, headers);
+    basics.response.json('Server Error');
   }
 
   /**
    * Sends an unauthroized response.
    * @param {HttpBasics} basics The http basics.
-   * @param {object=} metaData Additional meta data to send.
+   * @param {object=} headers Additional headers to send.
    */
-  unauthorized(basics, metaData) {
+  unauthorized(basics, headers) {
     this.sendStatus(basics, 401);
-    basics.response
-      .json(Api._decorateData(basics, 401, 'Unauthorized', metaData));
+    Api._decorateRequest(basics, 401, headers);
+    basics.response.json('Unauthorized');
   }
 
 }

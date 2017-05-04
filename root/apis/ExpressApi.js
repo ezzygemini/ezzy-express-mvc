@@ -7,8 +7,10 @@ class ExpressApi extends Api {
   }
 
   doGet(basics) {
-    basics.response.json({
+    this.sendData(basics, {
       success: true
+    }, {
+      test: 1
     });
   }
 

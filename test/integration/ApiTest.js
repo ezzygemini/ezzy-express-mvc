@@ -18,6 +18,7 @@ describe('Api', () => {
         .expect(200, {
           success: true
         })
+        .expect('x-test', '1')
         .end(e => e ? fail(e) : done());
     });
   });
