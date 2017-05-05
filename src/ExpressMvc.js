@@ -26,16 +26,17 @@ class ExpressMvc {
    * @param {string=} directory The directory of the mvc sources.
    * @param {Function[]=} middleware Any middleware that's required.
    * @param {RegExp=} domainReg The regular expression for the domain.
-   * @param {express=} expressVersion The express instance to be used.
+   * @param {string[]=} statics The static routes to assign before anything.
+   * @param {express=} expressDep The express instance to be used.
    */
-  constructor(directory, middleware, domainReg = /.*/, expressVersion) {
+  constructor(directory, middleware, domainReg = /.*/, statics, expressDep) {
 
     /**
      * The express version we'll be using.
      * @type {*}
      * @private
      */
-    const expr = expressVersion || express;
+    const expr = expressDep || express;
 
     /**
      * The regular expression that will match the domain.
@@ -53,6 +54,12 @@ class ExpressMvc {
      * The real express instance.
      */
     this._express = expr();
+
+    // Bind the static routes.
+    if (statics) {
+      (Array.isArray(statics) ? statics : [statics])
+        .forEach(dir => this._express.use(expr.static(path.normalize(dir))));
+    }
 
     /**
      * The handlebars instance to use for rendering.
@@ -75,7 +82,7 @@ class ExpressMvc {
           });
         resolve(true);
       });
-    }else{
+    } else {
       this._middleware = Promise.resolve(true);
     }
 

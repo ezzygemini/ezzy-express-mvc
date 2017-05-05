@@ -7,6 +7,7 @@
     "url": "git@github.com:ezzygemini/express-mvc.git"
   },
   "scripts": {
+    "pretest": "npm install",
     "test": "node node_modules/testing"
   },
   "license": "MIT",

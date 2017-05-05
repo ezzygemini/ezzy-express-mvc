@@ -7,9 +7,21 @@ describe('ExpressMvc', () => {
 
   beforeAll(() => {
     logger.silence();
-    app = new ExpressMvc(__dirname + '/../../root', null, /unknowndomain/);
+    app = new ExpressMvc(__dirname + '/../../root', null,
+      /unknowndomain/, __dirname + '/../../root/assets/');
     app.bindExpressMvc(__dirname + '/../../root2');
     app.listen(9002);
+  });
+
+  it('should have bound static assets before the application', done => {
+    app.listener.then(listener => {
+      request(listener)
+        .get('/someDir/test.json')
+        .expect(200, {
+          hello: "world"
+        })
+        .end(e => e ? fail(e) : done());
+    });
   });
 
   it('should not render anything when called from a different domain', done => {
