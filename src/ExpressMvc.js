@@ -26,7 +26,8 @@ class ExpressMvc {
    * @param {string=} directory The directory of the mvc sources.
    * @param {Function[]=} middleware Any middleware that's required.
    * @param {RegExp=} domainReg The regular expression for the domain.
-   * @param {string[]=} statics The static routes to assign before anything.
+   * @param {string[]|string=} statics The static routes to assign before anything.
+   * Note: These routes are directories matching the context of the
    * @param {express=} expressDep The express instance to be used.
    */
   constructor(directory, middleware, domainReg = /.*/, statics, expressDep) {
@@ -55,12 +56,6 @@ class ExpressMvc {
      */
     this._express = expr();
 
-    // Bind the static routes.
-    if (statics) {
-      (Array.isArray(statics) ? statics : [statics])
-        .forEach(dir => this._express.use(expr.static(path.normalize(dir))));
-    }
-
     /**
      * The handlebars instance to use for rendering.
      * @type {Promise.<Handlebars>}
@@ -71,20 +66,6 @@ class ExpressMvc {
      * The express instance.
      */
     this.expressBasics = new ExpressBasics(this._express);
-
-    // Bind any middleware that's required.
-    if (middleware) {
-      this._middleware = new Promise(resolve => {
-        (typeof middleware === 'function' ? [middleware] : middleware)
-          .forEach(handle => {
-            logger.debug('Middleware', 'Binding middleware on ' + domainReg);
-            this.expressBasics.use(basics => this._domainHandle(basics, handle));
-          });
-        resolve(true);
-      });
-    } else {
-      this._middleware = Promise.resolve(true);
-    }
 
     /**
      * The listening object.
@@ -98,7 +79,7 @@ class ExpressMvc {
      *
      * @type {Promise}
      */
-    const allJsFiles = new Promise((resolve, reject) => {
+    const allFiles = new Promise((resolve, reject) => {
       recursive.readdirr(this._directory, (e, dirs, files) => {
         if (e) {
           logger.error(e);
@@ -110,17 +91,56 @@ class ExpressMvc {
         if (files) {
           logger.debug({title: 'All Files', message: files});
         }
-        resolve(files);
+        resolve({files, dirs});
       });
     });
+
+    // Bind static paths
+    this._staticRoutes = !statics ? Promise.resolve(true) : allFiles
+      .then(({dirs}) => {
+
+        statics = (Array.isArray(statics) ? statics : [statics])
+          .map(route => path.normalize(this._directory + '/' + route + '/')
+            .replace(/\/$/, ''));
+
+        const staticFolders =
+          dirs.filter(folder => statics.indexOf(folder) > -1);
+
+        let context;
+        staticFolders.forEach(folder => {
+          context = '/' + path.relative(this._directory, folder);
+          logger.debug('Static Route', `Binding ${folder} to ${context}`);
+          this._express.use(context, expr.static(folder));
+        });
+
+        if (staticFolders.length !== statics.length) {
+          logger.warn('Static Routes',
+            `You defined ${statics.length} static routes, but we ` +
+            `found ${staticFolders.length} folders.`);
+          logger.warn('Static Routes', 'Routes', statics);
+          logger.warn('Static Routes', 'Folders', dirs);
+        }
+
+      });
+
+    // Bind any middleware that's required.
+    this._middleware = !middleware ? Promise.resolve(true) : allFiles
+      .then(() => {
+        (typeof middleware === 'function' ? [middleware] : middleware)
+          .forEach(handle => {
+            logger.debug('Middleware', 'Binding middleware on ' + domainReg);
+            this.expressBasics
+              .use(basics => this._domainHandle(basics, handle));
+          });
+      });
 
     /**
      * The apis found in the directory.
      * @type {Promise.<Api[]>}
      * @private
      */
-    this._apis = allJsFiles
-      .then(files => files.filter(file => /Api\.js$/.test(file))
+    this._apis = allFiles
+      .then(({files}) => files.filter(file => /Api\.js$/.test(file))
         .map(file => {
           try {
 
@@ -144,8 +164,8 @@ class ExpressMvc {
      * @type {Promise.<Controller[]>}
      * @private
      */
-    this._controllers = allJsFiles
-      .then(files => files
+    this._controllers = allFiles
+      .then(({files}) => files
         .filter(file => CONTROLLER_REG.test(file))
         .map(file => {
           file = file.toString();
@@ -668,8 +688,12 @@ class ExpressMvc {
    * @returns {Promise.<ExpressMvc>}
    */
   get promise() {
-    return Promise.all([this._middleware, this._controllers, this._apis])
-      .then(() => this);
+    return Promise.all([
+      this._staticRoutes,
+      this._middleware,
+      this._controllers,
+      this._apis
+    ]).then(() => this);
   }
 
   /**

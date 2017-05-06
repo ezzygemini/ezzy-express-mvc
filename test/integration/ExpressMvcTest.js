@@ -8,7 +8,7 @@ describe('ExpressMvc', () => {
   beforeAll(() => {
     logger.silence();
     app = new ExpressMvc(__dirname + '/../../root', null,
-      /unknowndomain/, __dirname + '/../../root/assets/');
+      /unknowndomain/, '/assets/');
     app.bindExpressMvc(__dirname + '/../../root2');
     app.listen(9002);
   });
@@ -16,7 +16,7 @@ describe('ExpressMvc', () => {
   it('should have bound static assets before the application', done => {
     app.listener.then(listener => {
       request(listener)
-        .get('/someDir/test.json')
+        .get('/assets/someDir/test.json')
         .expect(200, {
           hello: "world"
         })
