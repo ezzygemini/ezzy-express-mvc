@@ -26,8 +26,9 @@ class ExpressMvc {
    * @param {string=} directory The directory of the mvc sources.
    * @param {Function[]=} middleware Any middleware that's required.
    * @param {RegExp=} domainReg The regular expression for the domain.
-   * @param {string[]|string=} statics The static routes to assign before anything.
-   * Note: These routes are directories matching the context of the
+   * @param {string[]|string=} statics The static routes to assign before
+   * anything. Note: These routes are directories matching the context of the
+   * folders within the application.
    * @param {express=} expressDep The express instance to be used.
    */
   constructor(directory, middleware, domainReg = /.*/, statics, expressDep) {
