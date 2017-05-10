@@ -18,6 +18,14 @@ class ExpressApi extends Api {
     basics.response.json({data});
   }
 
+  authPost(basics){
+    return false;
+  }
+
+  doPatch(basics){
+    throw "Error";
+  }
+
 }
 
 module.exports = ExpressApi;

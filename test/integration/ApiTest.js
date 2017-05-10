@@ -34,29 +34,20 @@ describe('Api', () => {
     });
   });
 
-  it('should obtain bad requests on methods not implemented (post)', done => {
+  it('should obtain an unauthorized response on restricted method', done => {
     app.listener.then(listener => {
       request(listener)
         .post('/apis/express')
-        .expect(501)
+        .expect(401)
         .end(e => e ? fail(e) : done());
     });
   });
 
-  it('should obtain bad requests on methods not implemented (patch)', done => {
+  it('should obtain a server error when an error occurs', done => {
     app.listener.then(listener => {
       request(listener)
         .patch('/apis/express')
-        .expect(501)
-        .end(e => e ? fail(e) : done());
-    });
-  });
-
-  it('should obtain bad requests on methods not implemented (put)', done => {
-    app.listener.then(listener => {
-      request(listener)
-        .patch('/apis/express')
-        .expect(501)
+        .expect(500)
         .end(e => e ? fail(e) : done());
     });
   });
