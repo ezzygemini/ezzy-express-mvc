@@ -15,6 +15,10 @@ class Request {
       message: `${req.method} ${req.hostname} ${req.url}`
     });
 
+    if (!this.auth(basics)) {
+      return this.unauthorized(basics);
+    }
+
     const isForm = /multipart/i.test(basics.request.headers['content-type']);
     const qry = () => {
       if (basics.request.params.path) {
@@ -138,6 +142,15 @@ class Request {
    * @returns {*}
    */
   get options() {
+  }
+
+  /**
+   * Authorizes the request of all methods.
+   * @param {HttpBasics} basics The http basics.
+   * @returns {boolean}
+   */
+  auth(basics) {
+    return true;
   }
 
   /**
