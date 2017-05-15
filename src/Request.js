@@ -15,6 +15,10 @@ class Request {
       message: `${req.method} ${req.hostname} ${req.url}`
     });
 
+    if (!this.auth(basics)) {
+      return this.unauthorized(basics);
+    }
+
     const isForm = /multipart/i.test(basics.request.headers['content-type']);
     const qry = () => {
       if (basics.request.params.path) {
@@ -27,52 +31,109 @@ class Request {
 
     switch (req.method) {
       case 'GET':
-        return this.doGet(basics, qry());
+
+        if (this.authGet(basics)) {
+          return this.doGet(basics, qry());
+        } else {
+          return this.unauthorized(basics);
+        }
+
         break;
       case 'POST':
-        if (isForm) {
-          return this.doPost(basics);
+
+        if (this.authPost(basics)) {
+          if (isForm) {
+            return this.doPost(basics);
+          } else {
+            return basics.body()
+              .catch(qry)
+              .then(body => {
+                try {
+                  return this.doPost(basics, body);
+                } catch (e) {
+                  return this.serverError(basics);
+                }
+              });
+          }
         } else {
-          return basics.body()
-            .catch(qry)
-            .then(body => this.doPost(basics, body));
+          return this.unauthorized(basics);
         }
+
         break;
       case 'PATCH':
-        if (isForm) {
-          return this.doPatch(basics);
+
+        if (this.authPatch(basics)) {
+          if (isForm) {
+            return this.doPatch(basics);
+          } else {
+            return basics.body()
+              .catch(qry)
+              .then(body => {
+                try {
+                  return this.doPatch(basics, body);
+                } catch (e) {
+                  return this.serverError(basics);
+                }
+              });
+          }
         } else {
-          return basics.body()
-            .catch(qry)
-            .then(body => this.doPatch(basics, body));
+          return this.unauthorized(basics);
         }
+
         break;
       case 'DELETE':
-        if (isForm) {
-          return this.doDelete(basics);
+
+        if (this.authDelete(basics)) {
+          if (isForm) {
+            return this.doDelete(basics);
+          } else {
+            return basics.body()
+              .catch(qry)
+              .then(body => {
+                try {
+                  return this.doDelete(basics, body);
+                } catch (e) {
+                  return this.serverError(basics);
+                }
+              });
+          }
         } else {
-          return basics.body()
-            .catch(qry)
-            .then(body => this.doDelete(basics, body));
+          return this.unauthorized(basics);
         }
+
         break;
       case 'PUT':
-        if (isForm) {
-          return this.doPut(basics);
+
+        if (this.authPut(basics)) {
+          if (isForm) {
+            return this.doPut(basics);
+          } else {
+            return basics.body()
+              .catch(qry)
+              .then(body => {
+                try {
+                  return this.doPut(basics, body);
+                } catch (e) {
+                  return this.serverError(basics);
+                }
+              });
+          }
         } else {
-          return basics.body()
-            .catch(qry)
-            .then(body => this.doPut(basics, body));
+          return this.unauthorized(basics);
         }
+
         break;
       default:
+
         if (isForm) {
           return this.badRequest(basics);
         } else {
           return basics.body()
             .catch(qry)
-            .then(body => this.badRequest(basics, body));
+            .then(body => this.badRequest(basics, body)
+              .catch(e => this.serverError(basics)));
         }
+
     }
   }
 
@@ -81,6 +142,24 @@ class Request {
    * @returns {*}
    */
   get options() {
+  }
+
+  /**
+   * Authorizes the request of all methods.
+   * @param {HttpBasics} basics The http basics.
+   * @returns {boolean}
+   */
+  auth(basics) {
+    return true;
+  }
+
+  /**
+   * Authorizes the request and checks if we can continue with a GET request.
+   * @param {HttpBasics} basics The http basics.
+   * @returns {boolean}
+   */
+  authGet(basics) {
+    return true;
   }
 
   /**
@@ -102,6 +181,15 @@ class Request {
   }
 
   /**
+   * Authorizes the request and checks if we can continue with a POST request.
+   * @param {HttpBasics} basics The http basics.
+   * @returns {boolean}
+   */
+  authPost(basics) {
+    return true;
+  }
+
+  /**
    * Basic POST handler.
    * @param {HttpBasics} basics The http basics.
    * @param {*=} data The data sent on the body.
@@ -117,6 +205,15 @@ class Request {
    */
   get acceptPost() {
     return DEFAULT_CONTENT_TYPE;
+  }
+
+  /**
+   * Authorizes the request and checks if we can continue with a PATCH request.
+   * @param {HttpBasics} basics The http basics.
+   * @returns {boolean}
+   */
+  authPatch(basics) {
+    return true;
   }
 
   /**
@@ -138,6 +235,15 @@ class Request {
   }
 
   /**
+   * Authorizes the request and checks if we can continue with a DELETE request.
+   * @param {HttpBasics} basics The http basics.
+   * @returns {boolean}
+   */
+  authDelete(basics) {
+    return true;
+  }
+
+  /**
    * Basic DELETE handler.
    * @param {HttpBasics} basics The http basics.
    * @param {*=} data The data sent on the body.
@@ -153,6 +259,15 @@ class Request {
    */
   get acceptDelete() {
     return DEFAULT_CONTENT_TYPE;
+  }
+
+  /**
+   * Authorizes the request and checks if we can continue with a PUT request.
+   * @param {HttpBasics} basics The http basics.
+   * @returns {boolean}
+   */
+  authPut(basics) {
+    return true;
   }
 
   /**
@@ -185,6 +300,30 @@ class Request {
       logger.debug(`Sending ${status} status`);
     }
     basics.response.status(status);
+  }
+
+  /**
+   * Sends a bad-request message response.
+   * @param {HttpBasics} basics The http basics.
+   */
+  badRequest(basics) {
+    return this.sendStatus(basics, 400);
+  }
+
+  /**
+   * Sends an unauthorized message response.
+   * @param {HttpBasics} basics The http basics.
+   */
+  unauthorized(basics) {
+    return this.sendStatus(basics, 400);
+  }
+
+  /**
+   * Sends a server-error message response.
+   * @param {HttpBasics} basics The http basics.
+   */
+  serverError(basics) {
+    return this.sendStatus(basics, 500);
   }
 
 }
