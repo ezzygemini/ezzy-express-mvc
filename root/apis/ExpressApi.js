@@ -15,7 +15,12 @@ class ExpressApi extends Api {
   }
 
   doPut(basics, data) {
-    basics.response.json({data});
+    this.sendData(basics, {data});
+    // basics.response.json({data});
+  }
+
+  doDelete(basics, error) {
+    this[error](basics);
   }
 
 }
