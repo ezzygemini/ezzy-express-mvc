@@ -16,7 +16,6 @@ class ExpressApi extends Api {
 
   doPut(basics, data) {
     this.sendData(basics, {data});
-    // basics.response.json({data});
   }
 
   doDelete(basics, error) {
@@ -28,7 +27,7 @@ class ExpressApi extends Api {
   }
 
   doPatch(basics){
-    throw "Error";
+    throw "SomeError";
   }
 
 }

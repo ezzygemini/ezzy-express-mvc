@@ -12,11 +12,11 @@ class Request {
 
     logger.debug({
       title: 'Request',
-      message: `${req.method} ${req.hostname} ${req.url}`
+      message: `${req.method} ${req.hostname} ${req.originalUrl}`
     });
 
     if (!this.auth(basics)) {
-      return this.unauthorized(basics);
+      return this.unauthorizedError(basics);
     }
 
     const isForm = /multipart/i.test(basics.request.headers['content-type']);
@@ -35,7 +35,7 @@ class Request {
         if (this.authGet(basics)) {
           return this.doGet(basics, qry());
         } else {
-          return this.unauthorized(basics);
+          return this.unauthorizedError(basics);
         }
 
         break;
@@ -51,12 +51,12 @@ class Request {
                 try {
                   return this.doPost(basics, body);
                 } catch (e) {
-                  return this.serverError(basics);
+                  return this.internalServerError(basics);
                 }
               });
           }
         } else {
-          return this.unauthorized(basics);
+          return this.unauthorizedError(basics);
         }
 
         break;
@@ -72,12 +72,12 @@ class Request {
                 try {
                   return this.doPatch(basics, body);
                 } catch (e) {
-                  return this.serverError(basics);
+                  return this.internalServerError(basics);
                 }
               });
           }
         } else {
-          return this.unauthorized(basics);
+          return this.unauthorizedError(basics);
         }
 
         break;
@@ -93,12 +93,12 @@ class Request {
                 try {
                   return this.doDelete(basics, body);
                 } catch (e) {
-                  return this.serverError(basics);
+                  return this.internalServerError(basics);
                 }
               });
           }
         } else {
-          return this.unauthorized(basics);
+          return this.unauthorizedError(basics);
         }
 
         break;
@@ -114,24 +114,24 @@ class Request {
                 try {
                   return this.doPut(basics, body);
                 } catch (e) {
-                  return this.serverError(basics);
+                  return this.internalServerError(basics);
                 }
               });
           }
         } else {
-          return this.unauthorized(basics);
+          return this.unauthorizedError(basics);
         }
 
         break;
       default:
 
         if (isForm) {
-          return this.badRequest(basics);
+          return this.badRequestError(basics);
         } else {
           return basics.body()
             .catch(qry)
-            .then(body => this.badRequest(basics, body)
-              .catch(e => this.serverError(basics)));
+            .then(body => this.badRequestError(basics, body)
+              .catch(e => this.internalServerError(basics)));
         }
 
     }
@@ -306,7 +306,7 @@ class Request {
    * Sends a bad-request message response.
    * @param {HttpBasics} basics The http basics.
    */
-  badRequest(basics) {
+  badRequestError(basics) {
     return this.sendStatus(basics, 400);
   }
 
@@ -314,7 +314,7 @@ class Request {
    * Sends an unauthorized message response.
    * @param {HttpBasics} basics The http basics.
    */
-  unauthorized(basics) {
+  unauthorizedError(basics) {
     return this.sendStatus(basics, 400);
   }
 
@@ -322,7 +322,7 @@ class Request {
    * Sends a server-error message response.
    * @param {HttpBasics} basics The http basics.
    */
-  serverError(basics) {
+  internalServerError(basics) {
     return this.sendStatus(basics, 500);
   }
 

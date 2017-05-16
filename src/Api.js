@@ -88,7 +88,7 @@ class Api extends Request {
    * @param {object=} headers Additional headers to send.
    */
   badRequest(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 401, data);
+    return this._sendErrorStatus(basics, headers, 400, data);
   }
 
   /**
@@ -97,7 +97,7 @@ class Api extends Request {
    * @param {object=} headers Additional headers to send.
    */
   serverError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 401, 'Server Error');
+    return this._sendErrorStatus(basics, headers, 500, 'Server Error');
   }
 
   /**
@@ -178,7 +178,7 @@ class Api extends Request {
    * @param {object=} headers Additional headers to send.
    */
   proxyAuthenticationRequiredError(basics, headers) {
-    return Api
+    return this
       ._sendErrorStatus(basics, headers, 407, 'Proxy Authentication Required');
   }
 
@@ -233,7 +233,7 @@ class Api extends Request {
    * @param {object=} headers Additional headers to send.
    */
   requestEntityTooLargeError(basics, headers) {
-    return Api
+    return this
       ._sendErrorStatus(basics, headers, 413, 'Request Entity Too Large');
   }
 
@@ -398,7 +398,7 @@ class Api extends Request {
    * @param {object=} headers Additional headers to send.
    */
   httpVersionNotSupportedError(basics, headers) {
-    return Api
+    return this
       ._sendErrorStatus(basics, headers, 505, 'HTTP Version Not Supported');
   }
 
@@ -408,7 +408,7 @@ class Api extends Request {
    * @param {object=} headers Additional headers to send.
    */
   variantAlsoNegotiatesError(basics, headers) {
-    return Api
+    return this
       ._sendErrorStatus(basics, headers, 406, 'Variant Also Negotiates');
   }
 
@@ -427,7 +427,7 @@ class Api extends Request {
    * @param {object=} headers Additional headers to send.
    */
   bandwidthLimitExceededError(basics, headers) {
-    return Api
+    return this
       ._sendErrorStatus(basics, headers, 509, 'Bandwidth Limit Exceeded');
   }
 
