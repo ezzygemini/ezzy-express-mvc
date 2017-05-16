@@ -3,9 +3,9 @@ const Api = require('../../src/Api');
 class SecondExpressApi extends Api {
 
   doGet(basics) {
-    basics.response.json({
+    return this.sendData(basics, {
       success: true
-    });
+    })
   }
 
 }

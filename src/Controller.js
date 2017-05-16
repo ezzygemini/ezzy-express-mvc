@@ -140,12 +140,12 @@ class Controller extends Request {
   send(basics) {
     this.render(basics).then(
       parsed => {
-        this.sendStatus(basics, 200);
+        Request.sendStatus(basics, 200);
         basics.response.send(parsed);
       },
       e => {
         logger.error(e);
-        this.serverError(basics);
+        Controller.internalServerError(basics);
       }
     );
   }
@@ -154,9 +154,9 @@ class Controller extends Request {
    * A server error response.
    * @param {HttpBasics} basics The http basics.
    */
-  serverError(basics) {
+  static internalServerError(basics) {
     error500.then(content => {
-      this.sendStatus(basics, 500);
+      Request.sendStatus(basics, 500);
       basics.response.send(content);
     });
   }
@@ -165,9 +165,9 @@ class Controller extends Request {
    * A response that the page wasn't found.
    * @param {HttpBasics} basics The http basics.
    */
-  notFound(basics) {
+  static notFoundError(basics) {
     error404.then(content => {
-      this.sendStatus(basics, 404);
+      Request.sendStatus(basics, 404);
       basics.response.send(content);
     });
   }
@@ -176,9 +176,9 @@ class Controller extends Request {
    * A response that the request needs to be authorized.
    * @param basics
    */
-  unauthorized(basics) {
+  static unauthorizedError(basics) {
     error401.then(content => {
-      this.sendStatus(basics, 401);
+      Request.sendStatus(basics, 401);
       basics.response.send(content);
     });
   }

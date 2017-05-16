@@ -15,11 +15,11 @@
     "argument": "ezzygemini/argument",
     "cache": "ezzygemini/cache",
     "environment": "ezzygemini/environment",
+    "express": "^4.14.1",
     "express-basics": "ezzygemini/express-basics",
     "fs-plus": "ezzygemini/fs-plus",
-    "logger": "ezzygemini/logger",
-    "express": "^4.14.1",
     "handlebars": "^4.0.6",
+    "logger": "ezzygemini/logger",
     "recursive-fs": "^1.0.0"
   },
   "devDependencies": {

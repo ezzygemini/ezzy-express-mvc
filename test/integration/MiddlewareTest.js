@@ -3,7 +3,7 @@ const request = require('testing/request');
 const logger = require('logger').logger;
 let app;
 
-xdescribe('Middleware', () => {
+describe('Middleware', () => {
 
   beforeAll(() => {
     logger.silence();

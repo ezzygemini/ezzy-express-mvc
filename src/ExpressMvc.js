@@ -3,6 +3,7 @@ const logger = require('logger').logger;
 const recursive = require('recursive-fs');
 const path = require('path');
 const Api = require('./Api');
+const Request = require('./Request');
 const handlebars = require('./handlebars');
 const Controller = require('./Controller');
 const CONTROLLER_REG = /^((.*[\/\\])(.)(.*))(Ctrl|Controller)(\.js)$/i;
@@ -180,10 +181,7 @@ class ExpressMvc {
             let Model;
             try {
               const modelFile = matches[1] + 'Model.js';
-              logger.debug({
-                title: 'Model Lookup',
-                message: 'Looking for model ' + modelFile
-              });
+              logger.debug('Model Lookup', `Looking for model ${modelFile}`);
               Model = require(modelFile);
             } catch (e) {
               logger.warn('No model found for controller ' + file);
@@ -208,8 +206,32 @@ class ExpressMvc {
         })
         .filter(ctrl => ctrl instanceof Controller));
 
-    // Bind the node modules.
-    this._bindNodeModules(this._directory);
+    /**
+     * Node modules route.
+     * @type {Promise.<void>}
+     * @private
+     */
+    this._nodeModules = allFiles.then(() => {
+      const context = this._getAbsPath(this._directory + '/node_modules') + '/';
+      const staticApp = this._static(environment.nodeModules);
+      this.expressBasics.use(['/:version' + context, context], basics =>
+        this._domainHandle(basics, staticApp));
+      logger.debug('Node modules bound to route: ' + context +
+        ' & /:version' + context +
+        ' on directory ' + environment.nodeModules);
+    });
+
+    /**
+     * Route not found.
+     * @type {Promise.<void>}
+     * @private
+     */
+    this._notFound = allFiles.then(() => {
+      this.expressBasics
+        .use(basics => this
+          ._domainHandle(basics, basics => Request.notFoundError(basics)));
+      logger.debug('404',`Not found route on ${this._domainReg}`);
+    });
 
   }
 
@@ -228,7 +250,7 @@ class ExpressMvc {
         .getOrElse(file, () => {
           return this._getAssets(file)
             .then(assets => {
-              logger.debug({title: 'Assets', message: assets});
+              logger.debug('Assets', assets);
               return assets;
             });
         }, environment.development ? 100 : 0)
@@ -245,11 +267,8 @@ class ExpressMvc {
       this.expressBasics.use(handler);
     }
 
-    logger.debug({
-      title: 'Controller',
-      message: `Controller bound to express on route: '${context}' ` +
-      `on domain ${this._domainReg}`
-    });
+    logger.debug('Controller', `Controller bound to express on route: ` +
+      `'${context}' on domain ${this._domainReg}`);
   }
 
   /**
@@ -284,7 +303,7 @@ class ExpressMvc {
               js.unshift(dependency);
             }
           });
-          logger.debug({title: 'Assets', message: {js, css}});
+          logger.debug('Assets', {js, css});
           js = js.map(i => '/' + version + i);
           css = css.map(i => '/' + version + i);
           return {js, css};
@@ -307,7 +326,7 @@ class ExpressMvc {
               Object.assign(config, config[environment.name]);
               delete config[environment.name];
             }
-            logger.debug({title: 'Controller Config', message: config});
+            logger.debug('Controller Config', config);
             return config;
           },
           e => {
@@ -409,25 +428,9 @@ class ExpressMvc {
     const staticApp = this._static(dir);
     this.expressBasics.use(['/:version' + context, context], basics =>
       this._domainHandle(basics, staticApp));
-    logger.debug({
-      title: 'Assets', message: 'Static assets bound to route: ' +
+    logger.debug('Assets', 'Static assets bound to route: ' +
       context + ' & /:version' + context + ' on directory ' + dir +
-      ' on domain ' + this._domainReg
-    });
-  }
-
-  /**
-   * Binds the node modules as a static resource.
-   * @private
-   */
-  _bindNodeModules(dir) {
-    const context = this._getAbsPath(dir + '/node_modules') + '/';
-    const staticApp = this._static(environment.nodeModules);
-    this.expressBasics.use(['/:version' + context, context], basics =>
-      this._domainHandle(basics, staticApp));
-    logger.debug('Node modules bound to route: ' + context +
-      ' & /:version' + context +
-      ' on directory ' + environment.nodeModules);
+      ' on domain ' + this._domainReg);
   }
 
   /**
@@ -465,12 +468,9 @@ class ExpressMvc {
           });
 
         }));
-      logger.debug({
-        title: 'Compass',
-        message: 'Compass compilation bound to route: ' +
+      logger.debug('Compass', 'Compass compilation bound to route: ' +
         context + ' & ' + '/:version' + context +
-        ' on domain ' + this._domainReg
-      });
+        ' on domain ' + this._domainReg);
     }
   }
 
@@ -584,13 +584,10 @@ class ExpressMvc {
     }
     return this.promise.then(() => {
       this.expressBasics.use(basics => this
-        ._domainHandle(basics, basics => basics.response.status(404).end()));
+        ._domainHandle(basics, basics => Request.notFoundError(basics)));
       this._listener =
         this.expressBasics.listen.apply(this.expressBasics, args);
-      logger.highlight({
-        title: 'SERVER',
-        message: `Listening on port ${args[0]}`
-      });
+      logger.highlight('SERVER', `Listening on port ${args[0]}`);
       return this;
     }, e => {
       logger.error(e);
@@ -653,7 +650,7 @@ class ExpressMvc {
    * @returns {*}
    */
   static(route, dir) {
-    logger.debug({title: 'Static', message: 'Binding static app on ' + dir});
+    logger.debug('Static', `Binding static app on ${dir}`);
     return this._express.use(route, express.static(dir));
   }
 
@@ -693,7 +690,9 @@ class ExpressMvc {
       this._staticRoutes,
       this._middleware,
       this._controllers,
-      this._apis
+      this._apis,
+      this._nodeModules,
+      this._notFound
     ]).then(() => this);
   }
 

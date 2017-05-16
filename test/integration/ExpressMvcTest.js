@@ -7,7 +7,7 @@ describe('ExpressMvc', () => {
 
   beforeAll(() => {
     logger.silence();
-    app = new ExpressMvc(__dirname + '/../../root', null,
+    app = new ExpressMvc(__dirname + '/../../root', undefined,
       /unknowndomain/, '/assets/');
     app.bindExpressMvc(__dirname + '/../../root2');
     app.listen(9002);

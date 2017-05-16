@@ -1,3 +1,4 @@
+const Request = require('../../src/Request');
 const Api = require('../../src/Api');
 
 class ExpressApi extends Api {
@@ -7,7 +8,7 @@ class ExpressApi extends Api {
   }
 
   doGet(basics) {
-    this.sendData(basics, {
+    return this.sendData(basics, {
       success: true
     }, {
       test: 1
@@ -15,11 +16,11 @@ class ExpressApi extends Api {
   }
 
   doPut(basics, data) {
-    this.sendData(basics, {data});
+    return this.sendData(basics, {data});
   }
 
   doDelete(basics, error) {
-    this[error](basics);
+    return Request[error](basics);
   }
 
   authPost(basics){

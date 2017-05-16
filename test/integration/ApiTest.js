@@ -63,7 +63,7 @@ describe('Api', () => {
 
   [
     ['badRequestError', 400],
-    ['serverError', 500],
+    ['internalServerError', 500],
     ['unauthorizedError', 401],
     ['paymentRequiredError', 402],
     ['forbiddenError', 403],
