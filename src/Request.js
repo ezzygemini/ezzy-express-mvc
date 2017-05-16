@@ -11,13 +11,12 @@ class Request {
   doRequest(basics) {
     const req = basics.request;
 
-    logger.debug({
-      title: 'Request',
-      message: `${req.method} ${req.hostname} ${req.originalUrl}`
-    });
+    logger.debug('Request', `${req.method} ${req.hostname} ${req.originalUrl}`);
 
-    if (!this.auth(basics)) {
+    if (!this.loggedIn(basics)) {
       return Request.unauthorizedError(basics);
+    } else if (!this.auth(basics)) {
+      return Request.forbiddenError(basics);
     }
 
     const isForm = /multipart/i.test(basics.request.headers['content-type']);
@@ -36,7 +35,7 @@ class Request {
         if (this.authGet(basics)) {
           return this.doGet(basics, qry());
         } else {
-          return Request.unauthorizedError(basics);
+          return Request.forbiddenError(basics);
         }
 
         break;
@@ -57,7 +56,7 @@ class Request {
               });
           }
         } else {
-          return Request.unauthorizedError(basics);
+          return Request.forbiddenError(basics);
         }
 
         break;
@@ -78,7 +77,7 @@ class Request {
               });
           }
         } else {
-          return Request.unauthorizedError(basics);
+          return Request.forbiddenError(basics);
         }
 
         break;
@@ -99,7 +98,7 @@ class Request {
               });
           }
         } else {
-          return Request.unauthorizedError(basics);
+          return Request.forbiddenError(basics);
         }
 
         break;
@@ -120,7 +119,7 @@ class Request {
               });
           }
         } else {
-          return Request.unauthorizedError(basics);
+          return Request.forbiddenError(basics);
         }
 
         break;
@@ -131,7 +130,7 @@ class Request {
         } else {
           return basics.body()
             .catch(qry)
-            .then(body => Request.badRequestError(basics, body)
+            .then(body => Request.badMethodError(basics, body)
               .catch(e => Request.internalServerError(basics)));
         }
 
@@ -143,6 +142,14 @@ class Request {
    * @returns {*}
    */
   get options() {
+  }
+
+  /**
+   * Checks if the user has been logged in.
+   * @returns {boolean}
+   */
+  loggedIn(basics) {
+    return true;
   }
 
   /**
