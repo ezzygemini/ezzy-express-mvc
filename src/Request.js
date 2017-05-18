@@ -805,6 +805,8 @@ class Request {
    */
   static _decorateRequest(basics, status, headers = {}) {
     Object.assign(headers, {status, name, version, description});
+    basics.response
+      .set('x-version-requested', basics.request.params.version || 'latest');
     for (let prop in headers) {
       if (headers.hasOwnProperty(prop)) {
         basics.response.set(`x-${prop}`, headers[prop]);

@@ -19,6 +19,17 @@ describe('Api', () => {
           success: true
         })
         .expect('x-test', '1')
+        .expect('x-version-requested', 'latest')
+        .end(e => e ? fail(e) : done());
+    });
+  });
+
+  it('should apply a versioned api', done => {
+    app.listener.then(listener => {
+      request(listener)
+        .get('/1.0.0/apis/express')
+        .expect(200)
+        .expect('x-version-requested', '1.0.0')
         .end(e => e ? fail(e) : done());
     });
   });

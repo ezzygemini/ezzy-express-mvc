@@ -513,7 +513,12 @@ class ExpressMvc {
     const context = dirName + (!dirName || dirName === '/' ? '' : '/') +
       path.basename(file)
         .replace(/^(.)(.*)Api\.js$/i, (a, b, c) => b.toLowerCase() + c);
-    this.expressBasics.use([context + '/:path', context], basics =>
+    this.expressBasics.use([
+      `/:version${context}/:path`,
+      `/:version${context}`,
+      `${context}/:path`,
+      context
+    ], basics =>
       this._domainHandle(basics, basics => api.doRequest(basics)));
     logger.debug({
       title: 'API',
