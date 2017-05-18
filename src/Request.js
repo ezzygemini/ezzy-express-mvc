@@ -787,14 +787,14 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {number} status The http status code.
    * @param {?object=} headers The headers to send along.
-   * @param {?string|object=} msg The data/message to send.
+   * @param {?string|object=} error The data/message to send.
    * @returns {void}
    * @private
    */
-  static _sendErrorStatus(basics, headers, status, msg) {
+  static _sendErrorStatus(basics, headers, status, error) {
     Request.sendStatus(basics, status);
     Request._decorateRequest(basics, status, headers);
-    basics.response.json(msg);
+    basics.response.json(typeof error === 'string' ? {error, status} : error);
   }
 
   /**
