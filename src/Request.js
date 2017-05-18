@@ -176,7 +176,7 @@ class Request {
    * @param {*=} data The data sent on the body.
    */
   doGet(basics, data) {
-    return Request.sendStatus(basics, 501);
+    return Request.methodNotAllowedError(basics);
   }
 
   /**
@@ -202,7 +202,7 @@ class Request {
    * @param {*=} data The data sent on the body.
    */
   doPost(basics, data) {
-    return Request.sendStatus(basics, 501);
+    return Request.methodNotAllowedError(basics);
   }
 
   /**
@@ -228,7 +228,7 @@ class Request {
    * @param {*=} data The data sent on the body.
    */
   doPatch(basics, data) {
-    return Request.sendStatus(basics, 501);
+    return Request.methodNotAllowedError(basics);
   }
 
   /**
@@ -254,7 +254,7 @@ class Request {
    * @param {*=} data The data sent on the body.
    */
   doDelete(basics, data) {
-    return Request.sendStatus(basics, 501);
+    return Request.methodNotAllowedError(basics);
   }
 
   /**
@@ -280,7 +280,7 @@ class Request {
    * @param {*=} data The data sent on the body.
    */
   doPut(basics, data) {
-    return Request.sendStatus(basics, 501);
+    return Request.methodNotAllowedError(basics);
   }
 
   /**
@@ -793,7 +793,6 @@ class Request {
     Request._decorateRequest(basics, status, headers);
     Request.sendStatus(basics, status);
     basics.response.json(typeof error === 'string' ? {error, status} : error);
-    basics.response.end();
   }
 
   /**
