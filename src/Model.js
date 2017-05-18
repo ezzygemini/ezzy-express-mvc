@@ -1,3 +1,5 @@
+const {version} = require('./package');
+
 class Model {
 
   /**
@@ -9,6 +11,18 @@ class Model {
    */
   getData(basics) {
     return Promise.resolve(this);
+  }
+
+  /**
+   * Versions an asset with the application version number.
+   * @param {string} assetPathFromRoot The asset from the root of the site.
+   * @returns {*}
+   */
+  versionAsset(assetPathFromRoot) {
+    if (!/^\//.test(assetPathFromRoot)) {
+      return assetPathFromRoot;
+    }
+    return `/${version}${assetPathFromRoot}`;
   }
 
 }

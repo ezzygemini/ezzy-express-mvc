@@ -47,7 +47,7 @@ describe('Api', () => {
     app.listener.then(listener => {
       request(listener)
         .post('/apis/express')
-        .expect(401)
+        .expect(403)
         .end(e => e ? fail(e) : done());
     });
   });
