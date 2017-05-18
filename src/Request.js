@@ -299,8 +299,6 @@ class Request {
   static sendStatus(basics, status = 200) {
     if (status !== 200) {
       logger.warn(`Sending ${status} status`);
-    } else {
-      logger.debug(`Sending ${status} status`);
     }
     basics.response.status(status);
   }
@@ -792,9 +790,10 @@ class Request {
    * @private
    */
   static _sendErrorStatus(basics, headers, status, error) {
-    Request.sendStatus(basics, status);
     Request._decorateRequest(basics, status, headers);
+    Request.sendStatus(basics, status);
     basics.response.json(typeof error === 'string' ? {error, status} : error);
+    basics.response.end();
   }
 
   /**
