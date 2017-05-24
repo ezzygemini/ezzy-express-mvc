@@ -92,7 +92,9 @@ class Controller extends Request {
         const Model = this._model;
         const model = new Model(basics);
         dataPromise = model.getData(basics)
-          .then(data => (Object.assign(model, {data})));
+          .then((data) => Object.assign(model, {data}, {
+            assets: basics.request.assets
+          }));
       } catch (e) {
         logger.error(e);
         dataPromise = Promise.resolve(basics);

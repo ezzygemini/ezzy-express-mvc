@@ -246,7 +246,7 @@ class ExpressMvc {
     this._bindControllerAssets(file);
 
     const handler = basics =>
-      this._domainHandle(basics, basics => cache.getLibrary('assets')
+      this._domainHandle(basics, (basics) => cache.getLibrary('assets')
         .getOrElse(file, () => {
           return this._getAssets(file)
             .then(assets => {
@@ -254,8 +254,9 @@ class ExpressMvc {
               return assets;
             });
         }, environment.development ? 100 : 0)
-        .then(assets => {
-          controller.doRequest(Object.assign(basics, {assets}));
+        .then((assets) => {
+          basics.request.assets = assets;
+          controller.doRequest(basics);
         }));
 
     const context = this._getAbsPath(path.dirname(file));
