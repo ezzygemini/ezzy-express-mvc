@@ -1,3 +1,4 @@
+const i18n = require('i18n-2');
 const express = require('express');
 const logger = require('logger').logger;
 const recursive = require('recursive-fs');
@@ -230,7 +231,7 @@ class ExpressMvc {
       this.expressBasics
         .use(basics => this
           ._domainHandle(basics, basics => Request.notFoundError(basics)));
-      logger.debug('404',`Not found route on ${this._domainReg}`);
+      logger.debug('404', `Not found route on ${this._domainReg}`);
     });
 
   }
@@ -599,6 +600,22 @@ class ExpressMvc {
       logger.error(e);
       return this;
     });
+  }
+
+  /**
+   * Binds the i18n functionality to express.
+   * @param options
+   * @returns {ExpressMvc}
+   */
+  bindI18n(options) {
+    i18n.expressBind(this._express, Object.assign({
+      locales: ['en']
+    }, options));
+    this.expressBasics.use((basics) => {
+      basics.request.i18n.setLocaleFromCookie(basics.request);
+      basics.next();
+    });
+    return this;
   }
 
   /**
