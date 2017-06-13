@@ -35,6 +35,12 @@ class ExpressMvc {
    */
   constructor(directory, middleware, domainReg = /.*/, statics, expressDep) {
 
+    logger.debug({
+      title: 'Express MVC',
+      message: 'New MVC Application',
+      borderTop: 3
+    });
+
     /**
      * The express version we'll be using.
      * @type {*}
@@ -163,6 +169,22 @@ class ExpressMvc {
         .filter(ctrl => ctrl instanceof Api));
 
     /**
+     * Node modules route.
+     * @type {Promise.<void>}
+     * @private
+     */
+    this._nodeModules = allFiles.then(() => {
+      const context = this._getAbsPath(this._directory + '/node_modules') + '/';
+      const staticApp = this._static(environment.nodeModules);
+      this.expressBasics.use(['/:version' + context, context], basics =>
+        this._domainHandle(basics, staticApp));
+      logger.debug('Assets',
+        'Node modules bound to route: ' + context +
+        ' & /:version' + context +
+        ' on directory ' + environment.nodeModules);
+    });
+
+    /**
      * The controllers found in the directory.
      * @type {Promise.<Controller[]>}
      * @private
@@ -206,21 +228,6 @@ class ExpressMvc {
           }
         })
         .filter(ctrl => ctrl instanceof Controller));
-
-    /**
-     * Node modules route.
-     * @type {Promise.<void>}
-     * @private
-     */
-    this._nodeModules = allFiles.then(() => {
-      const context = this._getAbsPath(this._directory + '/node_modules') + '/';
-      const staticApp = this._static(environment.nodeModules);
-      this.expressBasics.use(['/:version' + context, context], basics =>
-        this._domainHandle(basics, staticApp));
-      logger.debug('Node modules bound to route: ' + context +
-        ' & /:version' + context +
-        ' on directory ' + environment.nodeModules);
-    });
 
     /**
      * Route not found.
