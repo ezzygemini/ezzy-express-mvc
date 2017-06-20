@@ -807,7 +807,11 @@ class Request {
       .set('x-version-requested', basics.request.params.version || 'latest');
     for (let prop in headers) {
       if (headers.hasOwnProperty(prop)) {
-        basics.response.set(`x-${prop}`, headers[prop]);
+        if (prop.toLowerCase() !== 'access-control-allow-origin') {
+          basics.response.set(`x-${prop}`, headers[prop]);
+        } else {
+          basics.response.set(prop, headers[prop]);
+        }
       }
     }
   }
