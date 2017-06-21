@@ -3,7 +3,7 @@ const Api = require('../../src/Api');
 /**
  * Testing API
  */
-class ExpressApi extends Api {
+class ThirdExpressApi extends Api {
 
   /**
    * Get method.
@@ -11,11 +11,10 @@ class ExpressApi extends Api {
    */
   doGet(basics) {
     this.sendData(basics, {
-      success: true,
-      alternate: true
+      success: true
     });
   }
 
 }
 
-module.exports = ExpressApi;
+module.exports = ThirdExpressApi;

@@ -11,7 +11,7 @@ describe('Controller', () => {
   it('should render a handlebars template properly', done => {
     expressMvc.getController('MyController')
       .then(controller => {
-        controller.render().then(data => {
+        controller.render({request:{}}).then(data => {
           expect(data).toContain('<h1>Hello World</h1>');
           done();
         });
@@ -21,7 +21,7 @@ describe('Controller', () => {
   it('should contain a proper partial from the partials directory', done => {
     expressMvc.getController('MyController')
       .then(controller => {
-        controller.render().then(data => {
+        controller.render({request:{}}).then(data => {
           expect(data).toContain('<i>Testing Partial</i>');
           done();
         })

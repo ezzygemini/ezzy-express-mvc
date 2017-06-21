@@ -9,6 +9,8 @@ describe('ExpressMvc', () => {
     logger.silence();
     app = new ExpressMvc(__dirname + '/../../root', undefined,
       /unknowndomain/, '/assets/');
+    app.bindExpressMvc(__dirname + '/../../root3', undefined,
+      (basics) => basics.request.originalUrl.indexOf('otherApis/') > -1);
     app.bindExpressMvc(__dirname + '/../../root2');
     app.listen(9002);
   });
@@ -29,6 +31,15 @@ describe('ExpressMvc', () => {
       request(listener)
         .get('/apis/secondExpress')
         .expect(404)
+        .end(e => e ? fail(e) : done());
+    });
+  });
+
+  it('should render an api call regardless of domain.', done => {
+    app.listener.then(listener => {
+      request(listener)
+        .get('/otherApis/thirdExpress')
+        .expect(200, {success: true})
         .end(e => e ? fail(e) : done());
     });
   });

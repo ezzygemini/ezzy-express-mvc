@@ -27,13 +27,23 @@ class ExpressMvc {
   /**
    * @param {string=} directory The directory of the mvc sources.
    * @param {Function[]=} middleware Any middleware that's required.
-   * @param {RegExp=} domainReg The regular expression for the domain.
+   * @param {RegExp|Function=} domainReg The regular expression for the domain
+   * or the function that will check if the route will be resolved.
    * @param {string[]|string=} statics The static routes to assign before
    * anything. Note: These routes are directories matching the context of the
    * folders within the application.
+   * @param {boolean=} bind404 If we should bind a 404 route after all the
+   * controllers are bound to avoid continuing to any other applications.
    * @param {express=} expressDep The express instance to be used.
    */
-  constructor(directory, middleware, domainReg = /.*/, statics, expressDep) {
+  constructor(
+    directory, middleware, domainReg = /.*/, statics, bind404, expressDep
+  ) {
+
+    // Bind the 404 route if we are auto checking for a different domain.
+    if (bind404 === undefined) {
+      bind404 = typeof domainReg !== 'function';
+    }
 
     logger.debug({
       title: 'Express MVC',
@@ -234,7 +244,7 @@ class ExpressMvc {
      * @type {Promise.<void>}
      * @private
      */
-    this._notFound = allFiles.then(() => {
+    this._notFound = !bind404 ? allFiles : allFiles.then(() => {
       this.expressBasics
         .use(basics => this
           ._domainHandle(basics, basics => Request.notFoundError(basics)));
@@ -543,7 +553,13 @@ class ExpressMvc {
    * @private
    */
   _domainHandle(basics, handler) {
-    if (!this._domainReg.test(basics.request.hostname)) {
+    let triggerRoute = true;
+    if (typeof this._domainReg === 'function') {
+      triggerRoute = this._domainReg(basics);
+    } else {
+      triggerRoute = this._domainReg.test(basics.request.hostname);
+    }
+    if (!triggerRoute) {
       logger
         .debug(`Route found but different domain ${basics.request.hostname}`);
       return basics.next();
@@ -730,7 +746,8 @@ class ExpressMvc {
    * Binds another express MVC application.
    * @param {string} dir The directory to use.
    * @param {Function[]=} middleware The middleware to bind.
-   * @param {RegExp=} reg The regular expression to use.
+   * @param {RegExp|Function=} reg The regular expression to check on the domain
+   * or the function that will check if we need to parse the handler.
    * @param {express=} exp The express version to use.
    * @returns {Promise.<ExpressMvc>}
    */
