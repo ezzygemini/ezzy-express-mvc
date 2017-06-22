@@ -91,10 +91,13 @@ class Controller extends Request {
       try {
         const Model = this._model;
         const model = new Model(basics);
-        dataPromise = model.getData(basics)
-          .then((data) => Object.assign(model, {data}, {
-            assets: basics.request.assets
-          }));
+        dataPromise = model.getData(basics);
+        if (!(dataPromise instanceof Promise)) {
+          dataPromise = Promise.resolve(dataPromise);
+        }
+        dataPromise.then((data) => Object.assign(model, {data}, {
+          assets: basics.request.assets
+        }));
       } catch (e) {
         logger.error(e);
         dataPromise = Promise.resolve(basics);
