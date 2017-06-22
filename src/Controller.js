@@ -5,6 +5,7 @@ const error404 = fsPlus.readFilePromise(__dirname + '/../errors/404.hbs');
 const error401 = fsPlus.readFilePromise(__dirname + '/../errors/401.hbs');
 const logger = require('logger').logger;
 const environment = require('environment');
+const trueTypeof = require('true-typeof');
 const cache = require('./cache');
 
 class Controller extends Request {
@@ -89,15 +90,24 @@ class Controller extends Request {
     let dataPromise;
     if (this._model) {
       try {
+
         const Model = this._model;
         const model = new Model(basics);
+
         dataPromise = model.getData(basics);
         if (!(dataPromise instanceof Promise)) {
           dataPromise = Promise.resolve(dataPromise);
         }
-        dataPromise.then((data) => Object.assign(model, {data}, {
-          assets: basics.request.assets
-        }));
+
+        dataPromise.then((data) => {
+          if (trueTypeof(data) !== 'object') {
+            data = {data};
+          }
+          return Object.assign(model, data, {
+            assets: basics.request.assets
+          });
+        });
+
       } catch (e) {
         logger.error(e);
         dataPromise = Promise.resolve(basics);

@@ -15,6 +15,7 @@
     "argument": "ezzygemini/argument",
     "cache": "ezzygemini/cache",
     "environment": "ezzygemini/environment",
+    "true-typeof": "ezzygemini/true-typeof",
     "express": "^4.14.1",
     "express-basics": "ezzygemini/express-basics",
     "fs-plus": "ezzygemini/fs-plus",
