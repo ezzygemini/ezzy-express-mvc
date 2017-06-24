@@ -99,11 +99,11 @@ class Controller extends Request {
           dataPromise = Promise.resolve(dataPromise);
         }
 
-        return dataPromise.then((data) => {
+        dataPromise.then((data) => {
           if (trueTypeof(data) !== 'object') {
             data = {data};
           }
-          return Object.assign(model, data, {
+          return Object.assign(data, model, {
             assets: basics.request.assets
           });
         });
