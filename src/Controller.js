@@ -99,7 +99,7 @@ class Controller extends Request {
           dataPromise = Promise.resolve(dataPromise);
         }
 
-        dataPromise.then((data) => {
+        return dataPromise.then((data) => {
           if (trueTypeof(data) !== 'object') {
             data = {data};
           }
