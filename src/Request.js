@@ -25,9 +25,11 @@ class Request {
         return [basics.request.query];
       } else {
         const args = [];
+        let arg;
         for (let char of 'abcdefghijklm'.split('')) {
-          if (basics.request.params[char] !== undefined) {
-            args.push(basics.request.params[char]);
+          arg = basics.request.params[char];
+          if (arg !== undefined) {
+            args.push(isNaN(arg) ? arg : parseFloat(arg));
           } else {
             break;
           }
