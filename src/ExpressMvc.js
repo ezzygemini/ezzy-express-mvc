@@ -36,9 +36,8 @@ class ExpressMvc {
    * controllers are bound to avoid continuing to any other applications.
    * @param {express=} expressDep The express instance to be used.
    */
-  constructor(
-    directory, middleware, domainReg = /.*/, statics, bind404, expressDep
-  ) {
+  constructor(directory, middleware, domainReg = /.*/,
+              statics, bind404, expressDep) {
 
     // Bind the 404 route if we are auto checking for a different domain.
     if (bind404 === undefined) {
@@ -48,6 +47,7 @@ class ExpressMvc {
     logger.debug({
       title: 'Express MVC',
       message: 'New MVC Application',
+      data: {directory, domainReg, statics, bind404},
       borderTop: 3
     });
 
@@ -92,6 +92,13 @@ class ExpressMvc {
      * @private
      */
     this._listener = null;
+
+    /**
+     * Other MVC apps.
+     * @type {Promise.<Array>}
+     * @private
+     */
+    this._otherMvcApps = Promise.resolve([]);
 
     /**
      * Obtains all the js files.
@@ -281,7 +288,7 @@ class ExpressMvc {
 
     if (context) {
       this.expressBasics
-        .use([context + '/:path', context, context + '/'], handler);
+        .use([`${context}/:path*`, context], handler);
     } else {
       this.expressBasics.use(handler);
     }
@@ -533,9 +540,11 @@ class ExpressMvc {
       path.basename(file)
         .replace(/^(.)(.*)Api\.js$/i, (a, b, c) => b.toLowerCase() + c);
     this.expressBasics.use([
-      `/:version${context}/:path`,
+      // using this method of passing parameters because
+      // /:path* is not working properly
+      `/:version${context}/:a?/:b?/:c?/:d?/:e?/:f?/:g?/:h?/:i?/:j?/:k?/:l?/:m?`,
       `/:version${context}`,
-      `${context}/:path`,
+      `${context}/:a?/:b?/:c?/:d?/:e?/:f?/:g?/:h?/:i?/:j?/:k?/:l?/:m?`,
       context
     ], basics =>
       this._domainHandle(basics, basics => api.doRequest(basics)));

@@ -56,6 +56,55 @@ describe('ExpressMvc', () => {
     });
   });
 
+  describe('should render parameters accordingly', () => {
+
+    it('on GET', done => {
+      app.listener.then(listener => {
+        request(listener)
+          .get('/apis/third/1/2/3')
+          .expect(200, {a: 1, b: 2, c: 3})
+          .end(e => e ? fail(e) : done());
+      });
+    });
+
+    it('on PUT', done => {
+      app.listener.then(listener => {
+        request(listener)
+          .put('/apis/third/1/2/3')
+          .expect(200, {a: 1, b: 2, c: 3})
+          .end(e => e ? fail(e) : done());
+      });
+    });
+
+    it('on POST', done => {
+      app.listener.then(listener => {
+        request(listener)
+          .post('/apis/third/1/2/3')
+          .expect(200, {a: 1, b: 2, c: 3})
+          .end(e => e ? fail(e) : done());
+      });
+    });
+
+    it('on DELETE', done => {
+      app.listener.then(listener => {
+        request(listener)
+          .del('/apis/third/1/2/3')
+          .expect(200, {a: 1, b: 2, c: 3})
+          .end(e => e ? fail(e) : done());
+      });
+    });
+
+    it('on PATCH', done => {
+      app.listener.then(listener => {
+        request(listener)
+          .patch('/apis/third/1/2/3')
+          .expect(200, {a: 1, b: 2, c: 3})
+          .end(e => e ? fail(e) : done());
+      });
+    });
+
+  });
+
   afterAll(() => {
     app.close();
     logger.talk();

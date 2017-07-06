@@ -21,11 +21,18 @@ class Request {
 
     const isForm = /multipart/i.test(basics.request.headers['content-type']);
     const qry = () => {
-      if (basics.request.params.path) {
-        return isNaN(basics.request.params.path) ?
-          basics.request.params.path : parseFloat(basics.request.params.path);
-      } else if (basics.request.originalUrl.indexOf('?') > -1) {
-        return basics.request.query;
+      if (basics.request.originalUrl.indexOf('?') > -1) {
+        return [basics.request.query];
+      } else {
+        const args = [];
+        for (let char of 'abcdefghijklm'.split('')) {
+          if (basics.request.params[char] !== undefined) {
+            args.push(basics.request.params[char]);
+          } else {
+            break;
+          }
+        }
+        return args;
       }
     };
 
@@ -33,7 +40,7 @@ class Request {
       case 'GET':
 
         if (this.authGet(basics)) {
-          return this.doGet(basics, qry());
+          return this.doGet(basics, ...qry());
         } else {
           return Request.forbiddenError(basics);
         }
@@ -46,10 +53,10 @@ class Request {
             return this.doPost(basics);
           } else {
             return basics.body()
-              .catch(qry)
-              .then(body => {
+              .then(body => [body], qry)
+              .then(args => {
                 try {
-                  return this.doPost(basics, body);
+                  return this.doPost(basics, ...args);
                 } catch (e) {
                   return Request.internalServerError(basics);
                 }
@@ -67,10 +74,10 @@ class Request {
             return this.doPatch(basics);
           } else {
             return basics.body()
-              .catch(qry)
-              .then(body => {
+              .then(body => [body], qry)
+              .then(args => {
                 try {
-                  return this.doPatch(basics, body);
+                  return this.doPatch(basics, ...args);
                 } catch (e) {
                   return Request.internalServerError(basics);
                 }
@@ -88,10 +95,10 @@ class Request {
             return this.doDelete(basics);
           } else {
             return basics.body()
-              .catch(qry)
-              .then(body => {
+              .then(body => [body], qry)
+              .then(args => {
                 try {
-                  return this.doDelete(basics, body);
+                  return this.doDelete(basics, ...args);
                 } catch (e) {
                   return Request.internalServerError(basics);
                 }
@@ -109,10 +116,10 @@ class Request {
             return this.doPut(basics);
           } else {
             return basics.body()
-              .catch(qry)
-              .then(body => {
+              .then(body => [body], qry)
+              .then(args => {
                 try {
-                  return this.doPut(basics, body);
+                  return this.doPut(basics, ...args);
                 } catch (e) {
                   return Request.internalServerError(basics);
                 }
@@ -129,8 +136,8 @@ class Request {
           return Request.badRequestError(basics);
         } else {
           return basics.body()
-            .catch(qry)
-            .then(body => Request.badMethodError(basics, body)
+            .then(body => [body], qry)
+            .then(args => Request.badMethodError(basics, ...args)
               .catch(e => Request.internalServerError(basics)));
         }
 
