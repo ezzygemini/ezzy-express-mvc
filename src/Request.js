@@ -197,6 +197,22 @@ class Request {
   }
 
   /**
+   * The path that's assigned to the parameter variables.
+   * @returns {string}
+   */
+  get path(){
+    return '';
+  }
+
+  /**
+   * Any number of core middleware functions that will parse the request.
+   * @returns {function|function[]|null}
+   */
+  get middleware(){
+    return null;
+  }
+
+  /**
    * Authorizes the request and checks if we can continue with a POST request.
    * @param {HttpBasics} basics The http basics.
    * @returns {boolean}

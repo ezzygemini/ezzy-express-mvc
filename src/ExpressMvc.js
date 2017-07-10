@@ -286,12 +286,24 @@ class ExpressMvc {
 
     const context = this._getAbsPath(path.dirname(file));
 
+    let args = [];
+
     if (context) {
-      this.expressBasics
-        .use([`${context}/:path*`, context], handler);
-    } else {
-      this.expressBasics.use(handler);
+      args.push([`${context}/:path*`, context]);
     }
+
+    const middleware = controller.middleware;
+    if (middleware) {
+      if (Array.isArray(middleware)) {
+        args = args.concat(middleware);
+      } else {
+        args.push(middleware);
+      }
+    }
+
+    args.push(handler);
+
+    this.expressBasics.use(...args);
 
     logger.debug('Controller', `Controller bound to express on route: ` +
       `'${context}' on domain ${this._domainReg}`);
@@ -535,19 +547,41 @@ class ExpressMvc {
    * @private
    */
   _bindApi(api, file) {
+
     const dirName = path.dirname(this._getAbsPath(file));
+
+    let args = [];
+
     const context = dirName + (!dirName || dirName === '/' ? '' : '/') +
       path.basename(file)
         .replace(/^(.)(.*)Api\.js$/i, (a, b, c) => b.toLowerCase() + c);
-    this.expressBasics.use([
+
+    const pathVars =
+      api.path || '/:a?/:b?/:c?/:d?/:e?/:f?/:g?/:h?/:i?/:j?/:k?/:l?/:m?';
+
+    args.push([
       // using this method of passing parameters because
       // /:path* is not working properly
-      `/:version${context}/:a?/:b?/:c?/:d?/:e?/:f?/:g?/:h?/:i?/:j?/:k?/:l?/:m?`,
+      `/:version${context}${pathVars}`,
       `/:version${context}`,
-      `${context}/:a?/:b?/:c?/:d?/:e?/:f?/:g?/:h?/:i?/:j?/:k?/:l?/:m?`,
+      `${context}${pathVars}`,
       context
-    ], basics =>
+    ]);
+
+    const middleware = api.middleware;
+
+    if(middleware){
+      if(Array.isArray(middleware)){
+        args = args.concat(middleware);
+      }else{
+        args.push(middleware);
+      }
+    }
+
+    args.push(basics =>
       this._domainHandle(basics, basics => api.doRequest(basics)));
+
+    this.expressBasics.use(...args);
     logger.debug({
       title: 'API',
       message: `Api bound to express on route: ${context} on ${this._domainReg}`

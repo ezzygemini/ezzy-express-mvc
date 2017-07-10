@@ -13,7 +13,7 @@ describe('Express MVC', () => {
     expressMvc.controllers
       .then(controllers => expect(controllers.length).toBe(2))
       .then(() => expressMvc.apis)
-      .then(apis => expect(apis.length).toBe(2))
+      .then(apis => expect(apis.length).toBe(3))
       .then(done);
 
     expressMvc.getController('YourController')
