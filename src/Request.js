@@ -2,7 +2,38 @@ const logger = require('logger').logger;
 const DEFAULT_CONTENT_TYPE = '*/*';
 const {version, name, description} = require('./package');
 
+/**
+ * Base class that handles a request.
+ */
 class Request {
+
+  /**
+   * Constructor.
+   */
+  constructor() {
+    /**
+     * The context in which this request is bound.
+     * @type {string|null}
+     * @private
+     */
+    this._context = null;
+  }
+
+  /**
+   * The context of the request.
+   * @returns {string|null}
+   */
+  get context() {
+    return this._context;
+  }
+
+  /**
+   * The context of the request.
+   * @param {string|null} val The context of the request.
+   */
+  set context(val) {
+    this._context = val;
+  }
 
   /**
    * Handles the request based on method.
@@ -200,7 +231,7 @@ class Request {
    * The path that's assigned to the parameter variables.
    * @returns {string}
    */
-  get path(){
+  get path() {
     return '';
   }
 
@@ -208,7 +239,7 @@ class Request {
    * Any number of core middleware functions that will parse the request.
    * @returns {function|function[]|null}
    */
-  get middleware(){
+  get middleware() {
     return null;
   }
 

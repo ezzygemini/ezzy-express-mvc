@@ -290,6 +290,7 @@ class ExpressMvc {
 
     if (context) {
       args.push([`${context}/:path*`, context]);
+      controller.context = context;
     }
 
     const middleware = controller.middleware;
@@ -567,6 +568,7 @@ class ExpressMvc {
       `${context}${pathVars}`,
       context
     ]);
+    api.context = context;
 
     const middleware = api.middleware;
 
