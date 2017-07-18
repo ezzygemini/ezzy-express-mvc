@@ -7,14 +7,6 @@ const API_CONTENT_TYPE = '*/*';
 class Api extends Request {
 
   /**
-   * Obtains the context of the application.
-   * @returns {string}
-   */
-  get context() {
-    return '';
-  }
-
-  /**
    * Indicates what content type is accepted on GET requests.
    * @returns {string}
    */
