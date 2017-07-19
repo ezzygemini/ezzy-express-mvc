@@ -14,15 +14,16 @@
   "dependencies": {
     "argument": "ezzygemini/argument",
     "cache": "ezzygemini/cache",
+    "config-setup": "github:ezzygemini/config-setup",
     "environment": "ezzygemini/environment",
-    "true-typeof": "ezzygemini/true-typeof",
     "express": "^4.14.1",
     "express-basics": "ezzygemini/express-basics",
     "fs-plus": "ezzygemini/fs-plus",
     "handlebars": "^4.0.6",
     "i18n-2": "^0.6.3",
     "logger": "ezzygemini/logger",
-    "recursive-fs": "^1.0.0"
+    "recursive-fs": "^1.0.0",
+    "true-typeof": "ezzygemini/true-typeof"
   },
   "devDependencies": {
     "express": "^4.14.1",
