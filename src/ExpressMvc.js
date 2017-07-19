@@ -599,14 +599,14 @@ class ExpressMvc {
    */
   _domainHandle(basics, handler) {
     let triggerRoute = true;
+    const {hostname} = basics.request;
     if (typeof this._domainReg === 'function') {
       triggerRoute = this._domainReg(basics);
     } else {
-      triggerRoute = this._domainReg.test(basics.request.hostname);
+      triggerRoute = this._domainReg.test(hostname);
     }
     if (!triggerRoute) {
-      logger
-        .debug(`Route found but different domain ${basics.request.hostname}`);
+      logger.deepDebug(`Route found but different domain ${hostname}`);
       return basics.next();
     }
     return handler(basics);
