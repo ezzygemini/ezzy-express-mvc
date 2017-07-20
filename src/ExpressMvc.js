@@ -391,7 +391,7 @@ class ExpressMvc {
               return resolve([]);
             }
             resolve(files.filter(file =>
-            /\.scss/.test(file) && !/[\/\\]_.*/.test(file))
+              /\.scss/.test(file) && !/[\/\\]_.*/.test(file))
               .map(file => this._getAbsPath(file)
                 .replace(/scss/g, 'css')));
           });
@@ -572,10 +572,10 @@ class ExpressMvc {
 
     const middleware = api.middleware;
 
-    if(middleware){
-      if(Array.isArray(middleware)){
+    if (middleware) {
+      if (Array.isArray(middleware)) {
         args = args.concat(middleware);
-      }else{
+      } else {
         args.push(middleware);
       }
     }
@@ -605,11 +605,7 @@ class ExpressMvc {
     } else {
       triggerRoute = this._domainReg.test(hostname);
     }
-    if (!triggerRoute) {
-      logger.deepDebug(`Route found but different domain ${hostname}`);
-      return basics.next();
-    }
-    return handler(basics);
+    return !triggerRoute ? basics.next() : handler(basics);
   }
 
   /**
