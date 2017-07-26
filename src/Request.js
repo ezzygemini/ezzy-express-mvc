@@ -70,15 +70,6 @@ class Request {
     };
 
     switch (req.method) {
-      case 'GET':
-
-        if (this.authGet(basics)) {
-          return this.doGet(basics, ...qry());
-        } else {
-          return Request.forbiddenError(basics);
-        }
-
-        break;
       case 'POST':
 
         if (this.authPost(basics)) {
@@ -165,13 +156,10 @@ class Request {
         break;
       default:
 
-        if (isForm) {
-          return Request.badRequestError(basics);
+        if (this.authGet(basics)) {
+          return this.doGet(basics, ...qry());
         } else {
-          return basics.body()
-            .then(body => [body], qry)
-            .then(args => Request.badMethodError(basics, ...args)
-              .catch(e => Request.internalServerError(basics)));
+          return Request.forbiddenError(basics);
         }
 
     }
