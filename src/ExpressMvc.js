@@ -438,7 +438,7 @@ class ExpressMvc {
               logger.error(e);
               return resolve([]);
             }
-            resolve(files.filter(file => /\.(min|jsx)\.js/.test(file))
+            resolve(files.filter(file => /\.(min|jsx)\.js$/.test(file))
               .map(file => '/' + path.relative(this._directory, file)
                 .replace(/\\/g, '/')));
           });
