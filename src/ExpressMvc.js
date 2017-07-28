@@ -288,8 +288,14 @@ class ExpressMvc {
 
     let args = [];
 
+    const pathVars =
+      controller.path || '/:a?/:b?/:c?/:d?/:e?/:f?/:g?/:h?/:i?/:j?/:k?/:l?/:m?';
+
     if (context) {
-      args.push([`${context}/:path*`, context]);
+      args.push([
+        `${context}${pathVars}`,
+        context
+      ]);
       controller.context = context;
     }
 
