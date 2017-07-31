@@ -169,7 +169,6 @@ class ExpressMvc {
       .then(({files}) => files.filter(file => /Api\.js$/.test(file))
         .map(file => {
           try {
-
             const apiKey = path.basename(file).replace(JS_EXT_REG, '');
             const SubApi = require(file.toString());
             const subApi = new SubApi();
@@ -254,7 +253,7 @@ class ExpressMvc {
     this._notFound = !bind404 ? allFiles : allFiles.then(() => {
       this.expressBasics
         .use(basics => this
-          ._domainHandle(basics, basics => Request.notFoundError(basics)));
+          ._domainHandle(basics, basics => Request.inst.notFoundError(basics)));
       logger.debug('404', `Not found route on ${this._domainReg}`);
     });
 
@@ -660,8 +659,8 @@ class ExpressMvc {
       return Promise.resolve(this);
     }
     return this.promise.then(() => {
-      this.expressBasics.use(basics => this
-        ._domainHandle(basics, basics => Request.notFoundError(basics)));
+      this.expressBasics.use(basics => this._domainHandle(basics,
+        basics => Request.inst.notFoundError(basics)));
       this._listener =
         this.expressBasics.listen.apply(this.expressBasics, args);
       logger.highlight('SERVER', `Listening on port ${args[0]}`);

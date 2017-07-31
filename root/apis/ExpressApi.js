@@ -1,4 +1,3 @@
-const Request = require('../../src/Request');
 const Api = require('../../src/Api');
 
 class ExpressApi extends Api {
@@ -20,7 +19,7 @@ class ExpressApi extends Api {
   }
 
   doDelete(basics, error) {
-    return Request[error](basics);
+    return this[error](basics);
   }
 
   authPost(basics){

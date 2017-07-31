@@ -1,6 +1,7 @@
 const logger = require('logger').logger;
 const DEFAULT_CONTENT_TYPE = '*/*';
 const {version, name, description} = require('./package');
+let inst;
 
 /**
  * Base class that handles a request.
@@ -17,6 +18,17 @@ class Request {
      * @private
      */
     this._context = null;
+  }
+
+  /**
+   * Default request instance.
+   * @returns {Request}
+   */
+  static get inst() {
+    if (!inst) {
+      inst = new Request();
+    }
+    return inst;
   }
 
   /**
@@ -45,9 +57,9 @@ class Request {
     logger.debug('Request', `${req.method} ${req.hostname} ${req.originalUrl}`);
 
     if (!this.loggedIn(basics)) {
-      return Request.unauthorizedError(basics);
+      return this.unauthorizedError(basics);
     } else if (!this.auth(basics)) {
-      return Request.forbiddenError(basics);
+      return this.forbiddenError(basics);
     }
 
     const isForm = /multipart/i.test(basics.request.headers['content-type']);
@@ -82,12 +94,12 @@ class Request {
                 try {
                   return this.doPost(basics, ...args);
                 } catch (e) {
-                  return Request.internalServerError(basics);
+                  return this.internalServerError(basics);
                 }
               });
           }
         } else {
-          return Request.forbiddenError(basics);
+          return this.forbiddenError(basics);
         }
 
         break;
@@ -103,12 +115,12 @@ class Request {
                 try {
                   return this.doPatch(basics, ...args);
                 } catch (e) {
-                  return Request.internalServerError(basics);
+                  return this.internalServerError(basics);
                 }
               });
           }
         } else {
-          return Request.forbiddenError(basics);
+          return this.forbiddenError(basics);
         }
 
         break;
@@ -124,12 +136,12 @@ class Request {
                 try {
                   return this.doDelete(basics, ...args);
                 } catch (e) {
-                  return Request.internalServerError(basics);
+                  return this.internalServerError(basics);
                 }
               });
           }
         } else {
-          return Request.forbiddenError(basics);
+          return this.forbiddenError(basics);
         }
 
         break;
@@ -145,12 +157,12 @@ class Request {
                 try {
                   return this.doPut(basics, ...args);
                 } catch (e) {
-                  return Request.internalServerError(basics);
+                  return this.internalServerError(basics);
                 }
               });
           }
         } else {
-          return Request.forbiddenError(basics);
+          return this.forbiddenError(basics);
         }
 
         break;
@@ -159,7 +171,7 @@ class Request {
         if (this.authGet(basics)) {
           return this.doGet(basics, ...qry());
         } else {
-          return Request.forbiddenError(basics);
+          return this.forbiddenError(basics);
         }
 
     }
@@ -204,7 +216,7 @@ class Request {
    * @param {*=} data The data sent on the body.
    */
   doGet(basics, data) {
-    return Request.methodNotAllowedError(basics);
+    return this.methodNotAllowedError(basics);
   }
 
   /**
@@ -246,7 +258,7 @@ class Request {
    * @param {*=} data The data sent on the body.
    */
   doPost(basics, data) {
-    return Request.methodNotAllowedError(basics);
+    return this.methodNotAllowedError(basics);
   }
 
   /**
@@ -272,7 +284,7 @@ class Request {
    * @param {*=} data The data sent on the body.
    */
   doPatch(basics, data) {
-    return Request.methodNotAllowedError(basics);
+    return this.methodNotAllowedError(basics);
   }
 
   /**
@@ -298,7 +310,7 @@ class Request {
    * @param {*=} data The data sent on the body.
    */
   doDelete(basics, data) {
-    return Request.methodNotAllowedError(basics);
+    return this.methodNotAllowedError(basics);
   }
 
   /**
@@ -324,7 +336,7 @@ class Request {
    * @param {*=} data The data sent on the body.
    */
   doPut(basics, data) {
-    return Request.methodNotAllowedError(basics);
+    return this.methodNotAllowedError(basics);
   }
 
   /**
@@ -340,7 +352,7 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {number} status The request status to send.
    */
-  static sendStatus(basics, status = 200) {
+  sendStatus(basics, status = 200) {
     if (status !== 200) {
       logger.warn(`Sending ${status} status`);
     }
@@ -352,8 +364,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static badRequestError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 400, 'Bad Request');
+  badRequestError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 400, 'Bad Request');
   }
 
   /**
@@ -361,8 +373,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static unauthorizedError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 401, 'Unauthorized');
+  unauthorizedError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 401, 'Unauthorized');
   }
 
   /**
@@ -370,8 +382,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static paymentRequiredError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 402, 'Payment Required');
+  paymentRequiredError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 402, 'Payment Required');
   }
 
   /**
@@ -379,8 +391,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static forbiddenError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 403, 'Forbidden');
+  forbiddenError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 403, 'Forbidden');
   }
 
   /**
@@ -388,8 +400,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static notFoundError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 404, 'Not Found');
+  notFoundError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 404, 'Not Found');
   }
 
   /**
@@ -397,8 +409,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static methodNotAllowedError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 405, 'Method Not Allowed');
+  methodNotAllowedError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 405, 'Method Not Allowed');
   }
 
   /**
@@ -406,8 +418,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static notAcceptableError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 406, 'Not Acceptable');
+  notAcceptableError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 406, 'Not Acceptable');
   }
 
   /**
@@ -415,9 +427,9 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static proxyAuthenticationRequiredError(basics, headers) {
-    return Request
-      ._sendErrorStatus(basics, headers, 407, 'Proxy Authentication Required');
+  proxyAuthenticationRequiredError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 407,
+      'Proxy Authentication Required');
   }
 
   /**
@@ -425,8 +437,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static requestTimeoutError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 408, 'Request Time-out');
+  requestTimeoutError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 408, 'Request Time-out');
   }
 
   /**
@@ -434,8 +446,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static conflictError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 409, 'Conflict');
+  conflictError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 409, 'Conflict');
   }
 
   /**
@@ -443,8 +455,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static goneError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 410, 'Gone');
+  goneError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 410, 'Gone');
   }
 
   /**
@@ -452,8 +464,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static lengthRequiredError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 411, 'Length Required');
+  lengthRequiredError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 411, 'Length Required');
   }
 
   /**
@@ -461,9 +473,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static preconditionFailedError(basics, headers) {
-    return Request
-      ._sendErrorStatus(basics, headers, 412, 'Precondition Failed');
+  preconditionFailedError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 412, 'Precondition Failed');
   }
 
   /**
@@ -471,9 +482,9 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static requestEntityTooLargeError(basics, headers) {
-    return Request
-      ._sendErrorStatus(basics, headers, 413, 'Request Entity Too Large');
+  requestEntityTooLargeError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 413,
+      'Request Entity Too Large');
   }
 
   /**
@@ -481,9 +492,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static requesturiTooLargeError(basics, headers) {
-    return Request
-      ._sendErrorStatus(basics, headers, 414, 'Request-URI Too Large');
+  requesturiTooLargeError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 414, 'Request-URI Too Large');
   }
 
   /**
@@ -491,9 +501,9 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static unsupportedMediaTypeError(basics, headers) {
-    return Request
-      ._sendErrorStatus(basics, headers, 415, 'Unsupported Media Type');
+  unsupportedMediaTypeError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 415,
+      'Unsupported Media Type');
   }
 
   /**
@@ -501,8 +511,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static requestedRangeNotSatisfiableError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 416,
+  requestedRangeNotSatisfiableError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 416,
       'Requested Range Not Satisfiable');
   }
 
@@ -511,8 +521,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static expectationFailedError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 417, 'Expectation Failed');
+  expectationFailedError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 417, 'Expectation Failed');
   }
 
   /**
@@ -520,9 +530,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static unprocessableEntityError(basics, headers) {
-    return Request
-      ._sendErrorStatus(basics, headers, 422, 'Unprocessable Entity');
+  unprocessableEntityError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 422, 'Unprocessable Entity');
   }
 
   /**
@@ -530,8 +539,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static lockedError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 423, 'Locked');
+  lockedError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 423, 'Locked');
   }
 
   /**
@@ -539,8 +548,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static failedDependencyError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 424, 'Failed Dependency');
+  failedDependencyError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 424, 'Failed Dependency');
   }
 
   /**
@@ -548,9 +557,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static unorderedCollectionError(basics, headers) {
-    return Request
-      ._sendErrorStatus(basics, headers, 425, 'Unordered Collection');
+  unorderedCollectionError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 425, 'Unordered Collection');
   }
 
   /**
@@ -558,8 +566,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static upgradeRequiredError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 426, 'Upgrade Required');
+  upgradeRequiredError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 426, 'Upgrade Required');
   }
 
   /**
@@ -567,9 +575,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static preconditionRequiredError(basics, headers) {
-    return Request
-      ._sendErrorStatus(basics, headers, 428, 'Precondition Required');
+  preconditionRequiredError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 428, 'Precondition Required');
   }
 
   /**
@@ -577,8 +584,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static tooManyRequestsError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 429, 'Too Many Requests');
+  tooManyRequestsError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 429, 'Too Many Requests');
   }
 
   /**
@@ -586,8 +593,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static requestHeaderFieldsTooLargeError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 431,
+  requestHeaderFieldsTooLargeError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 431,
       'Request Header Fields Too Large');
   }
 
@@ -596,9 +603,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static internalServerError(basics, headers) {
-    return Request
-      ._sendErrorStatus(basics, headers, 500, 'Internal Server Error');
+  internalServerError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 500, 'Internal Server Error');
   }
 
   /**
@@ -606,8 +612,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static notImplementedError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 501, 'Not Implemented');
+  notImplementedError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 501, 'Not Implemented');
   }
 
   /**
@@ -615,8 +621,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static badGatewayError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 502, 'Bad Gateway');
+  badGatewayError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 502, 'Bad Gateway');
   }
 
   /**
@@ -624,9 +630,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static serviceUnavailableError(basics, headers) {
-    return Request
-      ._sendErrorStatus(basics, headers, 503, 'Service Unavailable');
+  serviceUnavailableError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 503, 'Service Unavailable');
   }
 
   /**
@@ -634,8 +639,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static gatewayTimeoutError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 504, 'Gateway Timeout');
+  gatewayTimeoutError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 504, 'Gateway Timeout');
   }
 
   /**
@@ -643,9 +648,9 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static httpVersionNotSupportedError(basics, headers) {
-    return Request
-      ._sendErrorStatus(basics, headers, 505, 'HTTP Version Not Supported');
+  httpVersionNotSupportedError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 505,
+      'HTTP Version Not Supported');
   }
 
   /**
@@ -653,9 +658,9 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static variantAlsoNegotiatesError(basics, headers) {
-    return Request
-      ._sendErrorStatus(basics, headers, 406, 'Variant Also Negotiates');
+  variantAlsoNegotiatesError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 406,
+      'Variant Also Negotiates');
   }
 
   /**
@@ -663,9 +668,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static insufficientStorageError(basics, headers) {
-    return Request
-      ._sendErrorStatus(basics, headers, 507, 'Insufficient Storage');
+  insufficientStorageError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 507, 'Insufficient Storage');
   }
 
   /**
@@ -673,9 +677,9 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static bandwidthLimitExceededError(basics, headers) {
-    return Request
-      ._sendErrorStatus(basics, headers, 509, 'Bandwidth Limit Exceeded');
+  bandwidthLimitExceededError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 509,
+      'Bandwidth Limit Exceeded');
   }
 
   /**
@@ -683,8 +687,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static notExtendedError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 510, 'Not Extended');
+  notExtendedError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 510, 'Not Extended');
   }
 
   /**
@@ -692,8 +696,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static networkAuthenticationRequiredError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 511,
+  networkAuthenticationRequiredError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 511,
       'Network Authentication Required');
   }
 
@@ -702,8 +706,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static badDigestError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 400, 'Bad Request');
+  badDigestError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 400, 'Bad Request');
   }
 
   /**
@@ -711,8 +715,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static badMethodError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 405, 'Method Not Allowed');
+  badMethodError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 405, 'Method Not Allowed');
   }
 
   /**
@@ -720,9 +724,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static internalError(basics, headers) {
-    return Request
-      ._sendErrorStatus(basics, headers, 500, 'Internal Server Error');
+  internalError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 500, 'Internal Server Error');
   }
 
   /**
@@ -730,8 +733,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static invalidArgumentError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 409, 'Conflict');
+  invalidArgumentError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 409, 'Conflict');
   }
 
   /**
@@ -739,8 +742,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static invalidContentError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 400, 'Bad Request');
+  invalidContentError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 400, 'Bad Request');
   }
 
   /**
@@ -748,8 +751,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static invalidCredentialsError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 401, 'Unauthorized');
+  invalidCredentialsError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 401, 'Unauthorized');
   }
 
   /**
@@ -757,8 +760,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static invalidHeaderError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 400, 'Bad Request');
+  invalidHeaderError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 400, 'Bad Request');
   }
 
   /**
@@ -766,8 +769,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static invalidVersionError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 400, 'Bad Request');
+  invalidVersionError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 400, 'Bad Request');
   }
 
   /**
@@ -775,8 +778,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static missingParameterError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 409, 'Conflict');
+  missingParameterError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 409, 'Conflict');
   }
 
   /**
@@ -784,8 +787,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static notAuthorizedError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 403, 'Forbidden');
+  notAuthorizedError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 403, 'Forbidden');
   }
 
   /**
@@ -793,8 +796,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static requestExpiredError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 400, 'Bad Request');
+  requestExpiredError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 400, 'Bad Request');
   }
 
   /**
@@ -802,8 +805,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static requestThrottledError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 429, 'Too Many Requests');
+  requestThrottledError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 429, 'Too Many Requests');
   }
 
   /**
@@ -811,8 +814,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static resourceNotFoundError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 404, 'Not Found');
+  resourceNotFoundError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 404, 'Not Found');
   }
 
   /**
@@ -820,8 +823,8 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {object=} headers Additional headers to send.
    */
-  static wrongAcceptError(basics, headers) {
-    return Request._sendErrorStatus(basics, headers, 406, 'Not Acceptable');
+  wrongAcceptError(basics, headers) {
+    return this._sendErrorStatus(basics, headers, 406, 'Not Acceptable');
   }
 
   /**
@@ -833,9 +836,9 @@ class Request {
    * @returns {void}
    * @private
    */
-  static _sendErrorStatus(basics, headers, status, error) {
-    Request._decorateRequest(basics, status, headers);
-    Request.sendStatus(basics, status);
+  _sendErrorStatus(basics, headers, status, error) {
+    this.decorateRequest(basics, status, headers);
+    this.sendStatus(basics, status);
     basics.response.json(typeof error === 'string' ? {error, status} : error);
   }
 
@@ -845,7 +848,7 @@ class Request {
    * @param {number} status The http status.
    * @param {Object} headers Additional headers that will be appended.
    */
-  static _decorateRequest(basics, status, headers = {}) {
+  decorateRequest(basics, status, headers = {}) {
     Object.assign(headers, {status, name, version, description});
     basics.response
       .set('x-version-requested', basics.request.params.version || 'latest');
