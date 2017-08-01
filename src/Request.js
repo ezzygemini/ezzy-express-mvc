@@ -56,9 +56,10 @@ class Request {
 
     logger.debug('Request', `${req.method} ${req.hostname} ${req.originalUrl}`);
 
-    if (!this.loggedIn(basics)) {
+    const auth = this.auth(basics);
+    if (!auth && !this.loggedIn(basics)) {
       return this.unauthorizedError(basics);
-    } else if (!this.auth(basics)) {
+    } else if (!auth) {
       return this.forbiddenError(basics);
     }
 
