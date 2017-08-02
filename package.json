@@ -12,21 +12,21 @@
   },
   "license": "MIT",
   "dependencies": {
-    "argument": "ezzygemini/argument",
-    "cache": "ezzygemini/cache",
+    "argument": "github:ezzygemini/argument",
+    "cache": "github:ezzygemini/cache",
     "config-setup": "github:ezzygemini/config-setup",
-    "environment": "ezzygemini/environment",
+    "environment": "github:ezzygemini/environment",
     "express": "^4.14.1",
-    "express-basics": "ezzygemini/express-basics",
-    "fs-plus": "ezzygemini/fs-plus",
+    "express-basics": "github:ezzygemini/express-basics",
+    "fs-plus": "github:ezzygemini/fs-plus",
     "handlebars": "^4.0.6",
     "i18n-2": "^0.6.3",
-    "logger": "ezzygemini/logger",
+    "logger": "github:ezzygemini/logger",
     "recursive-fs": "^1.0.0",
-    "true-typeof": "ezzygemini/true-typeof"
+    "true-typeof": "github:ezzygemini/true-typeof"
   },
   "devDependencies": {
     "express": "^4.14.1",
-    "testing": "ezzygemini/testing"
+    "testing": "github:ezzygemini/testing"
   }
 }
