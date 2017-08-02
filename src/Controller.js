@@ -1,8 +1,5 @@
 const Request = require('./Request');
 const fsPlus = require('fs-plus');
-const error500 = fsPlus.readFilePromise(__dirname + '/../errors/500.hbs');
-const error404 = fsPlus.readFilePromise(__dirname + '/../errors/404.hbs');
-const error401 = fsPlus.readFilePromise(__dirname + '/../errors/401.hbs');
 const logger = require('logger').logger;
 const environment = require('environment');
 const trueTypeof = require('true-typeof');
@@ -16,8 +13,9 @@ class Controller extends Request {
    * @param {Model} model The model to be used when rendering.
    * @param {string} modelName The name of the model.
    * @param {Promise.<Handlebars>} hbs The handlebars instance.
+   * @param {Promise.<Object>} errors The errors to use (compiled hbs templates)
    */
-  constructor(viewFile, model, modelName, hbs) {
+  constructor(viewFile, model, modelName, hbs, errors) {
     super();
 
     /**
@@ -47,6 +45,13 @@ class Controller extends Request {
      * @private
      */
     this._hbs = hbs;
+
+    /**
+     * The errors used when displaying status codes.
+     * @type {Promise.<Object>}
+     * @private
+     */
+    this._errors = errors;
   }
 
   /**
@@ -163,39 +168,6 @@ class Controller extends Request {
         this.internalServerError(basics);
       }
     );
-  }
-
-  /**
-   * A server error response.
-   * @param {HttpBasics} basics The http basics.
-   */
-  internalServerError(basics) {
-    return error500.then(content => {
-      this.sendStatus(basics, 500);
-      return basics.response.send(content);
-    });
-  }
-
-  /**
-   * A response that the page wasn't found.
-   * @param {HttpBasics} basics The http basics.
-   */
-  notFoundError(basics) {
-    return error404.then(content => {
-      this.sendStatus(basics, 404);
-      return basics.response.send(content);
-    });
-  }
-
-  /**
-   * A response that the request needs to be authorized.
-   * @param basics
-   */
-  unauthorizedError(basics) {
-    return error401.then(content => {
-      this.sendStatus(basics, 401);
-      return basics.response.send(content);
-    });
   }
 
 }

@@ -5,6 +5,7 @@ const recursive = require('recursive-fs');
 const path = require('path');
 const Api = require('./Api');
 const Request = require('./Request');
+const handlebarsCore = require('handlebars');
 const handlebars = require('./handlebars');
 const Controller = require('./Controller');
 const CONTROLLER_REG = /^((.*[\/\\])(.)(.*))(Ctrl|Controller)(\.js)$/i;
@@ -22,6 +23,16 @@ const CSS_REG = /\.css(\?.*)?$/;
 const fs = require('fs-plus');
 const {version} = require('./package');
 
+/**
+ * Available error codes.
+ * @type {Number[]}
+ */
+const ERROR_CODES = [
+  400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414,
+  415, 416, 417, 422, 423, 424, 425, 426, 428, 429, 431, 500, 501, 502, 503,
+  504, 505, 406, 507, 509, 510, 511
+];
+
 class ExpressMvc {
 
   /**
@@ -34,10 +45,12 @@ class ExpressMvc {
    * folders within the application.
    * @param {boolean=} bind404 If we should bind a 404 route after all the
    * controllers are bound to avoid continuing to any other applications.
+   * @param {string=} customErrorDir The custom error directory where
+   * the application can find [error-status].html files.
    * @param {express=} expressDep The express instance to be used.
    */
   constructor(directory, middleware, domainReg = /.*/,
-              statics, bind404, expressDep) {
+              statics, bind404, customErrorDir = 'errors', expressDep) {
 
     // Bind the 404 route if we are auto checking for a different domain.
     if (bind404 === undefined) {
@@ -94,11 +107,51 @@ class ExpressMvc {
     this._listener = null;
 
     /**
-     * Other MVC apps.
-     * @type {Promise.<Array>}
+     * The directory to traverse while looking for errors.
+     * @type {Promise.<Object>}
      * @private
      */
-    this._otherMvcApps = Promise.resolve([]);
+    this._errors = new Promise((resolve, reject) => {
+      const generalErrorPromise = fs
+        .readFilePromise(path.normalize(__dirname + '/../errors/general.hbs'));
+
+      const errorDirs = [
+        path.normalize(directory + '/' + customErrorDir + '/'),
+        path.normalize(__dirname + '/../errors/')
+      ];
+
+      // Loop through the codes and find the custom error files.
+      Promise.all(ERROR_CODES.map(code => {
+        return fs
+        // Check if the custom file exists.
+          .existsPromise(`${errorDirs[0]}${code}.hbs`)
+          .then(exists => exists ?
+            fs.readFilePromise(`${errorDirs[0]}${code}.hbs`) :
+            // Otherwise, check if default file exists (cached for other MVCs).
+            fs.existsPromise(`${errorDirs[1]}${code}.hbs`)
+              .then(exists => exists ?
+                fs.readFilePromise(`${errorDirs[1]}${code}.hbs`) :
+                // Finally, deliver a general error.
+                generalErrorPromise))
+      }))
+      // Reduce the hbs file contents into compiled templates.
+        .then(
+          errorContents => {
+            const errors = {};
+            errorContents.forEach((content, i) => {
+              errors[ERROR_CODES[i]] =
+                handlebarsCore.compile(content.toString());
+            });
+            return generalErrorPromise
+              .then(generalErrorContent => {
+                errors.general =
+                  handlebarsCore.compile(generalErrorContent.toString());
+                resolve(errors);
+              });
+          },
+          e => reject(e)
+        );
+    });
 
     /**
      * Obtains all the js files.
@@ -229,7 +282,8 @@ class ExpressMvc {
             }
 
             const Ctrl = require(file);
-            const ctrl = new Ctrl(viewFile, Model, modelName, this._hbs);
+            const ctrl =
+              new Ctrl(viewFile, Model, modelName, this._hbs, this._errors);
             const ctrlKey = path.basename(file).replace(JS_EXT_REG, '');
 
             cache.getLibrary('controllers').add(ctrlKey, ctrl);
@@ -784,22 +838,31 @@ class ExpressMvc {
       this._controllers,
       this._apis,
       this._nodeModules,
-      this._notFound
+      this._notFound,
+      this._errors
     ]).then(() => this);
   }
 
   /**
-   * Binds another express MVC application.
-   * @param {string} dir The directory to use.
-   * @param {Function[]=} middleware The middleware to bind.
-   * @param {RegExp|Function=} reg The regular expression to check on the domain
-   * or the function that will check if we need to parse the handler.
-   * @param {express=} exp The express version to use.
-   * @returns {Promise.<ExpressMvc>}
+   * @param {string=} directory The directory of the mvc sources.
+   * @param {Function[]=} middleware Any middleware that's required.
+   * @param {RegExp|Function=} domainReg The regular expression for the domain
+   * or the function that will check if the route will be resolved.
+   * @param {string[]|string=} statics The static routes to assign before
+   * anything. Note: These routes are directories matching the context of the
+   * folders within the application.
+   * @param {boolean=} bind404 If we should bind a 404 route after all the
+   * controllers are bound to avoid continuing to any other applications.
+   * @param {string=} customErrorDir The custom error directory where
+   * the application can find [error-status].html files.
+   * @param {express=} expressDep The express instance to be used.
    */
-  bindExpressMvc(dir, middleware, reg, exp) {
-    return this.promise.then(() => new ExpressMvc(dir, middleware, reg, exp)
-      .promise.then(app => this.express.use(app.express)));
+  bindExpressMvc(directory, middleware, domainReg, statics, bind404,
+                 customErrorDir, expressDep) {
+    return this.promise
+      .then(() => new ExpressMvc(directory, middleware, domainReg, statics,
+        bind404, customErrorDir, expressDep).promise
+        .then(app => this.express.use(app.express)));
   }
 
   /**

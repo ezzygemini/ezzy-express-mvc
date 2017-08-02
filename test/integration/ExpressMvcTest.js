@@ -7,13 +7,17 @@ describe('ExpressMvc', () => {
 
   beforeAll(() => {
     logger.silence();
+    // logger.level = 'debug';
     app = new ExpressMvc(__dirname + '/../../root', undefined,
       /unknowndomain/, '/assets/');
-    app.bindExpressMvc(__dirname + '/../../root3', undefined,
-      (basics) => basics.request.originalUrl.indexOf('otherApis/') > -1);
-    app.bindExpressMvc(__dirname + '/../../root2');
-    app.listen(9002);
+    app.promise
+      .then(() => app.bindExpressMvc(__dirname + '/../../root3', undefined,
+        (basics) => basics.request.originalUrl.indexOf('otherApis/') > -1)
+        .then(() => app.bindExpressMvc(__dirname + '/../../root2')
+          .then(() => app.listen(9002))));
   });
+
+  it('setup', done => setTimeout(() => done()));
 
   it('should have bound static assets before the application', done => {
     app.listener.then(listener => {
@@ -99,6 +103,37 @@ describe('ExpressMvc', () => {
         request(listener)
           .patch('/apis/third/1/2/3')
           .expect(200, {a: 1, b: 2, c: 3})
+          .end(e => e ? fail(e) : done());
+      });
+    });
+
+  });
+
+  describe('should render errors accordingly', () => {
+
+    it('should display the default error', done => {
+      app.listener.then(listener => {
+        request(listener)
+          .get('/anotherContext/?getError=not-found')
+          .expect(404)
+          .end(e => e ? fail(e) : done());
+      });
+    });
+
+    it('should display a custom error', done => {
+      app.listener.then(listener => {
+        request(listener)
+          .get('/anotherContext/?getError=server-error')
+          .expect(500, 'Custom 500 error')
+          .end(e => e ? fail(e) : done());
+      });
+    });
+
+    it('should display a general error', done => {
+      app.listener.then(listener => {
+        request(listener)
+          .get('/anotherContext/?getError=wrong-accept')
+          .expect(406, '406')
           .end(e => e ? fail(e) : done());
       });
     });

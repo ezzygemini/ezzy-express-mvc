@@ -18,6 +18,13 @@ class Request {
      * @private
      */
     this._context = null;
+
+    /**
+     * The custom errors to use when displaying status codes.
+     * @type {null|Promise}
+     * @private
+     */
+    this._errors = null;
   }
 
   /**
@@ -829,21 +836,6 @@ class Request {
   }
 
   /**
-   * Sends the error to the server.
-   * @param {HttpBasics} basics The http basics.
-   * @param {number} status The http status code.
-   * @param {?object=} headers The headers to send along.
-   * @param {?string|object=} error The data/message to send.
-   * @returns {void}
-   * @private
-   */
-  _sendErrorStatus(basics, headers, status, error) {
-    this.decorateRequest(basics, status, headers);
-    this.sendStatus(basics, status);
-    basics.response.json(typeof error === 'string' ? {error, status} : error);
-  }
-
-  /**
    * Decorates the data as an API call.
    * @param {HttpBasics} basics The http basics.
    * @param {number} status The http status.
@@ -861,6 +853,34 @@ class Request {
           basics.response.set(prop, headers[prop]);
         }
       }
+    }
+  }
+
+  /**
+   * Sends the error to the server.
+   * @param {HttpBasics} basics The http basics.
+   * @param {number} status The http status code.
+   * @param {?object=} headers The headers to send along.
+   * @param {?string|object=} error The data/message to send.
+   * @returns {void}
+   * @private
+   */
+  _sendErrorStatus(basics, headers, status, error) {
+    this.decorateRequest(basics, status, headers);
+    this.sendStatus(basics, status);
+    const {accept} = basics.request.headers;
+    if (this._errors && accept && /(text\/html|text\/plain)/i.test(accept)) {
+      this._errors.then(errors => {
+        let generatedContent;
+        if (errors[status]) {
+          generatedContent = errors[status]({status});
+        } else {
+          generatedContent = errors.general(status);
+        }
+        basics.response.end(generatedContent);
+      });
+    } else {
+      basics.response.json(typeof error === 'string' ? {error, status} : error);
     }
   }
 
