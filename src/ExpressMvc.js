@@ -38,17 +38,11 @@ class ExpressMvc {
   /**
    * @param {string=} directory The directory of the mvc sources.
    * @param {Function|Function[]=} middleware Any middleware that's required.
-   * @param {RegExp|Function=} domainReg The regular expression for the domain
-   * or the function that will check if the route will be resolved.
-   * @param {string[]|string=} statics The static routes to assign before
-   * anything. Note: These routes are directories matching the context of the
-   * folders within the application.
-   * @param {boolean=} bind404 If we should bind a 404 route after all the
-   * controllers are bound to avoid continuing to any other applications.
-   * @param {string=} customErrorDir The custom error directory where
-   * the application can find [error-status].html files.
-   * @param {Function|Function[]=} globalMiddleware The global middleware to
-   * use on this and all other bound MVC applications.
+   * @param {RegExp|Function=} domainReg The regular expression for the domain or the function that will check if the route will be resolved.
+   * @param {string[]|string=} statics The static routes to assign before anything. Note: These routes are directories matching the context of the folders within the application.
+   * @param {boolean=} bind404 If we should bind a 404 route after all the controllers are bound to avoid continuing to any other applications.
+   * @param {string=} customErrorDir The custom error directory where the application can find [error-status].html files.
+   * @param {Function|Function[]=} globalMiddleware The global middleware to use on this and all other bound MVC applications.
    * @param {express=} expressDep The express instance to be used.
    */
   constructor(directory, middleware, domainReg = /.*/, statics, bind404,
@@ -205,7 +199,7 @@ class ExpressMvc {
       });
 
     // Bind all the global middleware regardless of domain or context.
-    if(globalMiddleware){
+    if (globalMiddleware) {
       (Array.isArray(globalMiddleware) ? globalMiddleware : [globalMiddleware])
         .forEach(handler => this.expressBasics.use(handler));
     }
@@ -853,23 +847,19 @@ class ExpressMvc {
 
   /**
    * @param {string=} directory The directory of the mvc sources.
-   * @param {Function[]=} middleware Any middleware that's required.
-   * @param {RegExp|Function=} domainReg The regular expression for the domain
-   * or the function that will check if the route will be resolved.
-   * @param {string[]|string=} statics The static routes to assign before
-   * anything. Note: These routes are directories matching the context of the
-   * folders within the application.
-   * @param {boolean=} bind404 If we should bind a 404 route after all the
-   * controllers are bound to avoid continuing to any other applications.
-   * @param {string=} customErrorDir The custom error directory where
-   * the application can find [error-status].html files.
+   * @param {Function|Function[]=} middleware Any middleware that's required.
+   * @param {RegExp|Function=} domainReg The regular expression for the domain or the function that will check if the route will be resolved.
+   * @param {string[]|string=} statics The static routes to assign before anything. Note: These routes are directories matching the context of the folders within the application.
+   * @param {boolean=} bind404 If we should bind a 404 route after all the controllers are bound to avoid continuing to any other applications.
+   * @param {string=} customErrorDir The custom error directory where the application can find [error-status].html files.
+   * @param {Function|Function[]=} globalMiddleware The global middleware to use on this and all other bound MVC applications.
    * @param {express=} expressDep The express instance to be used.
    */
   bindExpressMvc(directory, middleware, domainReg, statics, bind404,
-                 customErrorDir, expressDep) {
+                 customErrorDir, globalMiddleware, expressDep) {
     return this.promise
       .then(() => new ExpressMvc(directory, middleware, domainReg, statics,
-        bind404, customErrorDir, undefined, expressDep)
+        bind404, customErrorDir, globalMiddleware, expressDep)
         .promise
         .then(app => this.express.use(app.express)));
   }
