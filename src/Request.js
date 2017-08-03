@@ -364,7 +364,11 @@ class Request {
     if (status !== 200) {
       logger.warn(`Sending ${status} status`);
     }
-    basics.response.status(status);
+    try {
+      basics.response.status(status);
+    } catch (e) {
+      logger.error('Status Code', e);
+    }
   }
 
   /**
@@ -843,16 +847,20 @@ class Request {
    */
   decorateRequest(basics, status, headers = {}) {
     Object.assign(headers, {status, name, version, description});
-    basics.response
-      .set('x-version-requested', basics.request.params.version || 'latest');
-    for (let prop in headers) {
-      if (headers.hasOwnProperty(prop)) {
-        if (prop.toLowerCase() !== 'access-control-allow-origin') {
-          basics.response.set(`x-${prop}`, headers[prop]);
-        } else {
-          basics.response.set(prop, headers[prop]);
+    try {
+      basics.response
+        .set('x-version-requested', basics.request.params.version || 'latest');
+      for (let prop in headers) {
+        if (headers.hasOwnProperty(prop)) {
+          if (prop.toLowerCase() !== 'access-control-allow-origin') {
+            basics.response.set(`x-${prop}`, headers[prop]);
+          } else {
+            basics.response.set(prop, headers[prop]);
+          }
         }
       }
+    } catch (e) {
+      logger.error('Headers', e);
     }
   }
 

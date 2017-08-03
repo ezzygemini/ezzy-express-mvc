@@ -1,3 +1,4 @@
+const {logger} = require('logger');
 const Request = require('./Request');
 const API_CONTENT_TYPE = '*/*';
 
@@ -55,7 +56,11 @@ class Api extends Request {
   sendData(basics, data, headers) {
     this.sendStatus(basics, 200);
     this.decorateRequest(basics, 200, headers);
-    basics.response.json(data);
+    try {
+      basics.response.json(data);
+    } catch (e) {
+      logger.error('Response', e);
+    }
   }
 
 }
