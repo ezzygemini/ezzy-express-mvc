@@ -6,19 +6,16 @@ let app;
 describe('Middleware', () => {
 
   beforeAll(() => {
-    // logger.silence();
-    logger.level = 'debug';
-    app = new ExpressMvc(__dirname + '/../../root', [
-      basics => {
-        basics.request.client = 'some client';
-        basics.next();
-      },
-      basics => {
-        if (basics.request.originalUrl.indexOf('/returnMwareResponse')) {
-          basics.response.end('middleware bound');
-        }
+    logger.silence();
+    // logger.level = 'debug';
+    app = new ExpressMvc(__dirname + '/../../root', basics => {
+      basics.request.client = 'some client';
+      basics.next();
+    }, undefined, undefined, false, undefined, basics => {
+      if (basics.request.originalUrl.indexOf('/returnMwareResponse')) {
+        basics.response.end('middleware bound');
       }
-    ], undefined, undefined, false);
+    });
     app.promise
       .then(() => app.bindExpressMvc(__dirname + '/../../root2')
         .then(() => app.listen(9002)));

@@ -37,7 +37,7 @@ class ExpressMvc {
 
   /**
    * @param {string=} directory The directory of the mvc sources.
-   * @param {Function[]=} middleware Any middleware that's required.
+   * @param {Function|Function[]=} middleware Any middleware that's required.
    * @param {RegExp|Function=} domainReg The regular expression for the domain
    * or the function that will check if the route will be resolved.
    * @param {string[]|string=} statics The static routes to assign before
@@ -47,10 +47,12 @@ class ExpressMvc {
    * controllers are bound to avoid continuing to any other applications.
    * @param {string=} customErrorDir The custom error directory where
    * the application can find [error-status].html files.
+   * @param {Function|Function[]=} globalMiddleware The global middleware to
+   * use on this and all other bound MVC applications.
    * @param {express=} expressDep The express instance to be used.
    */
-  constructor(directory, middleware, domainReg = /.*/,
-              statics, bind404, customErrorDir = 'errors', expressDep) {
+  constructor(directory, middleware, domainReg = /.*/, statics, bind404,
+              customErrorDir = 'errors', globalMiddleware, expressDep) {
 
     // Bind the 404 route if we are auto checking for a different domain.
     if (bind404 === undefined) {
@@ -202,10 +204,16 @@ class ExpressMvc {
 
       });
 
+    // Bind all the global middleware regardless of domain or context.
+    if(globalMiddleware){
+      (Array.isArray(globalMiddleware) ? globalMiddleware : [globalMiddleware])
+        .forEach(handler => this.expressBasics.use(handler));
+    }
+
     // Bind any middleware that's required.
     this._middleware = !middleware ? Promise.resolve(true) : allFiles
       .then(() => {
-        (typeof middleware === 'function' ? [middleware] : middleware)
+        (Array.isArray(middleware) ? middleware : [middleware])
           .forEach(handle => {
             logger.debug('Middleware', 'Binding middleware on ' + domainReg);
             this.expressBasics
@@ -861,7 +869,8 @@ class ExpressMvc {
                  customErrorDir, expressDep) {
     return this.promise
       .then(() => new ExpressMvc(directory, middleware, domainReg, statics,
-        bind404, customErrorDir, expressDep).promise
+        bind404, customErrorDir, undefined, expressDep)
+        .promise
         .then(app => this.express.use(app.express)));
   }
 
