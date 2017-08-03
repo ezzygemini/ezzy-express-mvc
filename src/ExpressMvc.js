@@ -273,12 +273,12 @@ class ExpressMvc {
               matches[2] + matches[3].toLowerCase() + matches[4] + 'View.hbs';
 
             let Model;
+            const modelFile = matches[1] + 'Model.js';
             try {
-              const modelFile = matches[1] + 'Model.js';
-              logger.debug('Model Lookup', `Looking for model ${modelFile}`);
               Model = require(modelFile);
+              logger.debug('Model Lookup', `Looking for model ${modelFile}`);
             } catch (e) {
-              logger.warn('No model found for controller ' + file);
+              logger.warn(`No model found ${modelFile}. Using generic model.`);
               viewFile = null;
               Model = null;
             }
@@ -430,7 +430,7 @@ class ExpressMvc {
             return config;
           },
           e => {
-            logger.warn(e);
+            logger.warn(`No configuration file ${configFile}`);
             return {};
           }
         ), environment.development ? 100 : 0);
@@ -448,7 +448,7 @@ class ExpressMvc {
         recursive.readdirr(path.normalize(assetsDir + '/scss/'),
           (e, dirs, files) => {
             if (e) {
-              logger.error(e);
+              logger.warn(e);
               return resolve([]);
             }
             resolve(files.filter(file =>
@@ -461,7 +461,7 @@ class ExpressMvc {
         recursive.readdirr(path.normalize(assetsDir + '/js/'),
           (e, dirs, files) => {
             if (e) {
-              logger.error(e);
+              logger.warn(e);
               return resolve([]);
             }
             resolve(files

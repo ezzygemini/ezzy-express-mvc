@@ -42,8 +42,8 @@ module.exports = dir => {
 
         });
 
-    }, e => {
-      logger.warn(e);
+    }, () => {
+      logger.warn(`No partials found ${partials}`);
       return handlebars;
     });
 };
