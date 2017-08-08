@@ -24,6 +24,13 @@ const fs = require('fs-plus');
 const {version} = require('./package');
 
 /**
+ * The context parameters available.
+ * @type {string}
+ */
+const CONTEXT_PARAMS = '/:a?/:b?/:c?/:d?/:e?/:f?/:g?/:h?/:i?/:j?/:k?/:l?/:m?' +
+  '/:n?/:o?/:p?/:q?/:r?/:s?/:t?/:u?/:v?/:w?/:x?/:y?/:z?';
+
+/**
  * Available error codes.
  * @type {Number[]}
  */
@@ -343,8 +350,7 @@ class ExpressMvc {
 
     let args = [];
 
-    const pathVars =
-      controller.path || '/:a?/:b?/:c?/:d?/:e?/:f?/:g?/:h?/:i?/:j?/:k?/:l?/:m?';
+    const pathVars = controller.path || CONTEXT_PARAMS;
 
     if (context) {
       args.push([
@@ -618,8 +624,7 @@ class ExpressMvc {
       path.basename(file)
         .replace(/^(.)(.*)Api\.js$/i, (a, b, c) => b.toLowerCase() + c);
 
-    const pathVars =
-      api.path || '/:a?/:b?/:c?/:d?/:e?/:f?/:g?/:h?/:i?/:j?/:k?/:l?/:m?';
+    const pathVars = api.path || CONTEXT_PARAMS;
 
     args.push([
       // using this method of passing parameters because

@@ -16,7 +16,6 @@
     "cache": "github:ezzygemini/cache",
     "config-setup": "github:ezzygemini/config-setup",
     "environment": "github:ezzygemini/environment",
-    "express": "^4.14.1",
     "express-basics": "github:ezzygemini/express-basics",
     "fs-plus": "github:ezzygemini/fs-plus",
     "handlebars": "^4.0.6",
@@ -26,7 +25,7 @@
     "true-typeof": "github:ezzygemini/true-typeof"
   },
   "devDependencies": {
-    "express": "^4.14.1",
+    "express": "^4.15.4",
     "testing": "github:ezzygemini/testing"
   }
 }

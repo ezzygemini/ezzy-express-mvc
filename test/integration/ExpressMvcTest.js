@@ -19,6 +19,43 @@ describe('ExpressMvc', () => {
 
   it('setup', done => setTimeout(() => done()));
 
+  it('should contain proper attributes on a controller call', done => {
+    app.listener.then(listener => {
+      request(listener)
+        .get('/apis/parameter' +
+          '/a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z')
+        .expect(200, {
+          a: 'a',
+          b: 'b',
+          c: 'c',
+          d: 'd',
+          e: 'e',
+          f: 'f',
+          g: 'g',
+          h: 'h',
+          i: 'i',
+          j: 'j',
+          k: 'k',
+          l: 'l',
+          m: 'm',
+          n: 'n',
+          o: 'o',
+          p: 'p',
+          q: 'q',
+          r: 'r',
+          s: 's',
+          t: 't',
+          u: 'u',
+          v: 'v',
+          w: 'w',
+          x: 'x',
+          y: 'y',
+          z: 'z'
+        })
+        .end(e => e ? fail(e) : done());
+    });
+  });
+
   it('should have bound static assets before the application', done => {
     app.listener.then(listener => {
       request(listener)
