@@ -12,6 +12,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "express": "^4.15.4",
     "argument": "github:ezzygemini/argument",
     "cache": "github:ezzygemini/cache",
     "config-setup": "github:ezzygemini/config-setup",
@@ -25,7 +26,6 @@
     "true-typeof": "github:ezzygemini/true-typeof"
   },
   "devDependencies": {
-    "express": "^4.15.4",
     "testing": "github:ezzygemini/testing"
   }
 }
