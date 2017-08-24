@@ -375,15 +375,11 @@ class Request {
    * Sends a status to the page and sends final content.
    * @param {HttpBasics} basics The http basics.
    * @param {number} status The request status to send.
-   * @param {string} finalContent The final content to send.
+   * @param {string|undefined=} finalContent The final content to send.
    */
   sendStatusAndEnd(basics, status, finalContent) {
-    if (finalContent === undefined) {
-      basics.response.end();
-    } else {
-      basics.response.send(finalContent);
-    }
     this.sendStatus(basics, status);
+    basics.response.end(finalContent);
   }
 
   /**
