@@ -20,7 +20,7 @@ describe('Api', () => {
         })
         .expect('x-test', '1')
         .expect('x-version-requested', 'latest')
-        .end(e => e ? fail(e) : done());
+        .end(done);
     });
   });
 
@@ -30,7 +30,7 @@ describe('Api', () => {
         .get('/1.0.0/apis/express')
         .expect(200)
         .expect('x-version-requested', '1.0.0')
-        .end(e => e ? fail(e) : done());
+        .end(done);
     });
   });
 
@@ -41,7 +41,7 @@ describe('Api', () => {
         .expect(200, {
           success: true
         })
-        .end(e => e ? fail(e) : done());
+        .end(done);
     });
   });
 
@@ -50,7 +50,7 @@ describe('Api', () => {
       request(listener)
         .patch('/apis/express')
         .expect(500)
-        .end(e => e ? fail(e) : done());
+        .end(done);
     });
   });
 
@@ -59,7 +59,7 @@ describe('Api', () => {
       request(listener)
         .post('/apis/express')
         .expect(403)
-        .end(e => e ? fail(e) : done());
+        .end(done);
     });
   });
 
@@ -68,7 +68,7 @@ describe('Api', () => {
       request(listener)
         .put('/apis/express/abc+def')
         .expect(200, {data: 'abc+def'})
-        .end(e => e ? fail(e) : done());
+        .end(done);
     })
   });
 
@@ -133,7 +133,7 @@ describe('Api', () => {
           request(listener)
             .delete(`/apis/express/${this.endpoint}`)
             .expect(this.status)
-            .end(e => e ? fail(e) : done());
+            .end(done);
         });
       });
     }.bind({endpoint, status}))();

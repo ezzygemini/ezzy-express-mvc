@@ -11,7 +11,7 @@ describe('SomeMiddleware', () => {
       basics.request.client = 'some client';
       basics.next();
     });
-    app.listen(9002);
+    app.listen(9004);
   });
 
   it('should properly install middleware per method', done => {
@@ -19,7 +19,7 @@ describe('SomeMiddleware', () => {
       request(listener)
         .get('/apis/someMiddleware')
         .expect(200, {success: true})
-        .end(e => e ? fail(e) : done());
+        .end(done);
     });
   });
 
@@ -28,7 +28,7 @@ describe('SomeMiddleware', () => {
       request(listener)
         .get('/apis/someMiddleware?someTest')
         .expect(200, {success: false})
-        .end(e => e ? fail(e) : done());
+        .end(done);
     });
   });
 

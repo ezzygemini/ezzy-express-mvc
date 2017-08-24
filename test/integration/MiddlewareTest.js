@@ -12,13 +12,14 @@ describe('Middleware', () => {
       basics.request.client = 'some client';
       basics.next();
     }, undefined, undefined, false, undefined, basics => {
-      if (basics.request.originalUrl.indexOf('/returnMwareResponse')) {
-        basics.response.end('middleware bound');
+      if (/returnMwareResponse/.test(basics.request.originalUrl)) {
+        return basics.response.status(200).send('middleware bound');
       }
+      basics.next();
     });
     app.promise
       .then(() => app.bindExpressMvc(__dirname + '/../../root2')
-        .then(() => app.listen(9002)));
+        .then(() => app.listen(9003)));
   });
 
   it('setup', done => setTimeout(() => done(), 0));
@@ -26,14 +27,8 @@ describe('Middleware', () => {
   it('should bind proper middleware', done => {
     app.listener.then(listener => {
       request(listener)
-        .get('/')
-        .expect(200, (e, body) => {
-          if (e) {
-            return fail(e);
-          }
-          expect(body.text).toContain('<b>some client</b>');
-        })
-        .end(e => e ? fail(e) : done());
+        .get('/apis/express/someClient')
+        .expect(200, /.*<b>some client<\/b>.*/, done);
     });
   });
 
@@ -41,8 +36,7 @@ describe('Middleware', () => {
     app.listener.then(listener => {
       request(listener)
         .get('/apis/express/returnMwareResponse')
-        .expect(200, 'middleware bound')
-        .end(e => e ? fail(e) : done());
+        .expect(200, /.*middleware bound.*/, done);
     });
   });
 

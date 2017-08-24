@@ -48,7 +48,7 @@ class ExpressMvc {
    * @param {RegExp|Function=} domainReg The regular expression for the domain or the function that will check if the route will be resolved.
    * @param {string[]|string=} statics The static routes to assign before anything. Note: These routes are directories matching the context of the folders within the application.
    * @param {boolean=} bind404 If we should bind a 404 route after all the controllers are bound to avoid continuing to any other applications.
-   * @param {string=} customErrorDir The custom error directory where the application can find [error-status].html files.
+   * @param {string|undefined=} customErrorDir The custom error directory where the application can find [error-status].html files.
    * @param {Function|Function[]=} globalMiddleware The global middleware to use on this and all other bound MVC applications.
    * @param {express=} expressDep The express instance to be used.
    */
@@ -856,7 +856,7 @@ class ExpressMvc {
    * @param {RegExp|Function=} domainReg The regular expression for the domain or the function that will check if the route will be resolved.
    * @param {string[]|string=} statics The static routes to assign before anything. Note: These routes are directories matching the context of the folders within the application.
    * @param {boolean=} bind404 If we should bind a 404 route after all the controllers are bound to avoid continuing to any other applications.
-   * @param {string=} customErrorDir The custom error directory where the application can find [error-status].html files.
+   * @param {string|undefined=} customErrorDir The custom error directory where the application can find [error-status].html files.
    * @param {Function|Function[]=} globalMiddleware The global middleware to use on this and all other bound MVC applications.
    * @param {express=} expressDep The express instance to be used.
    */

@@ -356,7 +356,7 @@ class Request {
   }
 
   /**
-   * Sends a 500 error on the page.
+   * Sends a status to the page.
    * @param {HttpBasics} basics The http basics.
    * @param {number} status The request status to send.
    */
@@ -369,6 +369,21 @@ class Request {
     } catch (e) {
       logger.error('Status Code', e);
     }
+  }
+
+  /**
+   * Sends a status to the page and sends final content.
+   * @param {HttpBasics} basics The http basics.
+   * @param {number} status The request status to send.
+   * @param {string} finalContent The final content to send.
+   */
+  sendStatusAndEnd(basics, status, finalContent) {
+    if (finalContent === undefined) {
+      basics.response.end();
+    } else {
+      basics.response.send(finalContent);
+    }
+    this.sendStatus(basics, status);
   }
 
   /**

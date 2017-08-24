@@ -7,12 +7,20 @@ class ThirdExpressApi extends Api {
 
   /**
    * Get method.
-   * @param basics
+   * @param {HttpBasics} basics The http basics.
    */
   doGet(basics) {
     this.sendData(basics, {
       success: true
     });
+  }
+
+  /**
+   * Post method.
+   * @param {HttpBasics} basics The http basics.
+   */
+  doPost(basics) {
+    this.sendStatusAndEnd(basics, 200, 'done');
   }
 
 }
