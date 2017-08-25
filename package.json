@@ -1,10 +1,15 @@
 {
   "name": "ezzy-express-mvc",
   "description": "A complete mvc infrastructure to render pages from a specific directory based.",
-  "version": "0.1.1",
+  "version": "0.1.10",
+  "author": {
+    "name": "Moises Romero",
+    "url": "http://ezzygemini.com",
+    "email": "ezzygemini@gmail.com"
+  },
   "repository": {
     "type": "git",
-    "url": "git@github.com:ezzygemini/express-mvc.git"
+    "url": "https://github.com/ezzygemini/ezzy-express-mvc.git"
   },
   "scripts": {
     "pretest": "npm install",
