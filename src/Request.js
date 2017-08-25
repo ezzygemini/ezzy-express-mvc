@@ -1,4 +1,4 @@
-const logger = require('logger').logger;
+const logger = require('ezzy-logger').logger;
 const DEFAULT_CONTENT_TYPE = '*/*';
 const {version, name, description} = require('./package');
 let inst;

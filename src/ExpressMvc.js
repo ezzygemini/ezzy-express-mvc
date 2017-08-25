@@ -1,6 +1,6 @@
 const i18n = require('i18n-2');
 const express = require('express');
-const logger = require('logger').logger;
+const logger = require('ezzy-logger').logger;
 const recursive = require('recursive-fs');
 const path = require('path');
 const Api = require('./Api');
@@ -11,8 +11,8 @@ const Controller = require('./Controller');
 const CONTROLLER_REG = /^((.*[\/\\])(.)(.*))(Ctrl|Controller)(\.js)$/i;
 const JS_EXT_REG = /\.js$/i;
 const cache = require('./cache');
-const ExpressBasics = require('express-basics');
-const environment = require('environment');
+const ExpressBasics = require('ezzy-express-basics');
+const environment = require('ezzy-environment');
 const exec = require('child_process').exec;
 const SKIP_COMPASS = environment.argument('SKIP_COMPASS', false);
 const COMPASS = environment.argument('COMPASS', 'compass');
@@ -20,7 +20,7 @@ const COMPASS_CMD = COMPASS +
   ' compile --relative-assets --output-style=expanded ' +
   '--css-dir=css --sass-dir=scss --images-dir=images --trace';
 const CSS_REG = /\.css(\?.*)?$/;
-const fs = require('fs-plus');
+const fs = require('ezzy-fs');
 const {version} = require('./package');
 
 /**

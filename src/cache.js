@@ -1,4 +1,4 @@
-const Cache = require('cache');
+const Cache = require('ezzy-cache');
 
 /**
  * @type {Cache}

@@ -1,8 +1,8 @@
 const path = require('path');
-const fsPlus = require('fs-plus');
+const fsPlus = require('ezzy-fs');
 const handlebars = require('handlebars');
 const HBS_REG = /\.hbs$/;
-const logger = require('logger').logger;
+const logger = require('ezzy-logger').logger;
 
 handlebars.registerPartial('styles', `
   {{#each assets.css}}

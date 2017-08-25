@@ -1,6 +1,6 @@
 const ExpressMvc = require('../../src/ExpressMvc');
 let expressMvc;
-const logger = require('logger').logger;
+const logger = require('ezzy-logger').logger;
 
 describe('Express MVC', () => {
 

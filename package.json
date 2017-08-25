@@ -1,31 +1,31 @@
 {
-  "name": "express-mvc",
+  "name": "ezzy-express-mvc",
   "description": "A complete mvc infrastructure to render pages from a specific directory based.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "repository": {
     "type": "git",
     "url": "git@github.com:ezzygemini/express-mvc.git"
   },
   "scripts": {
     "pretest": "npm install",
-    "test": "node node_modules/testing"
+    "test": "node node_modules/ezzy-testing"
   },
   "license": "MIT",
   "dependencies": {
     "express": "^4.15.4",
-    "argument": "github:ezzygemini/argument",
-    "cache": "github:ezzygemini/cache",
-    "config-setup": "github:ezzygemini/config-setup",
-    "environment": "github:ezzygemini/environment",
-    "express-basics": "github:ezzygemini/express-basics",
-    "fs-plus": "github:ezzygemini/fs-plus",
+    "ezzy-argument": "^0.1.0",
+    "ezzy-cache": "^0.1.1",
+    "ezzy-config-setup": "^0.1.0",
+    "ezzy-environment": "^0.1.2",
+    "ezzy-express-basics": "^0.1.1",
+    "ezzy-fs": "^0.1.1",
+    "ezzy-logger": "^0.1.1",
+    "ezzy-typeof": "0.0.1",
     "handlebars": "^4.0.6",
     "i18n-2": "^0.6.3",
-    "logger": "github:ezzygemini/logger",
-    "recursive-fs": "^1.0.0",
-    "true-typeof": "github:ezzygemini/true-typeof"
+    "recursive-fs": "^1.0.0"
   },
   "devDependencies": {
-    "testing": "github:ezzygemini/testing"
+    "ezzy-testing": "^0.1.2"
   }
 }

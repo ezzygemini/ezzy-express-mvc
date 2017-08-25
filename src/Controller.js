@@ -1,8 +1,8 @@
 const Request = require('./Request');
-const fsPlus = require('fs-plus');
-const logger = require('logger').logger;
-const environment = require('environment');
-const trueTypeof = require('true-typeof');
+const fsPlus = require('ezzy-fs');
+const logger = require('ezzy-logger').logger;
+const environment = require('ezzy-environment');
+const trueTypeof = require('ezzy-typeof');
 const cache = require('./cache');
 
 class Controller extends Request {
