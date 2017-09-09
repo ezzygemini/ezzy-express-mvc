@@ -1,3 +1,1 @@
-/** @type {Api} */
-const Api = require('./src/Api');
-module.exports = Api;
+module.exports = require('./src/Api');
