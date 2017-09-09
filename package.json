@@ -18,19 +18,19 @@
   "license": "MIT",
   "dependencies": {
     "express": "^4.15.4",
-    "ezzy-argument": "^0.1.0",
-    "ezzy-cache": "^0.1.1",
-    "ezzy-config-setup": "^0.1.0",
-    "ezzy-environment": "^0.1.2",
-    "ezzy-express-basics": "^0.1.1",
-    "ezzy-fs": "^0.1.1",
-    "ezzy-logger": "^0.1.1",
+    "ezzy-argument": "^0.1.11",
+    "ezzy-cache": "^0.1.15",
+    "ezzy-config-setup": "^0.1.10",
+    "ezzy-environment": "^0.1.14",
+    "ezzy-express-basics": "^0.1.12",
+    "ezzy-fs": "^0.1.10",
+    "ezzy-logger": "^0.1.16",
     "ezzy-typeof": "0.0.1",
     "handlebars": "^4.0.6",
     "i18n-2": "^0.6.3",
     "recursive-fs": "^1.0.0"
   },
   "devDependencies": {
-    "ezzy-testing": "^0.1.2"
+    "ezzy-testing": "^0.1.13"
   }
 }
