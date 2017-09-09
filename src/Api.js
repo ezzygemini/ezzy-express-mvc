@@ -1,4 +1,4 @@
-const {logger} = require('ezzy-logger');
+const logger = require('ezzy-logger').logger;
 const Request = require('./Request');
 const API_CONTENT_TYPE = '*/*';
 
