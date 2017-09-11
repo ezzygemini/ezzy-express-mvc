@@ -10,9 +10,9 @@ handlebars.registerPartial('styles', `
   {{/each}}
   {{#each styles}}
     <style type="text/css">
-    {{.}}
+    {{{.}}}
     </style>
-  {{/styles}}
+  {{/each}}
 `);
 
 handlebars.registerPartial('scripts', `
