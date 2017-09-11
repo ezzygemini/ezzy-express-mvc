@@ -8,11 +8,21 @@ handlebars.registerPartial('styles', `
   {{#each assets.css}}
     <link rel="stylesheet" href="{{.}}" />
   {{/each}}
+  {{#each styles}}
+    <style type="text/css">
+    {{.}}
+    </style>
+  {{/styles}}
 `);
 
 handlebars.registerPartial('scripts', `
   {{#each assets.js}}
     <script src="{{.}}"></script>
+  {{/each}}
+  {{#each scripts}}
+    <script type="application/javascript">
+    {{{.}}}
+    </script>
   {{/each}}
 `);
 
