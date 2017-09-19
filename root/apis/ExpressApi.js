@@ -6,6 +6,14 @@ class ExpressApi extends Api {
     return ['asdf'];
   }
 
+  doOptions(basics) {
+    return this.sendData(basics, {success: true});
+  }
+
+  doHead(basics) {
+    return this.sendData(basics, {success: true});
+  }
+
   doGet(basics) {
     return this.sendData(basics, {
       success: true
@@ -22,11 +30,11 @@ class ExpressApi extends Api {
     return this[error](basics);
   }
 
-  authPost(basics){
+  authPost(basics) {
     return false;
   }
 
-  doPatch(basics){
+  doPatch(basics) {
     throw "SomeError";
   }
 

@@ -174,6 +174,24 @@ class Request {
         }
 
         break;
+      case 'HEAD':
+
+        if (this.authHead(basics)) {
+          return this.doHead(basics, ...qry());
+        } else {
+          return this.forbiddenError(basics);
+        }
+
+        break;
+      case 'OPTIONS':
+
+        if (this.authOptions(basics)) {
+          return this.doOptions(basics, ...qry());
+        } else {
+          return this.forbiddenError(basics);
+        }
+
+        break;
       default:
 
         if (this.authGet(basics)) {
@@ -207,6 +225,43 @@ class Request {
    */
   auth(basics) {
     return true;
+  }
+
+  /**
+   * Authorizes the request and checks if we can continue with an OPTIONS
+   * request.
+   * @param {HttpBasics} basics The http basics.
+   * @returns {boolean}
+   */
+  authOptions(basics) {
+    return true;
+  }
+
+  /**
+   * Basic OTPIONS handler.
+   * @param {HttpBasics} basics The http basics.
+   * @param {*=} data The data sent on the body.
+   */
+  doOptions(basics, data){
+    return this.methodNotAllowedError(basics);
+  }
+
+  /**
+   * Authorizes the request and checks if we can continue with a HEAD request.
+   * @param {HttpBasics} basics The http basics.
+   * @returns {boolean}
+   */
+  authHead(basics) {
+    return true;
+  }
+
+  /**
+   * Basic OTPIONS handler.
+   * @param {HttpBasics} basics The http basics.
+   * @param {*=} data The data sent on the body.
+   */
+  doHead(basics, data){
+    return this.methodNotAllowedError(basics);
   }
 
   /**

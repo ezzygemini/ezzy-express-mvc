@@ -11,6 +11,28 @@ describe('Api', () => {
     app.listen(9001);
   });
 
+  it('should invoke the head method properly', done => {
+    app.listener.then(listener => {
+      request(listener)
+        .head('/apis/express')
+        .expect(200, {
+          success: true
+        })
+        .end(done);
+    });
+  });
+
+  it('should invoke the options method properly', done => {
+    app.listener.then(listener => {
+      request(listener)
+        .options('/apis/express')
+        .expect(200, {
+          success: true
+        })
+        .end(done);
+    });
+  });
+
   it('should bind the api properly', done => {
     app.listener.then(listener => {
       request(listener)
