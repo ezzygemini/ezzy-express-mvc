@@ -409,6 +409,14 @@ class ExpressMvc {
               js.unshift(dependency);
             }
           });
+          const configCss = cnf.css || cnf.styles || cnf.stylesheets;
+          const configJs = cnf.js || cnf.scripts || cnf.javascripts;
+          if(configCss && Array.isArray(configCss)){
+            css = configCss.concat(css);
+          }
+          if(configJs && Array.isArray(configJs)){
+            js = configJs.concat(configJs);
+          }
           logger.debug('Assets', {js, css});
           js = js.map(i => '/' + version + i);
           css = css.map(i => '/' + version + i);
