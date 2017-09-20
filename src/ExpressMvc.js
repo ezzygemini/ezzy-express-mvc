@@ -22,6 +22,7 @@ const COMPASS_CMD = COMPASS +
 const CSS_REG = /\.css(\?.*)?$/;
 const fs = require('ezzy-fs');
 const {version} = require('./package');
+const HAS_PROTOCOL_REG = /^https?:/i;
 
 /**
  * The context parameters available.
@@ -411,15 +412,17 @@ class ExpressMvc {
           });
           const configCss = cnf.css || cnf.styles || cnf.stylesheets;
           const configJs = cnf.js || cnf.scripts || cnf.javascripts;
-          if(configCss && Array.isArray(configCss)){
+          if (configCss && Array.isArray(configCss)) {
             css = configCss.concat(css);
           }
-          if(configJs && Array.isArray(configJs)){
+          if (configJs && Array.isArray(configJs)) {
             js = configJs.concat(configJs);
           }
           logger.debug('Assets', {js, css});
-          js = js.map(i => '/' + version + i);
-          css = css.map(i => '/' + version + i);
+          js = js.map(ref =>
+            HAS_PROTOCOL_REG.test(ref) ? ref : `/${version}${ref}`);
+          css = css.map(ref =>
+            HAS_PROTOCOL_REG.test(ref) ? ref : `/${version}${ref}`);
           return {js, css};
         }));
   }
