@@ -207,16 +207,15 @@ class ExpressMvc {
 
       });
 
+    // Bind all the global middleware regardless of domain or context.
+    if (globalMiddleware) {
+      (Array.isArray(globalMiddleware) ?
+        globalMiddleware : [globalMiddleware])
+        .forEach(handler => this.expressBasics.use(handler));
+    }
+
     // Bind any middleware that's required.
     this._middleware = !middleware ? Promise.resolve(true) : allFiles
-      .then(() => {
-        // Bind all the global middleware regardless of domain or context.
-        if (globalMiddleware) {
-          (Array.isArray(globalMiddleware) ?
-            globalMiddleware : [globalMiddleware])
-            .forEach(handler => this.expressBasics.use(handler));
-        }
-      })
       .then(() => {
         (Array.isArray(middleware) ? middleware : [middleware])
           .forEach(handle => {
