@@ -28,13 +28,12 @@
     "ezzy-express-basics": "^0.1.17",
     "ezzy-fs": "^0.1.12",
     "ezzy-logger": "^0.1.18",
-    "ezzy-testing": "^0.1.18",
     "ezzy-typeof": "0.0.1",
     "handlebars": "^4.0.6",
     "i18n-2": "^0.6.3",
     "recursive-fs": "^1.0.0"
   },
   "devDependencies": {
-    "ezzy-testing": "^0.1.16"
+    "ezzy-testing": "^0.1.18"
   }
 }
