@@ -54,7 +54,8 @@ class ExpressMvc {
    * @param {express=} expressDep The express instance to be used.
    */
   constructor(directory, middleware, domainReg = /.*/, statics, bind404,
-              customErrorDir = 'errors', globalMiddleware, expressDep) {
+              customErrorDir = 'errors', globalMiddleware, expressDep
+  ) {
 
     // Bind the 404 route if we are auto checking for a different domain.
     if (bind404 === undefined) {
@@ -206,14 +207,16 @@ class ExpressMvc {
 
       });
 
-    // Bind all the global middleware regardless of domain or context.
-    if (globalMiddleware) {
-      (Array.isArray(globalMiddleware) ? globalMiddleware : [globalMiddleware])
-        .forEach(handler => this.expressBasics.use(handler));
-    }
-
     // Bind any middleware that's required.
     this._middleware = !middleware ? Promise.resolve(true) : allFiles
+      .then(() => {
+        // Bind all the global middleware regardless of domain or context.
+        if (globalMiddleware) {
+          (Array.isArray(globalMiddleware) ?
+            globalMiddleware : [globalMiddleware])
+            .forEach(handler => this.expressBasics.use(handler));
+        }
+      })
       .then(() => {
         (Array.isArray(middleware) ? middleware : [middleware])
           .forEach(handle => {
@@ -794,7 +797,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  get(...args) {
+  get (...args) {
     return this.expressBasics.get.apply(this.expressBasics, args);
   }
 
@@ -872,7 +875,8 @@ class ExpressMvc {
    * @param {express=} expressDep The express instance to be used.
    */
   bindExpressMvc(directory, middleware, domainReg, statics, bind404,
-                 customErrorDir, globalMiddleware, expressDep) {
+                 customErrorDir, globalMiddleware, expressDep
+  ) {
     return this.promise
       .then(() => new ExpressMvc(directory, middleware, domainReg, statics,
         bind404, customErrorDir, globalMiddleware, expressDep)
