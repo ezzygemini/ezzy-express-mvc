@@ -54,8 +54,7 @@ class ExpressMvc {
    * @param {express=} expressDep The express instance to be used.
    */
   constructor(directory, middleware, domainReg = /.*/, statics, bind404,
-              customErrorDir = 'errors', globalMiddleware, expressDep
-  ) {
+              customErrorDir = 'errors', globalMiddleware, expressDep) {
 
     // Bind the 404 route if we are auto checking for a different domain.
     if (bind404 === undefined) {
@@ -180,32 +179,13 @@ class ExpressMvc {
     });
 
     // Bind static paths
-    this._staticRoutes = !statics ? Promise.resolve(true) : allFiles
-      .then(({dirs}) => {
-
-        statics = (Array.isArray(statics) ? statics : [statics])
-          .map(route => path.normalize(this._directory + '/' + route + '/')
-            .replace(/\/$/, ''));
-
-        const staticFolders =
-          dirs.filter(folder => statics.indexOf(folder) > -1);
-
-        let context;
-        staticFolders.forEach(folder => {
-          context = '/' + path.relative(this._directory, folder);
-          logger.debug('Static Route', `Binding ${folder} to ${context}`);
-          this._express.use(context, expr.static(folder));
-        });
-
-        if (staticFolders.length !== statics.length) {
-          logger.warn('Static Routes',
-            `You defined ${statics.length} static routes, but we ` +
-            `found ${staticFolders.length} folders.`);
-          logger.warn('Static Routes', 'Routes', statics);
-          logger.warn('Static Routes', 'Folders', dirs);
-        }
-
+    if (statics) {
+      (Array.isArray(statics) ? statics : [statics]).forEach(context => {
+        const fullPath = path.normalize(this._directory + '/' + context);
+        logger.debug('Static Route', `Binding ${fullPath} to ${context}`);
+        this._express.use(context, expr.static(fullPath));
       });
+    }
 
     // Bind all the global middleware regardless of domain or context.
     if (globalMiddleware) {
@@ -796,7 +776,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  get (...args) {
+  get(...args) {
     return this.expressBasics.get.apply(this.expressBasics, args);
   }
 
@@ -853,7 +833,6 @@ class ExpressMvc {
    */
   get promise() {
     return Promise.all([
-      this._staticRoutes,
       this._middleware,
       this._controllers,
       this._apis,
@@ -874,8 +853,7 @@ class ExpressMvc {
    * @param {express=} expressDep The express instance to be used.
    */
   bindExpressMvc(directory, middleware, domainReg, statics, bind404,
-                 customErrorDir, globalMiddleware, expressDep
-  ) {
+                 customErrorDir, globalMiddleware, expressDep) {
     return this.promise
       .then(() => new ExpressMvc(directory, middleware, domainReg, statics,
         bind404, customErrorDir, globalMiddleware, expressDep)
