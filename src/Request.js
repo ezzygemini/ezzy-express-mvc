@@ -439,9 +439,11 @@ class Request {
   static getLastCall() {
     const lastFile = stack()
       .find(item => !FILE_SKIPPED.test(item.getFileName()));
+    if (!lastFile) {
+      return '';
+    }
     const fileName = lastFile.getFileName();
     return (fileName ? path.basename(fileName) : '') +
-      '.' + lastFile.getFunctionName() +
       ':' + lastFile.getLineNumber();
   }
 
