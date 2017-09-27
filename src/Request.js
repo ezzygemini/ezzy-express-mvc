@@ -1,7 +1,14 @@
+const path = require('path');
 const logger = require('ezzy-logger').logger;
+const stack = require('callsite');
 const DEFAULT_CONTENT_TYPE = '*/*';
 const {version, name, description} = require('./package');
 let inst;
+
+/**
+ * @type {RegExp}
+ */
+const FILE_SKIPPED = /(Request)\.js$/;
 
 /**
  * Base class that handles a request.
@@ -242,7 +249,7 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {*=} data The data sent on the body.
    */
-  doOptions(basics, data){
+  doOptions(basics, data) {
     return this.methodNotAllowedError(basics);
   }
 
@@ -260,7 +267,7 @@ class Request {
    * @param {HttpBasics} basics The http basics.
    * @param {*=} data The data sent on the body.
    */
-  doHead(basics, data){
+  doHead(basics, data) {
     return this.methodNotAllowedError(basics);
   }
 
@@ -417,13 +424,25 @@ class Request {
    */
   sendStatus(basics, status = 200) {
     if (status !== 200) {
-      logger.warn(`Sending ${status} status`);
+      logger.warn(Request.getLastCall(), `Sending ${status} status`);
     }
     try {
       basics.response.status(status);
     } catch (e) {
       logger.error('Status Code', e);
     }
+  }
+
+  /**
+   * Obtains the last file name.
+   */
+  static getLastCall() {
+    const lastFile = stack()
+      .find(item => !FILE_SKIPPED.test(item.getFileName()));
+    const fileName = lastFile.getFileName();
+    return (fileName ? path.basename(fileName) : '') +
+      '.' + lastFile.getFunctionName() +
+      ':' + lastFile.getLineNumber();
   }
 
   /**
