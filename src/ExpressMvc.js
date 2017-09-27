@@ -483,7 +483,7 @@ class ExpressMvc {
         recursive.readdirr(path.normalize(assetsDir + '/css/'),
           (e, dirs, files) => {
             if (e) {
-              logger.error(e);
+              logger.warn(e);
               return resolve([]);
             }
             resolve(files.filter(file => /\.min\.css$/.test(file))
@@ -495,7 +495,7 @@ class ExpressMvc {
         recursive.readdirr(path.normalize(assetsDir + '/js/'),
           (e, dirs, files) => {
             if (e) {
-              logger.error(e);
+              logger.warn(e);
               return resolve([]);
             }
             resolve(files.filter(file => /\.min\.js$/.test(file))
