@@ -8,7 +8,7 @@ let inst;
 /**
  * @type {RegExp}
  */
-const FILE_SKIPPED = /(Request)\.js$/;
+const FILE_SKIPPED = /(Request|Controller|Api|api|controller|index)\.js$/;
 
 /**
  * Base class that handles a request.
