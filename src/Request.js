@@ -9,7 +9,7 @@ let inst;
  * @type {RegExp}
  */
 const FILE_SKIPPED =
-  /(ExpressMvc|Request|Controller|Api|api|controller|index)\.js$/;
+  /(Request|Controller|Api|api|controller|index)\.js$/;
 
 /**
  * Base class that handles a request.
@@ -426,7 +426,7 @@ class Request {
   sendStatus(basics, status = 200) {
     if (status !== 200) {
       logger.warn(Request.getLastCall(),
-        `Sending ${status} status ${basics.request.url}`);
+        `Sending ${status} status ${basics.request.originalUrl}`);
     }
     try {
       basics.response.status(status);
@@ -957,12 +957,16 @@ class Request {
    * Sends the error to the server.
    * @param {HttpBasics} basics The http basics.
    * @param {number} status The http status code.
-   * @param {?object=} headers The headers to send along.
-   * @param {?string|object=} error The data/message to send.
+   * @param {object|string=} headers The headers to send along.
+   * @param {string|object=} error The data/message to send.
    * @returns {void}
    * @private
    */
   _sendErrorStatus(basics, headers, status, error) {
+    if (typeof headers === 'string') {
+      status = headers;
+      headers = {};
+    }
     this.decorateRequest(basics, status, headers);
     this.sendStatus(basics, status);
     const {accept} = basics.request.headers;
