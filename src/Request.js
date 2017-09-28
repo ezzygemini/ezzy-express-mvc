@@ -8,7 +8,8 @@ let inst;
 /**
  * @type {RegExp}
  */
-const FILE_SKIPPED = /(Request|Controller|Api|api|controller|index)\.js$/;
+const FILE_SKIPPED =
+  /(ExpressMvc|Request|Controller|Api|api|controller|index)\.js$/;
 
 /**
  * Base class that handles a request.
@@ -424,7 +425,8 @@ class Request {
    */
   sendStatus(basics, status = 200) {
     if (status !== 200) {
-      logger.warn(Request.getLastCall(), `Sending ${status} status`);
+      logger.warn(Request.getLastCall(),
+        `Sending ${status} status ${basics.request.url}`);
     }
     try {
       basics.response.status(status);
