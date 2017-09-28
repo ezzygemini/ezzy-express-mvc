@@ -964,8 +964,8 @@ class Request {
    */
   _sendErrorStatus(basics, headers, status, error) {
     if (typeof headers === 'string') {
-      status = headers;
-      headers = {};
+      error = headers;
+      headers = undefined;
     }
     this.decorateRequest(basics, status, headers);
     this.sendStatus(basics, status);
