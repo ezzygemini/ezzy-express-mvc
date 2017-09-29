@@ -26,7 +26,7 @@ const HAS_PROTOCOL_REG = /^https?:/i;
 let cdn = environment.getConfiguration('cdn');
 
 // Prefixes the cdn in case there is no protocol.
-if (cdn && /^(\/\/|http)/.test(cdn)) {
+if (cdn && !/^(\/\/|http)/.test(cdn)) {
   cdn = '//' + cdn;
 }
 
