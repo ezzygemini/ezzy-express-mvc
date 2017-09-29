@@ -425,8 +425,9 @@ class Request {
    */
   sendStatus(basics, status = 200) {
     if (status !== 200) {
+      const {hostname, originalUrl} = basics.request;
       logger.warn(Request.getLastCall(),
-        `Sending ${status} status ${basics.request.originalUrl}`);
+        `Sending ${status} status ${hostname} ${originalUrl}`);
     }
     try {
       basics.response.status(status);
