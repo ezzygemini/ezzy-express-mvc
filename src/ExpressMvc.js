@@ -23,6 +23,12 @@ const CSS_REG = /\.css(\?.*)?$/;
 const fs = require('ezzy-fs');
 const {version} = require('./package');
 const HAS_PROTOCOL_REG = /^https?:/i;
+let cdn = environment.getConfiguration('cdn');
+
+// Prefixes the cdn in case there is no protocol.
+if (cdn && /^(\/\/|http)/.test(cdn)) {
+  cdn = '//' + cdn;
+}
 
 /**
  * The context parameters available.
@@ -321,10 +327,10 @@ class ExpressMvc {
           return this._getAssets(file)
             .then(assets => {
               logger.debug('Assets', assets);
-              return assets;
+              return this._cdnify(basics, assets);
             });
         }, environment.development ? 100 : 0)
-        .then((assets) => {
+        .then(assets => {
           basics.request.assets = assets;
           controller.doRequest(basics);
         }));
@@ -407,6 +413,20 @@ class ExpressMvc {
             HAS_PROTOCOL_REG.test(ref) ? ref : `/${version}${ref}`);
           return {js, css};
         }));
+  }
+
+  /**
+   * Turns all the assets files into a CDN request based on configuration.
+   * @param {HttpBasics} basics The http basics.
+   * @param {string[]} assets The assets.
+   * @returns {Array}
+   * @private
+   */
+  _cdnify(basics, assets = []) {
+    if (!assets || !assets.length || !cdn) {
+      return assets;
+    }
+    return assets.map(asset => `${cdn}/v/${basics.request.hostname}${asset}`);
   }
 
   /**

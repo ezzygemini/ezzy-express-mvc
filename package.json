@@ -20,7 +20,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "express": "^4.15.5",
+    "express": "^4.16.0",
     "ezzy-argument": "^0.1.18",
     "ezzy-cache": "^0.1.24",
     "ezzy-config-setup": "^0.1.16",
@@ -34,6 +34,6 @@
     "recursive-fs": "^1.0.0"
   },
   "devDependencies": {
-    "ezzy-testing": "^0.1.22"
+    "ezzy-testing": "^0.1.23"
   }
 }
