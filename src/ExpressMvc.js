@@ -418,15 +418,23 @@ class ExpressMvc {
   /**
    * Turns all the assets files into a CDN request based on configuration.
    * @param {HttpBasics} basics The http basics.
-   * @param {string[]} assets The assets.
+   * @param {Object} assets The assets.
    * @returns {Array}
    * @private
    */
-  _cdnify(basics, assets = []) {
-    if (!assets || !assets.length || !cdn) {
+  _cdnify(basics, assets) {
+    if (!assets || !cdn) {
       return assets;
     }
-    return assets.map(asset => `${cdn}/v/${basics.request.hostname}${asset}`);
+    if (assets.js && assets.js.length) {
+      assets.js = assets.js
+        .map(asset => `${cdn}/v/${basics.request.hostname}${asset}`);
+    }
+    if (assets.css && assets.css.length) {
+      assets.css = assets.css
+        .map(asset => `${cdn}/v/${basics.request.hostname}${asset}`);
+    }
+    return assets;
   }
 
   /**
