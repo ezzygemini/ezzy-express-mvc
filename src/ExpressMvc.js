@@ -327,11 +327,11 @@ class ExpressMvc {
           return this._getAssets(file)
             .then(assets => {
               logger.debug('Assets', assets);
-              return this._cdnify(basics, assets);
+              return basics, assets;
             });
         }, environment.development ? 100 : 0)
         .then(assets => {
-          basics.request.assets = assets;
+          basics.request.assets = this._cdnify(basics, assets);
           controller.doRequest(basics);
         }));
 
