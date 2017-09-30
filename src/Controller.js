@@ -4,12 +4,6 @@ const logger = require('ezzy-logger').logger;
 const environment = require('ezzy-environment');
 const trueTypeof = require('ezzy-typeof');
 const cache = require('./cache');
-let cdn = environment.getConfiguration('cdn');
-
-// Prefixes the cdn in case there is no protocol.
-if (cdn && !/^(\/\/|http)/.test(cdn)) {
-  cdn = '//' + cdn;
-}
 
 class Controller extends Request {
 
@@ -115,7 +109,7 @@ class Controller extends Request {
             data = {data};
           }
           return Object.assign(data, model, {
-            assets: this._cdnify(basics, basics.request.assets)
+            assets: this.assetParser(basics, basics.request.assets)
           });
         });
 
@@ -131,26 +125,15 @@ class Controller extends Request {
 
 
   /**
-   * Turns all the assets files into a CDN request based on configuration.
+   * Manipulates the assets found (if necessary) and populates them into
+   * the model for parsing.
    * @param {HttpBasics} basics The http basics.
-   * @param {Object} assets The assets.
-   * @returns {*}
+   * @param {{js:string[], css:string[]}} assets The assets.
+   * @returns {{js:string[], css:string[]}}
    * @private
    */
-  _cdnify(basics, assets) {
-    if (!assets || !cdn) {
-      return assets;
-    }
-    const {js, css} = assets;
-    const {hostname} = basics.request;
-    const newAssets = {};
-    if (js && js.length) {
-      newAssets.js = js.map(asset => `${cdn}/v/${hostname}${asset}`);
-    }
-    if (css && css.length) {
-      newAssets.css = css.map(asset => `${cdn}/v/${hostname}${asset}`);
-    }
-    return newAssets;
+  assetParser(basics, assets) {
+    return assets;
   }
 
   /**
