@@ -15,6 +15,7 @@
     "coverage": "node node_modules/ezzy-testing/coverage",
     "pretest": "npm install",
     "test": "node node_modules/ezzy-testing",
+    "test-unit": "node node_modules/ezzy-testing/unit",
     "prebuild": "npm install",
     "build": "npm run coverage"
   },

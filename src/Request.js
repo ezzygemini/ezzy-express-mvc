@@ -425,29 +425,16 @@ class Request {
    */
   sendStatus(basics, status = 200) {
     if (status !== 200) {
-      const {hostname, originalUrl} = basics.request;
-      logger.warn(Request.getLastCall(),
-        `Sending ${status} status ${hostname} ${originalUrl}`);
+      const {hostname, originalUrl, method} = basics.request;
+      const {remoteAddress} = basics.request.connection;
+      logger.warn(`StatusCode ${status}`,
+        `${remoteAddress} -> ${method} -> //${hostname}${originalUrl}`);
     }
     try {
       basics.response.status(status);
     } catch (e) {
       logger.error('Status Code', e);
     }
-  }
-
-  /**
-   * Obtains the last file name.
-   */
-  static getLastCall() {
-    const lastFile = stack()
-      .find(item => !FILE_SKIPPED.test(item.getFileName()));
-    if (!lastFile) {
-      return '';
-    }
-    const fileName = lastFile.getFileName();
-    return (fileName ? path.basename(fileName) : '') +
-      ':' + lastFile.getLineNumber();
   }
 
   /**
