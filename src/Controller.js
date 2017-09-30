@@ -145,10 +145,10 @@ class Controller extends Request {
     const {hostname} = basics.request;
     const newAssets = {};
     if (js && js.length) {
-      newAssets.js = js.map(asset => `${newAssets}/v/${hostname}${asset}`);
+      newAssets.js = js.map(asset => `${cdn}/v/${hostname}${asset}`);
     }
     if (css && css.length) {
-      newAssets.css = css.map(asset => `${newAssets}/v/${hostname}${asset}`);
+      newAssets.css = css.map(asset => `${cdn}/v/${hostname}${asset}`);
     }
     return newAssets;
   }
