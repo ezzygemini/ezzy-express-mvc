@@ -4,6 +4,12 @@ const logger = require('ezzy-logger').logger;
 const environment = require('ezzy-environment');
 const trueTypeof = require('ezzy-typeof');
 const cache = require('./cache');
+let cdn = environment.getConfiguration('cdn');
+
+// Prefixes the cdn in case there is no protocol.
+if (cdn && !/^(\/\/|http)/.test(cdn)) {
+  cdn = '//' + cdn;
+}
 
 class Controller extends Request {
 
@@ -109,7 +115,7 @@ class Controller extends Request {
             data = {data};
           }
           return Object.assign(data, model, {
-            assets: basics.request.assets
+            assets: this._cdnify(basics, basics.request.assets)
           });
         });
 
@@ -121,6 +127,29 @@ class Controller extends Request {
       dataPromise = Promise.resolve(basics);
     }
     return dataPromise.then(data => this._parseTemplate(data));
+  }
+
+
+  /**
+   * Turns all the assets files into a CDN request based on configuration.
+   * @param {HttpBasics} basics The http basics.
+   * @param {Object} assets The assets.
+   * @returns {*}
+   * @private
+   */
+  _cdnify(basics, assets) {
+    if (!assets || !cdn) {
+      return assets;
+    }
+    if (assets.js && assets.js.length) {
+      assets.js = assets.js
+        .map(asset => `${cdn}/v/${basics.request.hostname}${asset}`);
+    }
+    if (assets.css && assets.css.length) {
+      assets.css = assets.css
+        .map(asset => `${cdn}/v/${basics.request.hostname}${asset}`);
+    }
+    return assets;
   }
 
   /**

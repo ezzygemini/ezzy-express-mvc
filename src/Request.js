@@ -425,7 +425,7 @@ class Request {
    */
   sendStatus(basics, status = 200) {
     if (status !== 200) {
-      logger.warn(`StatusCode ${status}`, this._getRequestDetails());
+      logger.warn(`StatusCode ${status}`, this._getRequestDetails(basics));
     }
     try {
       basics.response.status(status);
@@ -439,7 +439,7 @@ class Request {
    * @returns {string}
    * @private
    */
-  _getRequestDetails() {
+  _getRequestDetails(basics) {
     const {hostname, originalUrl, method} = basics.request;
     const {remoteAddress} = basics.request.connection;
     return `${remoteAddress} -> ${method} -> //${hostname}${originalUrl}`;
@@ -947,7 +947,7 @@ class Request {
     } catch (e) {
       logger.error({
         title: 'Headers',
-        message: this._getRequestDetails(),
+        message: this._getRequestDetails(basics),
         error: e
       });
     }
