@@ -22,10 +22,10 @@
   "license": "MIT",
   "dependencies": {
     "express": "^4.16.1",
-    "ezzy-argument": "^0.1.18",
+    "ezzy-argument": "^0.1.19",
     "ezzy-cache": "^0.1.24",
     "ezzy-config-setup": "^0.1.16",
-    "ezzy-environment": "^0.1.22",
+    "ezzy-environment": "^0.1.23",
     "ezzy-express-basics": "^0.1.21",
     "ezzy-fs": "^0.1.16",
     "ezzy-logger": "^0.1.24",
