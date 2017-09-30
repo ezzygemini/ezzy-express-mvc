@@ -425,16 +425,24 @@ class Request {
    */
   sendStatus(basics, status = 200) {
     if (status !== 200) {
-      const {hostname, originalUrl, method} = basics.request;
-      const {remoteAddress} = basics.request.connection;
-      logger.warn(`StatusCode ${status}`,
-        `${remoteAddress} -> ${method} -> //${hostname}${originalUrl}`);
+      logger.warn(`StatusCode ${status}`, this._getRequestDetails());
     }
     try {
       basics.response.status(status);
     } catch (e) {
       logger.error('Status Code', e);
     }
+  }
+
+  /**
+   * Logs the request details.
+   * @returns {string}
+   * @private
+   */
+  _getRequestDetails() {
+    const {hostname, originalUrl, method} = basics.request;
+    const {remoteAddress} = basics.request.connection;
+    return `${remoteAddress} -> ${method} -> //${hostname}${originalUrl}`;
   }
 
   /**
@@ -937,7 +945,11 @@ class Request {
         }
       }
     } catch (e) {
-      logger.error('Headers', e);
+      logger.error({
+        title: 'Headers',
+        message: this._getRequestDetails(),
+        error: e
+      });
     }
   }
 
