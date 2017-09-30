@@ -141,15 +141,16 @@ class Controller extends Request {
     if (!assets || !cdn) {
       return assets;
     }
-    if (assets.js && assets.js.length) {
-      assets.js = assets.js
-        .map(asset => `${cdn}/v/${basics.request.hostname}${asset}`);
+    const {js, css} = assets;
+    const {hostname} = basics.request;
+    const cdn = {};
+    if (js && js.length) {
+      cdn.js = js.map(asset => `${cdn}/v/${hostname}${asset}`);
     }
-    if (assets.css && assets.css.length) {
-      assets.css = assets.css
-        .map(asset => `${cdn}/v/${basics.request.hostname}${asset}`);
+    if (css && css.length) {
+      cdn.css = css.map(asset => `${cdn}/v/${hostname}${asset}`);
     }
-    return assets;
+    return cdn;
   }
 
   /**
