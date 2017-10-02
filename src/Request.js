@@ -1,15 +1,7 @@
-const path = require('path');
 const logger = require('ezzy-logger').logger;
-const stack = require('callsite');
 const DEFAULT_CONTENT_TYPE = '*/*';
 const {version, name, description} = require('./package');
 let inst;
-
-/**
- * @type {RegExp}
- */
-const FILE_SKIPPED =
-  /(Request|Controller|Api|api|controller|index)\.js$/;
 
 /**
  * Base class that handles a request.
@@ -945,11 +937,8 @@ class Request {
         }
       }
     } catch (e) {
-      logger.error({
-        title: 'Headers',
-        message: this._getRequestDetails(basics),
-        error: e
-      });
+      logger.error('Headers', this._getRequestDetails(basics));
+      logger.error('Headers', e);
     }
   }
 
