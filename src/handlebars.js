@@ -6,7 +6,7 @@ const logger = require('ezzy-logger').logger;
 
 handlebars.registerPartial('styles', `
   {{#each assets.css}}
-    <link rel="stylesheet" href="{{.}}" />
+    <link rel="stylesheet" href="{{{.}}" />
   {{/each}}
   {{#each styles}}
     <style type="text/css">
@@ -17,7 +17,7 @@ handlebars.registerPartial('styles', `
 
 handlebars.registerPartial('scripts', `
   {{#each assets.js}}
-    <script src="{{.}}"></script>
+    <script src="{{{.}}"></script>
   {{/each}}
   {{#each scripts}}
     <script type="application/javascript">
