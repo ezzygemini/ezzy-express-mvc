@@ -33,8 +33,9 @@ fdescribe('Test', () => {
     expect(request.methodNotAllowedError).toHaveBeenCalledWith('delete');
     request.doOptions('options');
     expect(request.methodNotAllowedError).toHaveBeenCalledWith('options');
+    spyOn(request, 'sendStatusAndEnd');
     request.doHead('head');
-    expect(request.methodNotAllowedError).not.toHaveBeenCalled();
+    expect(request.sendStatusAndEnd).toHaveBeenCalled();
     done();
   });
 
