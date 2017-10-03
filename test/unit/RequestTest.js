@@ -34,7 +34,7 @@ fdescribe('Test', () => {
     request.doOptions('options');
     expect(request.methodNotAllowedError).toHaveBeenCalledWith('options');
     request.doHead('head');
-    expect(request.methodNotAllowedError).toHaveBeenCalledWith('head');
+    expect(request.methodNotAllowedError).not.toHaveBeenCalled();
     done();
   });
 

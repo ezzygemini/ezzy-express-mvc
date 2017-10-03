@@ -256,12 +256,12 @@ class Request {
   }
 
   /**
-   * Basic OTPIONS handler.
+   * Basic HEAD handler. Simply returns a 200 status.
    * @param {HttpBasics} basics The http basics.
    * @param {*=} data The data sent on the body.
    */
   doHead(basics, data) {
-    return this.methodNotAllowedError(basics);
+    return this.sendStatusAndEnd(basics, 200);
   }
 
   /**
