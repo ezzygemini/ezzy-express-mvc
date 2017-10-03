@@ -23,7 +23,7 @@
   "dependencies": {
     "express": "^4.16.1",
     "ezzy-argument": "^0.1.19",
-    "ezzy-cache": "^0.1.24",
+    "ezzy-cache": "^0.1.26",
     "ezzy-config-setup": "^0.1.16",
     "ezzy-environment": "^0.1.23",
     "ezzy-express-basics": "^0.1.21",
