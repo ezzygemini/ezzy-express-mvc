@@ -1,7 +1,7 @@
 const Request = require('../../src/Request');
 let request;
 
-fdescribe('Test', () => {
+describe('Test', () => {
 
   beforeEach(() => {
     request = new Request();
