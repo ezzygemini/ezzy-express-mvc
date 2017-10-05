@@ -1,3 +1,1 @@
-/** @type {ExpressMvc} */
-const ExpressMvc = require('./src/ExpressMvc');
-module.exports = ExpressMvc;
+module.exports = require('./src/ExpressMvc');

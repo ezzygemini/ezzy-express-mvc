@@ -1,3 +1,1 @@
-/** @type {Request} */
-const Request = require('./src/Request');
-module.exports = Request;
+module.exports = require('./src/Request');
