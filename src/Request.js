@@ -62,7 +62,7 @@ class Request {
     const {method, hostname, originalUrl} = basics.request;
 
     if (!this.isRequestOk(basics)) {
-      return this.badRequestError(basics);
+      return this.requestNotOk(basics);
     } else {
       logger.debug('Request', `${method} ${hostname} ${originalUrl}`);
     }
@@ -221,6 +221,15 @@ class Request {
    */
   isRequestOk(basics) {
     return true;
+  }
+
+  /**
+   * Adding a method that allows different error handling.
+   * @param {HttpBasics} basics The http basics.
+   * @returns {*}
+   */
+  requestNotOk(basics) {
+    return this.badRequestError(basics);
   }
 
   /**
