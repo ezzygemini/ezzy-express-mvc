@@ -40,6 +40,14 @@ describe('Middleware', () => {
     });
   });
 
+  it('should return a bad request when the request is not ok', done => {
+    app.listener.then(listener => {
+      request(listener)
+        .get('/bad')
+        .expect(400, done);
+    });
+  });
+
   afterAll(() => {
     app.close();
     logger.talk();

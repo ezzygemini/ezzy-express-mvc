@@ -13,7 +13,6 @@
   },
   "scripts": {
     "coverage": "node node_modules/ezzy-testing/coverage",
-    "pretest": "npm install",
     "test": "node node_modules/ezzy-testing",
     "test-unit": "node node_modules/ezzy-testing/unit",
     "prebuild": "npm install",
@@ -25,7 +24,7 @@
     "ezzy-argument": "^0.1.19",
     "ezzy-cache": "^0.1.26",
     "ezzy-config-setup": "^0.1.16",
-    "ezzy-environment": "^0.1.23",
+    "ezzy-environment": "^0.1.24",
     "ezzy-express-basics": "^0.1.21",
     "ezzy-fs": "^0.1.16",
     "ezzy-logger": "^0.1.24",

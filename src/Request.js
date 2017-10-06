@@ -59,9 +59,13 @@ class Request {
    * @param {HttpBasics} basics The HTTP Basics.
    */
   doRequest(basics) {
-    const req = basics.request;
+    const {method, hostname, originalUrl} = basics.request;
 
-    logger.debug('Request', `${req.method} ${req.hostname} ${req.originalUrl}`);
+    if (!this.isRequestOk(basics)) {
+      return this.badRequestError(basics);
+    } else {
+      logger.debug('Request', `${method} ${hostname} ${originalUrl}`);
+    }
 
     const auth = this.auth(basics);
     if (!auth && !this.loggedIn(basics)) {
@@ -89,7 +93,7 @@ class Request {
       }
     };
 
-    switch (req.method) {
+    switch (method) {
       case 'POST':
 
         if (this.authPost(basics)) {
@@ -208,6 +212,15 @@ class Request {
    * @returns {*}
    */
   get options() {
+  }
+
+  /**
+   * Checking if the request is ok.
+   * @param {HttpBasics} basics The http basics.
+   * @returns {boolean}
+   */
+  isRequestOk(basics) {
+    return true;
   }
 
   /**
