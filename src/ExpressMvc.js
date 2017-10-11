@@ -866,7 +866,7 @@ class ExpressMvc {
 
   /**
    * Adds a listener to the app (usually used for SSL purposes).
-   * @param {string} listener
+   * @param {*} listener The new application listener.
    */
   addListener(listener) {
     this._listeners.push(listener);
