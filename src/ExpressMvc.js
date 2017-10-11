@@ -106,6 +106,13 @@ class ExpressMvc {
 
     /**
      * The listening object.
+     * @type {*}
+     * @private
+     */
+    this._listener = null;
+
+    /**
+     * The listening objects.
      * @type {array}
      * @private
      */
@@ -710,15 +717,15 @@ class ExpressMvc {
    * @returns {Promise.<ExpressMvc>}
    */
   listen(...args) {
-    if (this._listeners.length) {
+    if (this._listener) {
       logger.error('Application already listening.');
       return Promise.resolve(this);
     }
     return this.promise.then(() => {
       this.expressBasics.use(basics => this._domainHandle(basics,
         basics => Request.inst.notFoundError(basics)));
-      this._listeners
-        .push(this.expressBasics.listen.apply(this.expressBasics, args));
+      this._listener =
+        this.expressBasics.listen.apply(this.expressBasics, args);
       logger.highlight('SERVER', `Listening on port ${args[0]}`);
       return this;
     }, e => {
@@ -749,8 +756,8 @@ class ExpressMvc {
    */
   get listener() {
     return new Promise((resolve, reject) => {
-      if (this._listeners.length) {
-        return resolve(this._listeners[0]);
+      if (this._listener) {
+        return resolve(this._listener);
       }
       setTimeout(() => resolve(this.listener), 10);
     });
@@ -877,12 +884,12 @@ class ExpressMvc {
    * @returns {ExpressMvc}
    */
   close() {
-    if (!this._listeners.length) {
-      return logger.warn('Application is not listening to any ports.');
+    if (!this._listener) {
+      logger.warn('Application is not listening to any ports.');
     }
-    this._listeners.forEach(listener => {
-      listener.close();
-    });
+    this._listener.close();
+    this._listeners.forEach(listener => listener.close());
+    this._listener = null;
     this._listeners = [];
     return this;
   }
