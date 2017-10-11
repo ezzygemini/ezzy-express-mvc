@@ -106,10 +106,10 @@ class ExpressMvc {
 
     /**
      * The listening object.
-     * @type {*}
+     * @type {array}
      * @private
      */
-    this._listener = null;
+    this._listeners = [];
 
     /**
      * The directory to traverse while looking for errors.
@@ -710,15 +710,15 @@ class ExpressMvc {
    * @returns {Promise.<ExpressMvc>}
    */
   listen(...args) {
-    if (this._listener) {
+    if (this._listeners.length) {
       logger.error('Application already listening.');
       return Promise.resolve(this);
     }
     return this.promise.then(() => {
       this.expressBasics.use(basics => this._domainHandle(basics,
         basics => Request.inst.notFoundError(basics)));
-      this._listener =
-        this.expressBasics.listen.apply(this.expressBasics, args);
+      this._listeners
+        .push(this.expressBasics.listen.apply(this.expressBasics, args));
       logger.highlight('SERVER', `Listening on port ${args[0]}`);
       return this;
     }, e => {
@@ -749,8 +749,8 @@ class ExpressMvc {
    */
   get listener() {
     return new Promise((resolve, reject) => {
-      if (this._listener) {
-        return resolve(this._listener);
+      if (this._listeners.length) {
+        return resolve(this._listeners[0]);
       }
       setTimeout(() => resolve(this.listener), 10);
     });
@@ -865,15 +865,25 @@ class ExpressMvc {
   }
 
   /**
+   * Adds a listener to the app (usually used for SSL purposes).
+   * @param {string} listener
+   */
+  addListener(listener) {
+    this._listeners.push(listener);
+  }
+
+  /**
    * Closes the connection if it's active.
    * @returns {ExpressMvc}
    */
   close() {
-    if (!this._listener) {
+    if (!this._listeners.length) {
       return logger.warn('Application is not listening to any ports.');
     }
-    this._listener.close();
-    this._listener = null;
+    this._listeners.forEach(listener => {
+      listener.close();
+    });
+    this._listeners = [];
     return this;
   }
 
