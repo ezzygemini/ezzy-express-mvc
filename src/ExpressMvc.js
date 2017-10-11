@@ -54,8 +54,7 @@ class ExpressMvc {
    * @param {express=} expressDep The express instance to be used.
    */
   constructor(directory, middleware, domainReg = /.*/, statics, bind404,
-              customErrorDir = 'errors', globalMiddleware, expressDep
-  ) {
+              customErrorDir = 'errors', globalMiddleware, expressDep) {
 
     // Bind the 404 route if we are auto checking for a different domain.
     if (bind404 === undefined) {
@@ -200,6 +199,7 @@ class ExpressMvc {
         const fullPath = path.normalize(this._directory + '/' + context);
         logger.debug('Static Route', `Binding ${fullPath} to ${context}`);
         this._express.use(context, expr.static(fullPath));
+        this._express.use(context, (req, res) => res.status(404).end());
       });
     }
 
@@ -785,7 +785,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  get (...args) {
+  get(...args) {
     return this.expressBasics.get.apply(this.expressBasics, args);
   }
 
@@ -862,8 +862,7 @@ class ExpressMvc {
    * @param {express=} expressDep The express instance to be used.
    */
   bindExpressMvc(directory, middleware, domainReg, statics, bind404,
-                 customErrorDir, globalMiddleware, expressDep
-  ) {
+                 customErrorDir, globalMiddleware, expressDep) {
     return this.promise
       .then(() => new ExpressMvc(directory, middleware, domainReg, statics,
         bind404, customErrorDir, globalMiddleware, expressDep)

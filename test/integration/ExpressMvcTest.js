@@ -67,6 +67,15 @@ describe('ExpressMvc', () => {
     });
   });
 
+  it('should bind a 404 response when assets are not found', done => {
+    app.listener.then(listener => {
+      request(listener)
+        .get('/assets/someDir/someInvalidJson.json')
+        .expect(404)
+        .end(done);
+    });
+  });
+
   it('should not render anything when called from a different domain', done => {
     app.listener.then(listener => {
       request(listener)
