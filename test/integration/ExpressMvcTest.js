@@ -52,7 +52,7 @@ describe('ExpressMvc', () => {
           y: 'y',
           z: 'z'
         })
-        .end(done);
+        .end(e => e ? fail(e) : done());
     });
   });
 
@@ -63,7 +63,7 @@ describe('ExpressMvc', () => {
         .expect(200, {
           hello: "world"
         })
-        .end(done);
+        .end(e => e ? fail(e) : done());
     });
   });
 
@@ -72,7 +72,7 @@ describe('ExpressMvc', () => {
       request(listener)
         .get('/assets/someDir/someInvalidJson.json')
         .expect(404)
-        .end(done);
+        .end(e => e ? fail(e) : done());
     });
   });
 
@@ -81,7 +81,7 @@ describe('ExpressMvc', () => {
       request(listener)
         .get('/apis/secondExpress')
         .expect(404)
-        .end(done);
+        .end(e => e ? fail(e) : done());
     });
   });
 
@@ -90,7 +90,7 @@ describe('ExpressMvc', () => {
       request(listener)
         .get('/otherApis/thirdExpress')
         .expect(200, {success: true})
-        .end(done);
+        .end(e => e ? fail(e) : done());
     });
   });
 
@@ -99,7 +99,7 @@ describe('ExpressMvc', () => {
       request(listener)
         .post('/otherApis/thirdExpress')
         .expect(200, 'done')
-        .end(done);
+        .end(e => e ? fail(e) : done());
     });
   });
 
@@ -111,7 +111,7 @@ describe('ExpressMvc', () => {
           success: true,
           alternate: true
         })
-        .end(done);
+        .end(e => e ? fail(e) : done());
     });
   });
 
@@ -122,7 +122,7 @@ describe('ExpressMvc', () => {
         request(listener)
           .get('/apis/third/1/2/3')
           .expect(200, {a: 1, b: 2, c: 3})
-          .end(done);
+          .end(e => e ? fail(e) : done());
       });
     });
 
@@ -131,7 +131,7 @@ describe('ExpressMvc', () => {
         request(listener)
           .put('/apis/third/1/2/3')
           .expect(200, {a: 1, b: 2, c: 3})
-          .end(done);
+          .end(e => e ? fail(e) : done());
       });
     });
 
@@ -140,7 +140,7 @@ describe('ExpressMvc', () => {
         request(listener)
           .post('/apis/third/1/2/3')
           .expect(200, {a: 1, b: 2, c: 3})
-          .end(done);
+          .end(e => e ? fail(e) : done());
       });
     });
 
@@ -149,7 +149,7 @@ describe('ExpressMvc', () => {
         request(listener)
           .del('/apis/third/1/2/3')
           .expect(200, {a: 1, b: 2, c: 3})
-          .end(done);
+          .end(e => e ? fail(e) : done());
       });
     });
 
@@ -158,7 +158,7 @@ describe('ExpressMvc', () => {
         request(listener)
           .patch('/apis/third/1/2/3')
           .expect(200, {a: 1, b: 2, c: 3})
-          .end(done);
+          .end(e => e ? fail(e) : done());
       });
     });
 
@@ -171,7 +171,7 @@ describe('ExpressMvc', () => {
         request(listener)
           .get('/anotherContext/?getError=not-found')
           .expect(404)
-          .end(done);
+          .end(e => e ? fail(e) : done());
       });
     });
 
@@ -180,7 +180,7 @@ describe('ExpressMvc', () => {
         request(listener)
           .get('/anotherContext/?getError=server-error')
           .expect(500, 'Custom 500 error')
-          .end(done);
+          .end(e => e ? fail(e) : done());
       });
     });
 
@@ -189,7 +189,7 @@ describe('ExpressMvc', () => {
         request(listener)
           .get('/anotherContext/?getError=wrong-accept')
           .expect(406, '406')
-          .end(done);
+          .end(e => e ? fail(e) : done());
       });
     });
 

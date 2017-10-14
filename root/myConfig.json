@@ -1,12 +1,10 @@
 {
-  "dependencies": [
-    "/someDependency.js",
-    "/someDependency.css"
-  ],
   "js": [
+    "/someDependency.js",
     "/anotherDependency.js"
   ],
   "css": [
+    "/someDependency.css",
     "/anotherDependency.css"
   ]
 }

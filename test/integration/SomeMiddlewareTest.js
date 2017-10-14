@@ -19,7 +19,7 @@ describe('SomeMiddleware', () => {
       request(listener)
         .get('/apis/someMiddleware')
         .expect(200, {success: true})
-        .end(done);
+        .end(e => e ? fail(e) : done());
     });
   });
 
@@ -28,7 +28,7 @@ describe('SomeMiddleware', () => {
       request(listener)
         .get('/apis/someMiddleware?someTest')
         .expect(200, {success: false})
-        .end(done);
+        .end(e => e ? fail(e) : done());
     });
   });
 

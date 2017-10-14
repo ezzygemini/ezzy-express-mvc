@@ -11,15 +11,24 @@ describe('Render', () => {
     app.listen(9001);
   });
 
+  it('should invoke the get method properly', done => {
+    app.listener.then(listener => {
+      request(listener)
+        .get('/')
+        .expect(/src=".*\/someDependency\.js"/)
+        .expect(/src=".*\/anotherDependency\.js"/)
+        .expect(/href=".*\/someDependency\.css"/)
+        .expect(/href=".*\/anotherDependency\.css"/)
+        .end(e => e ? fail(e) : done());
+    });
+  });
+
   it('should invoke the head method properly', done => {
     app.listener.then(listener => {
       request(listener)
         .head('/')
-        .expect('src="/someDependency.js"')
-        .expect('src="/anotherDependency.js"')
-        .expect('href="/someDependency.css"')
-        .expect('href="/anotherDependency.css"')
-        .end(done);
+        .expect(200)
+        .end(e => e ? fail(e) : done());
     });
   });
 
