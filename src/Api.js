@@ -54,8 +54,8 @@ class Api extends Request {
    * @param {object=} headers Additional headers to send.
    */
   sendData(basics, data, headers) {
+    this.decorateRequest(basics, headers);
     this.sendStatus(basics, 200);
-    this.decorateRequest(basics, 200, headers);
     try {
       basics.response.json(data);
     } catch (e) {

@@ -941,11 +941,10 @@ class Request {
   /**
    * Decorates the data as an API call.
    * @param {HttpBasics} basics The http basics.
-   * @param {number} status The http status.
    * @param {Object} headers Additional headers that will be appended.
    */
-  decorateRequest(basics, status, headers = {}) {
-    Object.assign(headers, {status, name, version, description});
+  decorateRequest(basics, headers = {}) {
+    Object.assign(headers, {name, version, description});
     try {
       basics.response
         .set('x-version-requested', basics.request.params.version || 'latest');
@@ -978,7 +977,10 @@ class Request {
       error = headers;
       headers = undefined;
     }
-    this.decorateRequest(basics, status, headers);
+    if (headers) {
+      Object.assign(headers, {status});
+    }
+    this.decorateRequest(basics, headers);
     this.sendStatus(basics, status);
     const {accept} = basics.request.headers;
     if (this._errors && accept && /(text\/html|text\/plain)/i.test(accept)) {
