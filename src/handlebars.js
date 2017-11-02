@@ -16,6 +16,11 @@ handlebars.registerPartial('styles', `
 `);
 
 handlebars.registerPartial('scripts', `
+  {{#with bootstrap}}
+    <script type="application/javascript">
+    {{{.}}}
+    </script>
+  {{/with}}
   {{#each assets.js}}
     <script src="{{{.}}}"></script>
   {{/each}}
