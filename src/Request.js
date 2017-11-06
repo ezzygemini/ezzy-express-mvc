@@ -983,6 +983,10 @@ class Request {
    * @private
    */
   _sendErrorStatus(basics, headers, status, error) {
+    this.sendStatus(basics, status);
+    if (!this.sendHeaders) {
+      return;
+    }
     if (typeof headers === 'string') {
       error = headers;
       headers = undefined;
@@ -991,7 +995,6 @@ class Request {
       Object.assign(headers, {status});
     }
     this.decorateRequest(basics, headers);
-    this.sendStatus(basics, status);
     const {accept} = basics.request.headers;
     if (this._errors && accept && /(text\/html|text\/plain)/i.test(accept)) {
       this._errors.then(errors => {
