@@ -28,6 +28,14 @@ class Request {
   }
 
   /**
+   * Flag that could be turned on or off to indicate if we need to send headers.
+   * @returns {boolean}
+   */
+  get sendHeaders() {
+    return true;
+  }
+
+  /**
    * Default request instance.
    * @returns {Request}
    */
@@ -946,14 +954,16 @@ class Request {
   decorateRequest(basics, headers = {}) {
     Object.assign(headers, {name, version, description});
     try {
-      basics.response
-        .set('x-version-requested', basics.request.params.version || 'latest');
-      for (let prop in headers) {
-        if (headers.hasOwnProperty(prop)) {
-          if (prop.toLowerCase() !== 'access-control-allow-origin') {
-            basics.response.set(`x-${prop}`, headers[prop]);
-          } else {
-            basics.response.set(prop, headers[prop]);
+      if (this.sendHeaders && !basics.response.headersSent) {
+        basics.response.set('x-version-requested',
+          basics.request.params.version || 'latest');
+        for (let prop in headers) {
+          if (headers.hasOwnProperty(prop)) {
+            if (prop.toLowerCase() !== 'access-control-allow-origin') {
+              basics.response.set(`x-${prop}`, headers[prop]);
+            } else {
+              basics.response.set(prop, headers[prop]);
+            }
           }
         }
       }
