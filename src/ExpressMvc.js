@@ -407,7 +407,7 @@ class ExpressMvc {
             css = configCss.concat(css);
           }
           if (configJs && Array.isArray(configJs)) {
-            js = configJs.concat(configJs);
+            js = configJs.concat(js);
           }
           logger.debug('Assets', {js, css});
           js = js.map(ref =>
