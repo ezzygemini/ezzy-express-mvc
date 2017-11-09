@@ -446,6 +446,11 @@ class Request {
    * @param {number} status The request status to send.
    */
   sendStatus(basics, status = 200) {
+    // We should not override any bad status codes
+    // that have been previously set by different requests.
+    if (basics.response.statusCode !== 200 && status === 200) {
+      return;
+    }
     if (status !== 200) {
       logger.warn(`StatusCode ${status}`, this._getRequestDetails(basics));
     }
