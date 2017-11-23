@@ -5,6 +5,9 @@ const HBS_REG = /\.hbs$/;
 const logger = require('ezzy-logger').logger;
 
 handlebars.registerPartial('styles', `
+  {{#each externalStyles}}
+    <link rel="stylesheet" href="{{{.}}}" />
+  {{/each}}
   {{#each assets.css}}
     <link rel="stylesheet" href="{{{.}}}" />
   {{/each}}
@@ -21,6 +24,9 @@ handlebars.registerPartial('scripts', `
     {{{.}}}
     </script>
   {{/with}}
+  {{#each externalScripts}}
+    <script src="{{{.}}}"></script>
+  {{/each}}
   {{#each assets.js}}
     <script src="{{{.}}}"></script>
   {{/each}}
