@@ -31,7 +31,8 @@
     "ezzy-typeof": "0.0.1",
     "handlebars": "^4.0.6",
     "i18n-2": "^0.6.3",
-    "recursive-fs": "^1.0.0"
+    "recursive-fs": "^1.0.0",
+    "recursive-readdir-sync": "^1.0.6"
   },
   "devDependencies": {
     "ezzy-testing": "^0.1.24"
