@@ -94,7 +94,7 @@ class ExpressMvc {
 
     /**
      * The handlebars instance to use for rendering.
-     * @type {Promise.<Handlebars>}
+     * @type {Promise.<{handlebars:Handlebars,layouts:Object}>}
      */
     this._hbs = handlebars(directory);
 

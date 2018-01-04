@@ -5,6 +5,8 @@ const environment = require('ezzy-environment');
 const trueTypeof = require('ezzy-typeof');
 const cache = require('./cache');
 
+const LAYOUT_REG = /{{!<\s*([\w\/.]+)\s*}}/i;
+
 class Controller extends Request {
 
   /**
@@ -13,7 +15,7 @@ class Controller extends Request {
    * @param {Model} model The model to be used when rendering.
    * @param {string} modelName The name of the model.
    * @param {Promise.<Handlebars>} hbs The handlebars instance.
-   * @param {Promise.<Object>} errors The errors to use (compiled hbs templates)
+   * @param {Promise.<{}>} errors The errors to use (compiled hbs templates)
    */
   constructor(viewFile, model, modelName, hbs, errors) {
     super();
@@ -142,27 +144,43 @@ class Controller extends Request {
    * @returns {*}
    * @private
    */
-  _parseTemplate(data) {
-    return cache.getLibrary('templates')
-      .getOrElse(this._viewFile, () => {
-        let contentPromise;
+  async _parseTemplate(data) {
+    let cacheTemplate = cache.getLibrary('templates')
+      .getOrElse(this._viewFile, async () => {
+        let source;
         if (!this._viewFile) {
-          contentPromise = Promise.resolve('');
+          source = '';
         } else {
-          contentPromise = fsPlus.readFilePromise(this._viewFile);
+          source = await fsPlus.readFilePromise(this._viewFile);
+          source = source.toString();
         }
-        return contentPromise
-          .then(content => this._hbs
-            .then(hbs => hbs.compile(content.toString())));
-      }, environment.development ? 100 : 0)
-      .then(template => {
-        try {
-          return template(data);
-        } catch (e) {
-          logger.error(e);
-          return e;
+        const {handlebars, layouts} = await this._hbs;
+        const match = source.match(LAYOUT_REG);
+        let layout;
+        if (match) {
+          layout = layouts[match[1]];
         }
-      });
+        return {template: handlebars.compile(source), layout};
+      }, environment.development ? 100 : 0);
+
+    if (cacheTemplate instanceof Promise) {
+      cacheTemplate = await cacheTemplate;
+    }
+
+    const {template, layout} = cacheTemplate;
+    try {
+      let renderedValue = template(data);
+      if (layout) {
+        renderedValue = layout({
+          content: renderedValue,
+          body: renderedValue
+        });
+      }
+      return renderedValue;
+    } catch (e) {
+      logger.error(e);
+      return e;
+    }
   }
 
   /**
