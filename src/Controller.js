@@ -174,10 +174,10 @@ class Controller extends Request {
       if (layout) {
         let currentLayout = layout;
         while(currentLayout){
-          renderedValue = layouts[currentLayout].render({
+          renderedValue = layouts[currentLayout].render(Object.assign(data, {
             content: renderedValue,
             body: renderedValue
-          });
+          }));
           currentLayout = layouts[currentLayout].parent;
         }
       }
