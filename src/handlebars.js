@@ -6,6 +6,7 @@ const PARTIAL_HBS_REG = /.*\/partials\/[\w]+\.(hbs|handlebars)$/;
 const LAYOUTS_HBS_REG = /.*\/layouts\/[\w]+\.(hbs|handlebars)$/;
 const logger = require('ezzy-logger').logger;
 const recursive = require('recursive-readdir-sync');
+const LAYOUT_REG = /{{!<\s*([\w\/.]+)\s*}}/i;
 
 handlebars.registerPartial('styles', `
   {{#each externalStyles}}
@@ -50,24 +51,31 @@ module.exports = async dir => {
   logger.debug('Handlebars Layouts', allLayouts);
 
   const partialSources = await Promise
-    .all(allPartials.map(partialSrc => fsPlus.readFilePromise(partialSrc)));
+    .all(allPartials.map(partialSrc => fsPlus.readFilePromise(partialSrc)
+      .then(src => src.toString())));
 
   partialSources.forEach((source, i) => {
     const name = allPartials[i].replace(cleanDir, '').replace(HBS_REG, '');
     logger.debug('Handlebars Partial', name);
-    handlebars.registerPartial(name, source.toString());
+    handlebars.registerPartial(name, source);
   });
 
   const layouts = {};
 
   const layoutSources = await Promise
-    .all(allLayouts.map(layoutSrc => fsPlus.readFilePromise(layoutSrc)));
+    .all(allLayouts.map(layoutSrc => fsPlus.readFilePromise(layoutSrc)
+      .then(src => src.toString())));
 
   layoutSources.forEach((source, i) => {
     const name = allLayouts[i].replace(cleanDir, '').replace(HBS_REG, '');
-    logger.debug('Handlebars Layout', name);
-    layouts[name] = handlebars.compile(source.toString());
+    const matches = source.match(LAYOUT_REG);
+    layouts[name] = {
+      render: handlebars.compile(source.toString()),
+      parent: matches ? matches[1] : null
+    };
+    logger.debug('Handlebars Layout',
+      name + (matches ? ` extends (${matches[1]})` : ''));
   });
 
-  return {handlebars, layouts};
+  return {handlebars, layouts, LAYOUT_REG};
 };

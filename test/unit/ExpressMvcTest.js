@@ -11,7 +11,7 @@ describe('Express MVC', () => {
     expressMvc = new ExpressMvc(__dirname + '/../../root');
 
     expressMvc.controllers
-      .then(controllers => expect(controllers.length).toBe(3))
+      .then(controllers => expect(controllers.length).toBe(5))
       .then(() => expressMvc.apis)
       .then(apis => expect(apis.length).toBe(3))
       .then(done);

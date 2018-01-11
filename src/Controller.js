@@ -5,8 +5,9 @@ const environment = require('ezzy-environment');
 const trueTypeof = require('ezzy-typeof');
 const cache = require('./cache');
 
-const LAYOUT_REG = /{{!<\s*([\w\/.]+)\s*}}/i;
-
+/**
+ * Controller.
+ */
 class Controller extends Request {
 
   /**
@@ -145,6 +146,7 @@ class Controller extends Request {
    * @private
    */
   async _parseTemplate(data) {
+    const {handlebars, layouts, LAYOUT_REG} = await this._hbs;
     let cacheTemplate = cache.getLibrary('templates')
       .getOrElse(this._viewFile, async () => {
         let source;
@@ -154,13 +156,11 @@ class Controller extends Request {
           source = await fsPlus.readFilePromise(this._viewFile);
           source = source.toString();
         }
-        const {handlebars, layouts} = await this._hbs;
         const match = source.match(LAYOUT_REG);
-        let layout;
-        if (match) {
-          layout = layouts[match[1]];
-        }
-        return {template: handlebars.compile(source), layout};
+        return {
+          template: handlebars.compile(source),
+          layout: match ? match[1] : null
+        };
       }, environment.development ? 100 : 0);
 
     if (cacheTemplate instanceof Promise) {
@@ -170,11 +170,16 @@ class Controller extends Request {
     const {template, layout} = cacheTemplate;
     try {
       let renderedValue = template(data);
+      // apply all layouts recursively
       if (layout) {
-        renderedValue = layout({
-          content: renderedValue,
-          body: renderedValue
-        });
+        let currentLayout = layout;
+        while(currentLayout){
+          renderedValue = layouts[currentLayout].render({
+            content: renderedValue,
+            body: renderedValue
+          });
+          currentLayout = layouts[currentLayout].parent;
+        }
       }
       return renderedValue;
     } catch (e) {
