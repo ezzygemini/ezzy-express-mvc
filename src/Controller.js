@@ -112,7 +112,8 @@ class Controller extends Request {
             data = {data};
           }
           return Object.assign(data, model, {
-            assets: this.assetParser(basics, basics.request.assets)
+            assets: this.assetParser(basics, basics.request.assets),
+            config: this.configParser(basics, basics.request.assets.config)
           });
         });
 
@@ -130,6 +131,8 @@ class Controller extends Request {
   /**
    * Manipulates the assets found (if necessary) and populates them into
    * the model for parsing.
+   * NOTE: This method is important so other controllers can override it
+   * and parse the assets as needed.
    * @param {HttpBasics} basics The http basics.
    * @param {{js:string[], css:string[]}} assets The assets.
    * @returns {{js:string[], css:string[]}}
@@ -137,6 +140,20 @@ class Controller extends Request {
    */
   assetParser(basics, assets) {
     return assets;
+  }
+
+  /**
+   * Manipulates the configuration found (if necessary) and populates it into
+   * the model for parsing.
+   * NOTE: This method is important so other controllers can override it and
+   * parse the configuration as needed.
+   * @param {HttpBasics} basics The http basics.
+   * @param {{js:string[], css:string[]}} assets The assets.
+   * @returns {{js:string[], css:string[]}}
+   * @private
+   */
+  configParser(basics, config){
+    return config || {};
   }
 
   /**

@@ -54,7 +54,8 @@ class ExpressMvc {
    * @param {express=} expressDep The express instance to be used.
    */
   constructor(directory, middleware, domainReg = /.*/, statics, bind404,
-              customErrorDir = 'errors', globalMiddleware, expressDep) {
+              customErrorDir = 'errors', globalMiddleware, expressDep
+  ) {
 
     // Bind the 404 route if we are auto checking for a different domain.
     if (bind404 === undefined) {
@@ -116,6 +117,13 @@ class ExpressMvc {
      * @private
      */
     this._listeners = [];
+
+    /**
+     * A storage of the configuration files.
+     * @type {{}}
+     * @private
+     */
+    this._configurations = {};
 
     /**
      * The directory to traverse while looking for errors.
@@ -375,47 +383,55 @@ class ExpressMvc {
    * @returns {Promise.<Array[]>}
    * @private
    */
-  _getAssets(file) {
+  async _getAssets(file) {
     const {assetsDir, configFile} = this._getControllerAssetNames(file);
 
-    return fs.existsPromise(assetsDir)
-      .then(exists => {
+    let css;
+    let js;
 
-        if (!exists) {
-          logger.warn(`No assets found ${assetsDir}`);
-          return [[], []];
-        }
+    const exists = await fs.existsPromise(assetsDir);
+    if (!exists) {
+      logger.warn(`No assets found ${assetsDir}`);
+      css = [];
+      js = [];
+    } else {
+      logger.debug('Looking for assets in ' + assetsDir);
+      const promise = environment.development ?
+        this._getDevelopmentAssets(assetsDir) :
+        this._getProductionAssets(assetsDir);
+      const [cssAssets, jsAssets] = await promise;
+      css = cssAssets;
+      js = jsAssets;
+    }
 
-        logger.debug('Looking for assets in ' + assetsDir);
+    const config = await this._getConfiguration(configFile);
 
-        return environment.development ?
-          this._getDevelopmentAssets(assetsDir) :
-          this._getProductionAssets(assetsDir);
+    (config.dependencies || []).forEach(dependency => {
+      if (CSS_REG.test(dependency)) {
+        css.unshift(dependency);
+      } else {
+        js.unshift(dependency);
+      }
+    });
 
-      }).then(([css, js]) => this._getConfiguration(configFile)
-        .then(cnf => {
-          (cnf.dependencies || []).forEach(dependency => {
-            if (CSS_REG.test(dependency)) {
-              css.unshift(dependency);
-            } else {
-              js.unshift(dependency);
-            }
-          });
-          const configCss = cnf.css || cnf.styles || cnf.stylesheets;
-          const configJs = cnf.js || cnf.scripts || cnf.javascripts;
-          if (configCss && Array.isArray(configCss)) {
-            css = configCss.concat(css);
-          }
-          if (configJs && Array.isArray(configJs)) {
-            js = configJs.concat(js);
-          }
-          logger.debug('Assets', {js, css});
-          js = js.map(ref =>
-            HAS_PROTOCOL_REG.test(ref) ? ref : `/${version}${ref}`);
-          css = css.map(ref =>
-            HAS_PROTOCOL_REG.test(ref) ? ref : `/${version}${ref}`);
-          return {js, css};
-        }));
+    const configCss = config.css || config.styles || config.stylesheets;
+    const configJs = config.js || config.scripts || config.javascripts;
+
+    if (configCss && Array.isArray(configCss)) {
+      css = configCss.concat(css);
+    }
+    if (configJs && Array.isArray(configJs)) {
+      js = configJs.concat(js);
+    }
+
+    logger.debug('Assets', {js, css});
+
+    js =
+      js.map(ref => HAS_PROTOCOL_REG.test(ref) ? ref : `/${version}${ref}`);
+    css =
+      css.map(ref => HAS_PROTOCOL_REG.test(ref) ? ref : `/${version}${ref}`);
+
+    return {js, css, config};
   }
 
   /**
@@ -785,7 +801,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  get(...args) {
+  get (...args) {
     return this.expressBasics.get.apply(this.expressBasics, args);
   }
 
@@ -862,7 +878,8 @@ class ExpressMvc {
    * @param {express=} expressDep The express instance to be used.
    */
   bindExpressMvc(directory, middleware, domainReg, statics, bind404,
-                 customErrorDir, globalMiddleware, expressDep) {
+                 customErrorDir, globalMiddleware, expressDep
+  ) {
     return this.promise
       .then(() => new ExpressMvc(directory, middleware, domainReg, statics,
         bind404, customErrorDir, globalMiddleware, expressDep)

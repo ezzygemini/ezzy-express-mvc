@@ -23,6 +23,15 @@ describe('Render', () => {
     });
   });
 
+  it('should populate the model with the configuration file flags', done => {
+    app.listener.then(listener => {
+      request(listener)
+        .get('/')
+        .expect(/My little elephant/i)
+        .end(e => e ? fail(e) : done());
+    });
+  });
+
   it('should invoke the head method properly', done => {
     app.listener.then(listener => {
       request(listener)
