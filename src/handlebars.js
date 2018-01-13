@@ -41,6 +41,23 @@ handlebars.registerPartial('scripts', `
   {{/each}}
 `);
 
+/**
+ * Returns a properly formatted html attribute if the value exists.
+ * @param attributeName
+ * @param value
+ */
+const htmlAttribute = (attributeName, value) =>
+  (value ? new handlebars.SafeString(` ${attributeName}="${value}"`) : '');
+
+handlebars.registerHelper('iif', (value, defaultValue) =>
+  new handlebars.SafeString(value !== 'undefined' ? value : defaultValue));
+
+handlebars.registerHelper('attr', htmlAttribute);
+
+handlebars.registerHelper('class', (...args) =>
+  htmlAttribute('class', args.filter(cls =>
+    typeof cls === 'string' && !!cls).join(' ')));
+
 module.exports = async dir => {
   const cleanDir = path.normalize(dir + '/');
   const allFiles = recursive(cleanDir);
