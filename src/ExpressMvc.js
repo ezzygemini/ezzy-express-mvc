@@ -6,7 +6,6 @@ const path = require('path');
 const Api = require('./Api');
 const Request = require('./Request');
 const handlebarsCore = require('handlebars');
-const handlebars = require('./handlebars');
 const Controller = require('./Controller');
 const CONTROLLER_REG = /^((.*[\/\\])(.)(.*))(Ctrl|Controller)(\.js)$/i;
 const JS_EXT_REG = /\.js$/i;
@@ -30,6 +29,13 @@ const HAS_PROTOCOL_REG = /^https?:/i;
  */
 const CONTEXT_PARAMS = '/:a?/:b?/:c?/:d?/:e?/:f?/:g?/:h?/:i?/:j?/:k?/:l?/:m?' +
   '/:n?/:o?/:p?/:q?/:r?/:s?/:t?/:u?/:v?/:w?/:x?/:y?/:z?';
+
+/**
+ * The timeout to read files from the disk. In production is a permanent cache
+ * that we don't restart until the server starts.
+ * @type {number}
+ */
+const IO_CACHE_TIMEOUT = environment.development ? 100 : 0;
 
 /**
  * Available error codes.
@@ -95,9 +101,9 @@ class ExpressMvc {
 
     /**
      * The handlebars instance to use for rendering.
-     * @type {Promise.<{handlebars:Handlebars,layouts:Object}>}
+     * @type {String}
      */
-    this._hbs = handlebars(directory);
+    this._hbsDir = directory;
 
     /**
      * The express instance.
@@ -292,7 +298,7 @@ class ExpressMvc {
 
             const Ctrl = require(file);
             const ctrl =
-              new Ctrl(viewFile, Model, modelName, this._hbs, this._errors);
+              new Ctrl(viewFile, Model, modelName, this._hbsDir, this._errors);
             const ctrlKey = path.basename(file).replace(JS_EXT_REG, '');
 
             cache.getLibrary('controllers').add(ctrlKey, ctrl);
@@ -340,7 +346,7 @@ class ExpressMvc {
               logger.debug('Assets', assets);
               return basics, assets;
             });
-        }, environment.development ? 100 : 0)
+        }, IO_CACHE_TIMEOUT)
         .then(assets => {
           basics.request.assets = assets;
           controller.doRequest(basics);
@@ -457,7 +463,7 @@ class ExpressMvc {
             logger.warn(`No configuration file ${configFile}`);
             return {};
           }
-        ), environment.development ? 100 : 0);
+        ), IO_CACHE_TIMEOUT);
   }
 
   /**

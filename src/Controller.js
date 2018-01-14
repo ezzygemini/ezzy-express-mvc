@@ -4,6 +4,14 @@ const logger = require('ezzy-logger').logger;
 const environment = require('ezzy-environment');
 const trueTypeof = require('ezzy-typeof');
 const cache = require('./cache');
+const getHandlebars = require('./handlebars');
+
+/**
+ * The timeout to read files from the disk. In production is a permanent cache
+ * that we don't restart until the server starts.
+ * @type {number}
+ */
+const IO_CACHE_TIMEOUT = environment.development ? 100 : 0;
 
 /**
  * Controller.
@@ -15,10 +23,10 @@ class Controller extends Request {
    * @param {string} viewFile The raw path of the view template.
    * @param {Model} model The model to be used when rendering.
    * @param {string} modelName The name of the model.
-   * @param {Promise.<Handlebars>} hbs The handlebars instance.
+   * @param {String} hbsDir The directory to use with handlebars.
    * @param {Promise.<{}>} errors The errors to use (compiled hbs templates)
    */
-  constructor(viewFile, model, modelName, hbs, errors) {
+  constructor(viewFile, model, modelName, hbsDir, errors) {
     super();
 
     /**
@@ -47,7 +55,7 @@ class Controller extends Request {
      * @type {object}
      * @private
      */
-    this._hbs = hbs;
+    this._hbsDir = hbsDir;
 
     /**
      * The errors used when displaying status codes.
@@ -163,7 +171,15 @@ class Controller extends Request {
    * @private
    */
   async _parseTemplate(data) {
-    const {handlebars, layouts, LAYOUT_REG} = await this._hbs;
+
+    // Get the instance of handlebars.
+    const hbs = cache.getLibrary('handlebars')
+      .getOrElse('inst', () => getHandlebars(this._hbsDir), IO_CACHE_TIMEOUT);
+
+    // Wait for it to start loading.
+    const {handlebars, layouts, LAYOUT_REG} = await hbs;
+
+    // Get the template.
     let cacheTemplate = cache.getLibrary('templates')
       .getOrElse(this._viewFile, async () => {
         let source;
