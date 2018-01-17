@@ -119,9 +119,12 @@ class Controller extends Request {
           if (trueTypeof(data) !== 'object') {
             data = {data};
           }
+          let config = data.config || {};
+          Object.assign(config, this
+            .configParser(basics, basics.request.assets.config));
           return Object.assign(data, model, {
-            assets: this.assetParser(basics, basics.request.assets),
-            config: this.configParser(basics, basics.request.assets.config)
+            config,
+            assets: this.assetParser(basics, basics.request.assets)
           });
         });
 
