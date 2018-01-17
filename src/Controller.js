@@ -122,7 +122,7 @@ class Controller extends Request {
           let config = data.config || {};
           Object.assign(config, this
             .configParser(basics, basics.request.assets.config));
-          return Object.assign(model, data, {
+          return Object.assign(data, model, {
             config,
             assets: this.assetParser(basics, basics.request.assets)
           });
