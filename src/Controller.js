@@ -23,10 +23,11 @@ class Controller extends Request {
    * @param {string} viewFile The raw path of the view template.
    * @param {Model} model The model to be used when rendering.
    * @param {string} modelName The name of the model.
+   * @param {Object} hbs The handlebars instance to be used for production.
    * @param {String} hbsDir The directory to use with handlebars.
    * @param {Promise.<{}>} errors The errors to use (compiled hbs templates)
    */
-  constructor(viewFile, model, modelName, hbsDir, errors) {
+  constructor(viewFile, model, modelName, hbs, hbsDir, errors) {
     super();
 
     /**
@@ -51,11 +52,18 @@ class Controller extends Request {
     this._modelName = modelName;
 
     /**
-     * The instance of handlebars to use for rendering.
+     * The directory of the application to be rendered during development.
      * @type {object}
      * @private
      */
     this._hbsDir = hbsDir;
+
+    /**
+     * The instance of handlebars to use for rendering.
+     * @type {object}
+     * @private
+     */
+    this._hbs = hbs;
 
     /**
      * The errors used when displaying status codes.
@@ -163,7 +171,7 @@ class Controller extends Request {
    * @returns {{js:string[], css:string[]}}
    * @private
    */
-  configParser(basics, config){
+  configParser(basics, config) {
     return config || {};
   }
 
@@ -176,8 +184,9 @@ class Controller extends Request {
   async _parseTemplate(data) {
 
     // Get the instance of handlebars.
-    const hbs = cache.getLibrary('handlebars')
-      .getOrElse('inst', () => getHandlebars(this._hbsDir), IO_CACHE_TIMEOUT);
+    const hbs = environment.development ? this._hbs :
+      cache.getLibrary('handlebars')
+        .getOrElse('inst', () => getHandlebars(this._hbsDir), 100);
 
     // Wait for it to start loading.
     const {handlebars, layouts, LAYOUT_REG} = await hbs;
@@ -209,7 +218,7 @@ class Controller extends Request {
       // apply all layouts recursively
       if (layout) {
         let currentLayout = layout;
-        while(currentLayout){
+        while (currentLayout) {
           renderedValue = layouts[currentLayout].render(Object.assign(data, {
             content: renderedValue,
             body: renderedValue

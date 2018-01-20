@@ -22,6 +22,7 @@ const CSS_REG = /\.css(\?.*)?$/;
 const fs = require('ezzy-fs');
 const {version} = require('./package');
 const HAS_PROTOCOL_REG = /^https?:/i;
+const getHandlebars = require('./handlebars');
 
 /**
  * The context parameters available.
@@ -104,6 +105,13 @@ class ExpressMvc {
      * @type {String}
      */
     this._hbsDir = directory;
+
+    /**
+     * The initial handlebars instance.
+     * @type {Promise}
+     * @private
+     */
+    this._hbs = getHandlebars(directory);
 
     /**
      * The express instance.
@@ -297,8 +305,8 @@ class ExpressMvc {
             }
 
             const Ctrl = require(file);
-            const ctrl =
-              new Ctrl(viewFile, Model, modelName, this._hbsDir, this._errors);
+            const ctrl = new Ctrl(viewFile, Model, modelName,
+              this._hbs, this._hbsDir, this._errors);
             const ctrlKey = path.basename(file).replace(JS_EXT_REG, '');
 
             cache.getLibrary('controllers').add(ctrlKey, ctrl);
