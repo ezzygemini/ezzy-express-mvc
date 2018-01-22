@@ -186,7 +186,7 @@ class Controller extends Request {
     // Get the instance of handlebars.
     const hbs = !environment.development ? this._hbs :
       cache.getLibrary('handlebars')
-        .getOrElse('inst', () => getHandlebars(this._hbsDir), 100);
+        .getOrElse('inst', () => getHandlebars(this._hbsDir), IO_CACHE_TIMEOUT);
 
     // Wait for it to start loading.
     const {handlebars, layouts, LAYOUT_REG} = await hbs;
