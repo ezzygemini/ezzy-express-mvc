@@ -69,13 +69,14 @@ class Request {
   doRequest(basics) {
     const {method, hostname, originalUrl} = basics.request;
 
-    logger
-      .debug('Interception', `Request intercepted by ${this.constructor.name}`);
+    logger.deepDebug('Interception',
+      `Request intercepted by ${this.constructor.name}`);
 
     if (!this.isRequestOk(basics)) {
       return this.requestNotOk(basics);
     } else {
       logger.debug('Request', `${method} ${hostname} ${originalUrl}`);
+      logger.deepDebug('Headers', basics.request.headers);
     }
 
     const auth = this.auth(basics);
