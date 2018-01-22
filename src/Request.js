@@ -69,6 +69,9 @@ class Request {
   doRequest(basics) {
     const {method, hostname, originalUrl} = basics.request;
 
+    logger
+      .debug('Intercepted', `Request intercepted by ${this.constructor.name}`);
+
     if (!this.isRequestOk(basics)) {
       return this.requestNotOk(basics);
     } else {
