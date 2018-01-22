@@ -184,7 +184,7 @@ class Controller extends Request {
   async _parseTemplate(data) {
 
     // Get the instance of handlebars.
-    const hbs = environment.development ? this._hbs :
+    const hbs = !environment.development ? this._hbs :
       cache.getLibrary('handlebars')
         .getOrElse('inst', () => getHandlebars(this._hbsDir), 100);
 
