@@ -9,8 +9,8 @@ class Model {
    * @param {HttpBasics} basics The HTTP basics.
    * @returns {Promise.<Model>}
    */
-  getData(basics) {
-    return Promise.resolve(this);
+  async getData(basics) {
+    return this;
   }
 
   /**

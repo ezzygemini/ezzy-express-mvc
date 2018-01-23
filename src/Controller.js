@@ -110,40 +110,30 @@ class Controller extends Request {
    * @param {HttpBasics=} basics The http basics.
    * @returns {Promise.<string>}
    */
-  render(basics = {}) {
-    let dataPromise;
+  async render(basics = {}) {
+    let data;
     if (this._model) {
       try {
-
         const Model = this._model;
         const model = new Model(basics);
-
-        dataPromise = model.getData(basics);
-        if (!(dataPromise instanceof Promise)) {
-          dataPromise = Promise.resolve(dataPromise);
+        data = await model.getData(basics);
+        if (trueTypeof(data) !== 'object') {
+          data = {data};
         }
-
-        dataPromise.then((data) => {
-          if (trueTypeof(data) !== 'object') {
-            data = {data};
-          }
-          let config = data.config || {};
-          Object.assign(config, this
-            .configParser(basics, basics.request.assets.config));
-          return Object.assign(data, model, {
-            config,
-            assets: this.assetParser(basics, basics.request.assets)
-          });
-        });
-
+        let {assets} = basics.request;
+        const config = await this.configParser(basics,
+          Object.assign(data.config || {}, assets.config));
+        assets = await this.assetParser(basics, assets);
+        Object.assign(data, model, {config, assets});
       } catch (e) {
         logger.error(e);
-        dataPromise = Promise.resolve(basics);
+        console.error(e);
+        data = basics;
       }
     } else {
-      dataPromise = Promise.resolve(basics);
+      data = basics;
     }
-    return dataPromise.then(data => this._parseTemplate(data));
+    return await this._parseTemplate(basics, data);
   }
 
 
@@ -176,12 +166,26 @@ class Controller extends Request {
   }
 
   /**
+   * Method used to parse the cached view.
+   * Note: This method is important so other controllers can override it and
+   * parse the view as needed.
+   * @param {HttpBasics} basics The http basics.
+   * @param {string} viewCode The rendered view.
+   * @override
+   * @returns {*}
+   */
+  viewParser(basics, viewCode) {
+    return viewCode;
+  }
+
+  /**
    * Parses the template.
-   * @param data
+   * @param {HttpBasics} basics The http basics.
+   * @param {object} data The optional data to use to render the template.
    * @returns {*}
    * @private
    */
-  async _parseTemplate(data) {
+  async _parseTemplate(basics, data) {
 
     // Get the instance of handlebars.
     const hbs = !environment.development ? this._hbs :
@@ -191,8 +195,8 @@ class Controller extends Request {
     // Wait for it to start loading.
     const {handlebars, layouts, LAYOUT_REG} = await hbs;
 
-    // Get the template.
-    let cacheTemplate = cache.getLibrary('templates')
+    // Get the view file.
+    let cachedView = await cache.getLibrary('hbsViews')
       .getOrElse(this._viewFile, async () => {
         let source;
         if (!this._viewFile) {
@@ -203,18 +207,14 @@ class Controller extends Request {
         }
         const match = source.match(LAYOUT_REG);
         return {
-          template: handlebars.compile(source),
+          view: handlebars.compile(source),
           layout: match ? match[1] : null
         };
-      }, environment.development ? 100 : 0);
+      }, IO_CACHE_TIMEOUT);
 
-    if (cacheTemplate instanceof Promise) {
-      cacheTemplate = await cacheTemplate;
-    }
-
-    const {template, layout} = cacheTemplate;
+    const {view, layout} = cachedView;
     try {
-      let renderedValue = template(data);
+      let renderedValue = await this.viewParser(basics, view(data));
       // apply all layouts recursively
       if (layout) {
         let currentLayout = layout;
