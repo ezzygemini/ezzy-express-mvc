@@ -171,10 +171,11 @@ class Controller extends Request {
    * parse the view as needed.
    * @param {HttpBasics} basics The http basics.
    * @param {string} viewCode The rendered view.
+   * @param {object} data The optional data to use to render the template.
    * @override
    * @returns {*}
    */
-  viewParser(basics, viewCode) {
+  viewParser(basics, viewCode, data) {
     return viewCode;
   }
 
@@ -214,7 +215,7 @@ class Controller extends Request {
 
     const {view, layout} = cachedView;
     try {
-      let renderedValue = await this.viewParser(basics, view(data));
+      let renderedValue = await this.viewParser(basics, view(data), data);
       // apply all layouts recursively
       if (layout) {
         let currentLayout = layout;
