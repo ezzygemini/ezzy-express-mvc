@@ -41,6 +41,19 @@ describe('Render', () => {
     });
   });
 
+  describe('helpers should bind to the mvc', () => {
+
+    it('process the helper content', done => {
+      app.listener.then(listener => {
+        request(listener)
+          .get('/')
+          .expect(/Content from test helper/)
+          .end(e => e ? fail(e) : done());
+      });
+    });
+
+  });
+
   afterAll(() => {
     app.close();
     logger.talk();

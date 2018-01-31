@@ -9,36 +9,40 @@ const recursive = require('recursive-readdir-sync');
 const LAYOUT_REG = /{{!<\s*([\w\/.]+)\s*}}/i;
 
 handlebars.registerPartial('styles', `
-  {{#each externalStyles}}
+  {{! styles start }}
+  {{~#each externalStyles}}
     <link rel="stylesheet" href="{{{.}}}" />
-  {{/each}}
-  {{#each assets.css}}
+  {{/each~}}
+  {{~#each assets.css}}
     <link rel="stylesheet" href="{{{.}}}" />
-  {{/each}}
-  {{#each styles}}
+  {{/each~}}
+  {{~#each styles}}
     <style type="text/css">
-    {{{.}}}
+    {{__~}}{{{.}}}{{~__}}
     </style>
-  {{/each}}
+  {{/each~}}
+  {{! styles end }}
 `);
 
 handlebars.registerPartial('scripts', `
-  {{#with bootstrap}}
+  {{! scripts start }}
+  {{~#with bootstrap}}
     <script type="application/javascript">
-    {{{.}}}
+    {{~__~}}{{{.}}}{{~__~}}
     </script>
-  {{/with}}
-  {{#each externalScripts}}
+  {{/with~}}
+  {{~#each externalScripts}}
     <script src="{{{.}}}"></script>
-  {{/each}}
-  {{#each assets.js}}
+  {{/each~}}
+  {{~#each assets.js}}
     <script src="{{{.}}}"></script>
-  {{/each}}
-  {{#each scripts}}
+  {{/each~}}
+  {{~#each scripts}}
     <script type="application/javascript">
-    {{{.}}}
+    {{__~}}{{{.}}}{{~__}}
     </script>
-  {{/each}}
+  {{/each~}}
+  {{! scripts end }}
 `);
 
 /**
@@ -63,9 +67,21 @@ module.exports = async dir => {
   const allFiles = recursive(cleanDir);
   const allPartials = allFiles.filter(item => PARTIAL_HBS_REG.test(item));
   const allLayouts = allFiles.filter(item => LAYOUTS_HBS_REG.test(item));
+  const helpersFile = path.normalize(dir + '/handlebarsHelpers.js');
 
   logger.debug('Handlebars Partials', allPartials);
   logger.debug('Handlebars Layouts', allLayouts);
+
+  try{
+    const helpers = require('./' + path.relative(__dirname, helpersFile));
+    for(let ea of Object.keys(helpers)){
+      handlebars.registerHelper(ea, helpers[ea]);
+      logger.debug('Handlebars Helper', `${ea} helper registered`);
+    }
+    logger.debug('Handlebars Helpers', `Registered from ${helpersFile}`);
+  }catch(e){
+    logger.debug('Handlebars Helpers', `No helpers file found  ${helpersFile}`);
+  }
 
   const partialSources = await Promise
     .all(allPartials.map(partialSrc => fsPlus.readFilePromise(partialSrc)
