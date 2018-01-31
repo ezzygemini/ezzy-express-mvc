@@ -20,8 +20,6 @@ const COMPASS_CMD = COMPASS +
   '--css-dir=css --sass-dir=scss --images-dir=images --trace';
 const CSS_REG = /\.css(\?.*)?$/;
 const fs = require('ezzy-fs');
-const {version} = require('./package');
-const HAS_PROTOCOL_REG = /^https?:/i;
 const getHandlebars = require('./handlebars');
 
 /**
@@ -439,12 +437,6 @@ class ExpressMvc {
     }
 
     logger.debug('Assets', {js, css});
-
-    js =
-      js.map(ref => HAS_PROTOCOL_REG.test(ref) ? ref : `/${version}${ref}`);
-    css =
-      css.map(ref => HAS_PROTOCOL_REG.test(ref) ? ref : `/${version}${ref}`);
-
     return {js, css, config};
   }
 
