@@ -5,6 +5,8 @@ const environment = require('ezzy-environment');
 const trueTypeof = require('ezzy-typeof');
 const cache = require('./cache');
 const getHandlebars = require('./handlebars');
+const PARTIAL_FIND_REG = /{{~?>\s+[\w\d\/_\-.]+}}/g;
+const PARTIAL_NAME_REG = /^{{~?>\s+(.*)}}$/;
 
 /**
  * The timeout to read files from the disk. In production is a permanent cache
@@ -172,6 +174,7 @@ class Controller extends Request {
    * @param {HttpBasics} basics The http basics.
    * @param {string} viewCode The rendered view.
    * @param {object} data The optional data to use to render the template.
+   * @param {string[]} partials The partials used in the view.
    * @override
    * @returns {*}
    */
@@ -207,15 +210,19 @@ class Controller extends Request {
           source = source.toString();
         }
         const match = source.match(LAYOUT_REG);
+        const partials = (source.match(PARTIAL_FIND_REG) || [])
+          .map(partial => partial.replace(PARTIAL_NAME_REG, (a, b) => b));
         return {
+          partials,
           view: handlebars.compile(source),
           layout: match ? match[1] : null
         };
       }, IO_CACHE_TIMEOUT);
 
-    const {view, layout} = cachedView;
+    const {view, layout, partials} = cachedView;
     try {
-      let renderedValue = await this.viewParser(basics, view(data), data);
+      let renderedValue = await
+        this.viewParser(basics, view(data), data, partials);
       // apply all layouts recursively
       if (layout) {
         let currentLayout = layout;

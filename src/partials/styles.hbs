@@ -1,0 +1,13 @@
+{{! styles start }}
+{{~#each externalStyles}}
+  <link rel="stylesheet" href="{{{.}}}" />
+{{/each~}}
+{{~#each assets.css}}
+  <link rel="stylesheet" href="{{{.}}}" />
+{{/each~}}
+{{~#each styles}}
+  <style type="text/css">
+      {{__~}}{{{.}}}{{~__}}
+  </style>
+{{/each~}}
+{{! styles end }}

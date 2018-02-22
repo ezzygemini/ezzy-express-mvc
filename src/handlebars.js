@@ -8,42 +8,12 @@ const logger = require('ezzy-logger').logger;
 const recursive = require('recursive-readdir-sync');
 const LAYOUT_REG = /{{!<\s*([\w\/.]+)\s*}}/i;
 
-handlebars.registerPartial('styles', `
-  {{! styles start }}
-  {{~#each externalStyles}}
-    <link rel="stylesheet" href="{{{.}}}" />
-  {{/each~}}
-  {{~#each assets.css}}
-    <link rel="stylesheet" href="{{{.}}}" />
-  {{/each~}}
-  {{~#each styles}}
-    <style type="text/css">
-    {{__~}}{{{.}}}{{~__}}
-    </style>
-  {{/each~}}
-  {{! styles end }}
-`);
-
-handlebars.registerPartial('scripts', `
-  {{! scripts start }}
-  {{~#with bootstrap}}
-    <script type="application/javascript">
-    {{~__~}}{{{.}}}{{~__~}}
-    </script>
-  {{/with~}}
-  {{~#each externalScripts}}
-    <script src="{{{.}}}"></script>
-  {{/each~}}
-  {{~#each assets.js}}
-    <script src="{{{.}}}"></script>
-  {{/each~}}
-  {{~#each scripts}}
-    <script type="application/javascript">
-    {{__~}}{{{.}}}{{~__}}
-    </script>
-  {{/each~}}
-  {{! scripts end }}
-`);
+handlebars.registerPartial('styles', fsPlus
+  .readFileSync(fsPlus.normalize(__dirname + '/./partials/styles.hbs'))
+  .toString());
+handlebars.registerPartial('scripts', fsPlus
+  .readFileSync(fsPlus.normalize(__dirname + '/./partials/scripts.hbs'))
+  .toString());
 
 /**
  * Returns a properly formatted html attribute if the value exists.
