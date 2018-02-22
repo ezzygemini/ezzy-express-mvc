@@ -6,43 +6,17 @@ const PARTIAL_HBS_REG = /.*\/partials\/[\w]+\.(hbs|handlebars)$/;
 const LAYOUTS_HBS_REG = /.*\/layouts\/[\w]+\.(hbs|handlebars)$/;
 const logger = require('ezzy-logger').logger;
 const recursive = require('recursive-readdir-sync');
-const LAYOUT_REG = /{{!<\s*([\w\/.]+)\s*}}/i;
-const PARTIAL_FIND_REG = /{{~?>\s+[\w\d\/_\-.]+}}/g;
-const PARTIAL_NAME_REG = /^{{~?>\s+(.*)}}$/;
+const extractLayout = require('./utils/extractLayout');
+const htmlAttribute = require('./utils/htmlAttribute');
+const extractPartialNames = require('./utils/extractPartialNames');
 
 handlebars.registerPartial('styles', fsPlus
   .readFileSync(fsPlus.normalize(__dirname + '/./partials/styles.hbs'))
   .toString());
+
 handlebars.registerPartial('scripts', fsPlus
   .readFileSync(fsPlus.normalize(__dirname + '/./partials/scripts.hbs'))
   .toString());
-
-/**
- * Extracts the names of the partials from the handlebars source code.
- * @param {string} source The handlebars source code.
- * @returns {string[]}
- */
-const extractPartialNames = source =>
-  ((source.match(PARTIAL_FIND_REG) || [])
-    .map(partial => partial.replace(PARTIAL_NAME_REG, (a, b) => b)));
-
-/**
- * Returns a properly formatted html attribute if the value exists.
- * @param attributeName
- * @param value
- */
-const htmlAttribute = (attributeName, value) =>
-  (value ? new handlebars.SafeString(` ${attributeName}="${value}"`) : '');
-
-/**
- * Extracts the layout name from the handlebars source code.
- * @param {string} source The handlebars source code.
- * @returns {string|null}
- */
-const extractLayout = source => {
-  const matches = source.match(LAYOUT_REG);
-  return matches ? matches[1] : null;
-};
 
 handlebars.registerHelper('iif', (value, defaultValue) =>
   new handlebars.SafeString(value !== 'undefined' ? value : defaultValue));
@@ -102,5 +76,5 @@ module.exports = async dir => {
       name + (layout ? ` extends (${layout})` : ''));
   });
 
-  return {handlebars, layouts, extractPartialNames, extractLayout};
+  return {handlebars, layouts};
 };

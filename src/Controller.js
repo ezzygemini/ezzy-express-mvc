@@ -5,6 +5,8 @@ const environment = require('ezzy-environment');
 const trueTypeof = require('ezzy-typeof');
 const cache = require('./cache');
 const getHandlebars = require('./handlebars');
+const extractLayout = require('./utils/extractLayout');
+const extractPartialNames = require('./utils/extractPartialNames');
 
 /**
  * The timeout to read files from the disk. In production is a permanent cache
@@ -206,7 +208,7 @@ class Controller extends Request {
         .getOrElse('inst', () => getHandlebars(this._hbsDir), IO_CACHE_TIMEOUT);
 
     // Wait for it to start loading.
-    const {handlebars, layouts, extractPartialNames, extractLayout} = await hbs;
+    const {handlebars, layouts} = await hbs;
 
     // Get the view file.
     let cachedView = await cache.getLibrary('hbsViews')
