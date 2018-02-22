@@ -117,7 +117,7 @@ class Controller extends Request {
         const Model = this._model;
         const model = new Model(basics);
         data = await model.getData(basics);
-        if (trueTypeof(data) !== 'object') {
+        if (!(data instanceof Model) && trueTypeof(data) !== 'object') {
           data = {data};
         }
         let {assets} = basics.request;
