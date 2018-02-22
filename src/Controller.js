@@ -183,6 +183,17 @@ class Controller extends Request {
   }
 
   /**
+   * Method used to parse the data right before it's sent to the view.
+   * @param {HttpBasics} basics The http basics.
+   * @param {object} data The data object to parse.
+   * @param {string[]} partials The view partials.
+   * @returns {*}
+   */
+  dataParser(basics, data, partials){
+    return data;
+  }
+
+  /**
    * Parses the template.
    * @param {HttpBasics} basics The http basics.
    * @param {object} data The optional data to use to render the template.
@@ -221,8 +232,9 @@ class Controller extends Request {
 
     const {view, layout, partials} = cachedView;
     try {
-      let renderedValue = await
-        this.viewParser(basics, view(data), data, partials);
+      data = await this.dataParser(basics, data, partials);
+      let renderedValue =
+        await this.viewParser(basics, view(data), data, partials);
       // apply all layouts recursively
       if (layout) {
         let currentLayout = layout;
