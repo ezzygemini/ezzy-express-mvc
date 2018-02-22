@@ -178,7 +178,7 @@ class Controller extends Request {
    * @override
    * @returns {*}
    */
-  viewParser(basics, viewCode, data) {
+  viewParser(basics, viewCode, data, partials) {
     return viewCode;
   }
 
