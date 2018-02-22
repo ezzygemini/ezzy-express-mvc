@@ -7,6 +7,8 @@ const LAYOUTS_HBS_REG = /.*\/layouts\/[\w]+\.(hbs|handlebars)$/;
 const logger = require('ezzy-logger').logger;
 const recursive = require('recursive-readdir-sync');
 const LAYOUT_REG = /{{!<\s*([\w\/.]+)\s*}}/i;
+const PARTIAL_FIND_REG = /{{~?>\s+[\w\d\/_\-.]+}}/g;
+const PARTIAL_NAME_REG = /^{{~?>\s+(.*)}}$/;
 
 handlebars.registerPartial('styles', fsPlus
   .readFileSync(fsPlus.normalize(__dirname + '/./partials/styles.hbs'))
@@ -16,12 +18,31 @@ handlebars.registerPartial('scripts', fsPlus
   .toString());
 
 /**
+ * Extracts the names of the partials from the handlebars source code.
+ * @param {string} source The handlebars source code.
+ * @returns {string[]}
+ */
+const extractPartialNames = source =>
+  ((source.match(PARTIAL_FIND_REG) || [])
+    .map(partial => partial.replace(PARTIAL_NAME_REG, (a, b) => b)));
+
+/**
  * Returns a properly formatted html attribute if the value exists.
  * @param attributeName
  * @param value
  */
 const htmlAttribute = (attributeName, value) =>
   (value ? new handlebars.SafeString(` ${attributeName}="${value}"`) : '');
+
+/**
+ * Extracts the layout name from the handlebars source code.
+ * @param {string} source The handlebars source code.
+ * @returns {string|null}
+ */
+const extractLayout = source => {
+  const matches = source.match(LAYOUT_REG);
+  return matches ? matches[1] : null;
+};
 
 handlebars.registerHelper('iif', (value, defaultValue) =>
   new handlebars.SafeString(value !== 'undefined' ? value : defaultValue));
@@ -42,14 +63,14 @@ module.exports = async dir => {
   logger.debug('Handlebars Partials', allPartials);
   logger.debug('Handlebars Layouts', allLayouts);
 
-  try{
+  try {
     const helpers = require('./' + path.relative(__dirname, helpersFile));
-    for(let ea of Object.keys(helpers)){
+    for (let ea of Object.keys(helpers)) {
       handlebars.registerHelper(ea, helpers[ea]);
       logger.debug('Handlebars Helper', `${ea} helper registered`);
     }
     logger.debug('Handlebars Helpers', `Registered from ${helpersFile}`);
-  }catch(e){
+  } catch (e) {
     logger.debug('Handlebars Helpers', `No helpers file found  ${helpersFile}`);
   }
 
@@ -71,14 +92,15 @@ module.exports = async dir => {
 
   layoutSources.forEach((source, i) => {
     const name = allLayouts[i].replace(cleanDir, '').replace(HBS_REG, '');
-    const matches = source.match(LAYOUT_REG);
+    const layout = extractLayout(source);
     layouts[name] = {
-      render: handlebars.compile(source.toString()),
-      parent: matches ? matches[1] : null
+      partials: extractPartialNames(source),
+      render: handlebars.compile(source),
+      parent: layout
     };
     logger.debug('Handlebars Layout',
-      name + (matches ? ` extends (${matches[1]})` : ''));
+      name + (layout ? ` extends (${layout})` : ''));
   });
 
-  return {handlebars, layouts, LAYOUT_REG};
+  return {handlebars, layouts, extractPartialNames, extractLayout};
 };

@@ -5,8 +5,6 @@ const environment = require('ezzy-environment');
 const trueTypeof = require('ezzy-typeof');
 const cache = require('./cache');
 const getHandlebars = require('./handlebars');
-const PARTIAL_FIND_REG = /{{~?>\s+[\w\d\/_\-.]+}}/g;
-const PARTIAL_NAME_REG = /^{{~?>\s+(.*)}}$/;
 
 /**
  * The timeout to read files from the disk. In production is a permanent cache
@@ -208,7 +206,7 @@ class Controller extends Request {
         .getOrElse('inst', () => getHandlebars(this._hbsDir), IO_CACHE_TIMEOUT);
 
     // Wait for it to start loading.
-    const {handlebars, layouts, LAYOUT_REG} = await hbs;
+    const {handlebars, layouts, extractPartialNames, extractLayout} = await hbs;
 
     // Get the view file.
     let cachedView = await cache.getLibrary('hbsViews')
@@ -220,29 +218,27 @@ class Controller extends Request {
           source = await fsPlus.readFilePromise(this._viewFile);
           source = source.toString();
         }
-        const match = source.match(LAYOUT_REG);
-        const partials = (source.match(PARTIAL_FIND_REG) || [])
-          .map(partial => partial.replace(PARTIAL_NAME_REG, (a, b) => b));
         return {
-          partials,
+          partials: extractPartialNames(source),
           view: handlebars.compile(source),
-          layout: match ? match[1] : null
+          layout: extractLayout(source)
         };
       }, IO_CACHE_TIMEOUT);
 
+    let renderedValue;
     const {view, layout, partials} = cachedView;
     try {
       data = await this.dataParser(basics, data, partials);
-      let renderedValue =
-        await this.viewParser(basics, view(data), data, partials);
+      renderedValue = await this.viewParser(basics, view(data), data, partials);
       // apply all layouts recursively
       if (layout) {
         let currentLayout = layout;
         while (currentLayout) {
-          renderedValue = layouts[currentLayout].render(Object.assign(data, {
+          data = await this.dataParser(basics, Object.assign(data, {
             content: renderedValue,
             body: renderedValue
-          }));
+          }), layouts[currentLayout].partials);
+          renderedValue = layouts[currentLayout].render(data);
           currentLayout = layouts[currentLayout].parent;
         }
       }
