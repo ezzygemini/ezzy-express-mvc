@@ -7,10 +7,10 @@ describe('SomeMiddleware', () => {
 
   beforeAll(() => {
     logger.silence();
-    app = new ExpressMvc(__dirname + '/../../root', basics => {
+    app = new ExpressMvc(__dirname + '/../../root', [basics => {
       basics.request.client = 'some client';
       basics.next();
-    });
+    }]);
     app.listen(9004);
   });
 

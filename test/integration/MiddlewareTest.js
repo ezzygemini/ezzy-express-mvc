@@ -8,14 +8,19 @@ describe('Middleware', () => {
   beforeAll(() => {
     logger.silence();
     // logger.level = 'debug';
-    app = new ExpressMvc(__dirname + '/../../root', basics => {
-      basics.request.client = 'some client';
-      basics.next();
-    }, undefined, undefined, false, undefined, basics => {
-      if (/returnMwareResponse/.test(basics.request.originalUrl)) {
-        return basics.response.status(200).send('middleware bound');
+    app = new ExpressMvc({
+      directory: __dirname + '/../../root',
+      middleware: basics => {
+        basics.request.client = 'some client';
+        basics.next();
+      },
+      bind404: false,
+      globalMiddleware: basics => {
+        if (/returnMwareResponse/.test(basics.request.originalUrl)) {
+          return basics.response.status(200).send('middleware bound');
+        }
+        basics.next();
       }
-      basics.next();
     });
     app.promise
       .then(() => app.bindExpressMvc(__dirname + '/../../root2')

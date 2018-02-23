@@ -8,10 +8,9 @@ describe('ExpressMvc', () => {
   beforeAll(() => {
     logger.silence();
     // logger.level = 'debug';
-    app = new ExpressMvc(__dirname + '/../../root', undefined,
-      /unknowndomain/, '/assets/');
+    app = new ExpressMvc(__dirname + '/../../root', /xyzdotcom/, '/assets/');
     app.promise
-      .then(() => app.bindExpressMvc(__dirname + '/../../root3', undefined,
+      .then(() => app.bindExpressMvc(__dirname + '/../../root3',
         (basics) => basics.request.originalUrl.indexOf('otherApis/') > -1)
         .then(() => app.bindExpressMvc(__dirname + '/../../root2')
           .then(() => app.listen(9002))));

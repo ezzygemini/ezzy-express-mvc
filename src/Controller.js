@@ -27,9 +27,10 @@ class Controller extends Request {
    * @param {string} modelName The name of the model.
    * @param {Object} hbs The handlebars instance to be used for production.
    * @param {String} hbsDir The directory to use with handlebars.
+   * @param {{}} extraConfig The extra configuration from the constructor.
    * @param {Promise.<{}>} errors The errors to use (compiled hbs templates)
    */
-  constructor(viewFile, model, modelName, hbs, hbsDir, errors) {
+  constructor(viewFile, model, modelName, hbs, hbsDir, errors, extraConfig) {
     super();
 
     /**
@@ -66,6 +67,13 @@ class Controller extends Request {
      * @private
      */
     this._hbs = hbs;
+
+    /**
+     * The extra configuration used in the express mvc constructor.
+     * @type {{}}
+     * @private
+     */
+    this._extraConfig = extraConfig;
 
     /**
      * The errors used when displaying status codes.
@@ -205,7 +213,9 @@ class Controller extends Request {
     // Get the instance of handlebars.
     const hbs = !environment.development ? this._hbs :
       cache.getLibrary('handlebars')
-        .getOrElse('inst', () => getHandlebars(this._hbsDir), IO_CACHE_TIMEOUT);
+        .getOrElse('inst', () => getHandlebars(Object.assign({
+          directory: this._hbsDir,
+        }, this._extraConfig)), IO_CACHE_TIMEOUT);
 
     // Wait for it to start loading.
     const {handlebars, layouts} = await hbs;

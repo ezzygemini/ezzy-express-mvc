@@ -6,8 +6,16 @@
 <h1>{{title}}</h1>
 <b>{{clientName}}</b>
 <p>{{testHelper}}</p>
+
 {{> partials/somePartial}}
+
 {{> home/partials/anotherPartial}}
+
 {{> scripts}}
+
+{{> someRandomDirectory/randomPartial}}
+
+{{> ../root2/anotherRandomDirectory/anotherRandomPartial}}
+
 <p>{{config.testingConfigurationFlag}}</p>
 </body>

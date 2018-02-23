@@ -21,6 +21,7 @@ const COMPASS_CMD = COMPASS +
 const CSS_REG = /\.css(\?.*)?$/;
 const fs = require('ezzy-fs');
 const getHandlebars = require('./handlebars');
+const configSetup = require('ezzy-config-setup');
 
 /**
  * The context parameters available.
@@ -49,18 +50,86 @@ const ERROR_CODES = [
 class ExpressMvc {
 
   /**
-   * @param {string=} directory The directory of the mvc sources.
-   * @param {Function|Function[]=} middleware Any middleware that's required.
-   * @param {RegExp|Function=} domainReg The regular expression for the domain or the function that will check if the route will be resolved.
-   * @param {string[]|string=} statics The static routes to assign before anything. Note: These routes are directories matching the context of the folders within the application.
-   * @param {boolean=} bind404 If we should bind a 404 route after all the controllers are bound to avoid continuing to any other applications.
-   * @param {string|undefined=} customErrorDir The custom error directory where the application can find [error-status].html files.
-   * @param {Function|Function[]=} globalMiddleware The global middleware to use on this and all other bound MVC applications.
-   * @param {express=} expressDep The express instance to be used.
+   * @param {*} args The configuration arguments.
    */
-  constructor(directory, middleware, domainReg = /.*/, statics, bind404,
-              customErrorDir = 'errors', globalMiddleware, expressDep
-  ) {
+  constructor(...args) {
+
+    /**
+     * @param {string=} directory The directory of the mvc sources.
+     * @param {Function|Function[]=} middleware Any middleware that's required.
+     * @param {RegExp|Function=} domainReg The regular expression for the domain or the function that will check if the route will be resolved.
+     * @param {string[]|string=} statics The static routes to assign before anything. Note: These routes are directories matching the context of the folders within the application.
+     * @param {boolean=} bind404 If we should bind a 404 route after all the controllers are bound to avoid continuing to any other applications.
+     * @param {string|undefined=} customErrorDir The custom error directory where the application can find [error-status].html files.
+     * @param {Function|Function[]=} globalMiddleware The global middleware to use on this and all other bound MVC applications.
+     * @param {express=} expressDependency The express instance to be used if a certain version is required.
+     * @param {string} partials The name of the partials directories.
+     * @param {string} layouts The name of the layouts directories.
+     * @param {string} helpersFile The file containing handlebars helpers.
+     * @param {string[]} partialsDirectories Any additional directories to look for partials.
+     * @param {string[]} layoutsDirectories Any additional directories to look for layouts.
+     */
+    const defaultConfig = {
+      directory: undefined,
+      middleware: undefined,
+      domainReg: /.*/,
+      statics: undefined,
+      bind404: false,
+      customErrorDir: 'errors',
+      globalMiddleware: undefined,
+      expressDependency: undefined,
+      partials: undefined,
+      layouts: undefined,
+      helpersFile: undefined,
+      partialsDirectories: [],
+      layoutsDirectories: []
+    };
+
+    const config = configSetup(defaultConfig, args,
+      ['this:object'],
+      ['directory:string'],
+      ['directory:string', 'bind404:boolean'],
+      ['directory:string', 'middleware:array'],
+      ['directory:string', 'domainReg:regexp|function'],
+      ['directory:string', 'middleware:array', 'bind404:boolean'],
+      ['directory:string', 'domainReg:regexp|function', 'statics:string'],
+      ['directory:string', 'domainReg:regexp|function', 'bind404:boolean'],
+      [
+        'directory:string',
+        'middleware:array|function',
+        'globalMiddleware:array|function',
+        'bind404:boolean'
+      ],
+      [
+        'directory: string',
+        'middleware: array | object | undefined',
+        'domainReg: regexp | function | undefined',
+        'statics: array | string | undefined',
+        'bind404: boolean?',
+        'customErrorDir: errors?',
+        'globalMiddleware: array | object | undefined',
+        'expressDependency: *'
+      ]);
+
+    const {
+      directory,
+      middleware,
+      domainReg,
+      statics,
+      customErrorDir,
+      globalMiddleware,
+      expressDependency,
+      partials,
+      layouts,
+      helpersFile,
+      partialsDirectories,
+      layoutsDirectories
+    } = config;
+    let {bind404} = config;
+
+    if(!directory){
+      throw new Error('No directory was defined in the configuration.');
+    }
 
     // Bind the 404 route if we are auto checking for a different domain.
     if (bind404 === undefined) {
@@ -70,7 +139,7 @@ class ExpressMvc {
     logger.debug({
       title: 'Express MVC',
       message: 'New MVC Application',
-      data: {directory, domainReg, statics, bind404},
+      data: config,
       borderTop: 3
     });
 
@@ -79,7 +148,7 @@ class ExpressMvc {
      * @type {*}
      * @private
      */
-    const expr = expressDep || express;
+    const expr = expressDependency || express;
 
     /**
      * The regular expression that will match the domain.
@@ -109,7 +178,27 @@ class ExpressMvc {
      * @type {Promise}
      * @private
      */
-    this._hbs = getHandlebars(directory);
+    this._hbs = getHandlebars({
+      directory,
+      partials,
+      layouts,
+      helpersFile,
+      partialsDirectories,
+      layoutsDirectories
+    });
+
+    /**
+     * Extra configuration.
+     * @type {{}}
+     * @private
+     */
+    this._extraConfig = {
+      partials,
+      layouts,
+      helpersFile,
+      partialsDirectories,
+      layoutsDirectories
+    };
 
     /**
      * The express instance.
@@ -304,7 +393,7 @@ class ExpressMvc {
 
             const Ctrl = require(file);
             const ctrl = new Ctrl(viewFile, Model, modelName,
-              this._hbs, this._hbsDir, this._errors);
+              this._hbs, this._hbsDir, this._errors, this._extraConfig);
             const ctrlKey = path.basename(file).replace(JS_EXT_REG, '');
 
             cache.getLibrary('controllers').add(ctrlKey, ctrl);
@@ -807,7 +896,7 @@ class ExpressMvc {
    * @param {*} args The arguments to send.
    * @returns {express}
    */
-  get (...args) {
+  get(...args) {
     return this.expressBasics.get.apply(this.expressBasics, args);
   }
 
@@ -874,23 +963,14 @@ class ExpressMvc {
   }
 
   /**
-   * @param {string=} directory The directory of the mvc sources.
-   * @param {Function|Function[]=} middleware Any middleware that's required.
-   * @param {RegExp|Function=} domainReg The regular expression for the domain or the function that will check if the route will be resolved.
-   * @param {string[]|string=} statics The static routes to assign before anything. Note: These routes are directories matching the context of the folders within the application.
-   * @param {boolean=} bind404 If we should bind a 404 route after all the controllers are bound to avoid continuing to any other applications.
-   * @param {string|undefined=} customErrorDir The custom error directory where the application can find [error-status].html files.
-   * @param {Function|Function[]=} globalMiddleware The global middleware to use on this and all other bound MVC applications.
-   * @param {express=} expressDep The express instance to be used.
+   * @param {*} args The arguments to pass to the constructor configuration.
+   * @returns {Promise<ExpressMvc>}
    */
-  bindExpressMvc(directory, middleware, domainReg, statics, bind404,
-                 customErrorDir, globalMiddleware, expressDep
-  ) {
-    return this.promise
-      .then(() => new ExpressMvc(directory, middleware, domainReg, statics,
-        bind404, customErrorDir, globalMiddleware, expressDep)
-        .promise
-        .then(app => this.express.use(app.express)));
+  async bindExpressMvc(...args) {
+    await this.promise;
+    const app = new ExpressMvc(...args);
+    await app.promise;
+    return this.express.use(app.express);
   }
 
   /**

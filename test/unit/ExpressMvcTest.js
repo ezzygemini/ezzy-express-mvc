@@ -8,7 +8,13 @@ describe('Express MVC', () => {
 
   it('should be able to traverse and find controllers', done => {
 
-    expressMvc = new ExpressMvc(__dirname + '/../../root');
+    expressMvc = new ExpressMvc({
+      directory: __dirname + '/../../root',
+      partialsDirectories: [
+        __dirname + '/../../root/someRandomDirectory',
+        __dirname + '/../../root2/anotherRandomDirectory'
+      ]
+    });
 
     expressMvc.controllers
       .then(controllers => expect(controllers.length).toBe(5))

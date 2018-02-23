@@ -6,7 +6,13 @@ describe('Controller', () => {
 
   beforeAll(() => logger.silence());
 
-  beforeEach(() => expressMvc = new ExpressMvc(__dirname + '/../../root'));
+  beforeEach(() => expressMvc = new ExpressMvc({
+    directory: __dirname + '/../../root',
+    partialsDirectories: [
+      __dirname + '/../../root/someRandomDirectory',
+      __dirname + '/../../root2/anotherRandomDirectory'
+    ]
+  }));
 
   it('should render a handlebars template properly', done => {
     expressMvc.getController('MyController')

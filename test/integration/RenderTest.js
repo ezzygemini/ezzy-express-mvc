@@ -52,6 +52,24 @@ describe('Render', () => {
       });
     });
 
+    it('include other partials from specified directories', done => {
+      app.listener.then(listener => {
+        request(listener)
+          .get('/')
+          .expect(/Some Random Partial/)
+          .end(e => e ? fail(e) : done());
+      });
+    });
+
+    it('include other partials from outside directories', done => {
+      app.listener.then(listener => {
+        request(listener)
+          .get('/')
+          .expect(/Another Random Partial/)
+          .end(e => e ? fail(e) : done());
+      });
+    });
+
   });
 
   afterAll(() => {
