@@ -55,14 +55,15 @@ class ExpressMvc {
   constructor(...args) {
 
     /**
-     * @param {string=} directory The directory of the mvc sources.
-     * @param {Function|Function[]=} middleware Any middleware that's required.
-     * @param {RegExp|Function=} domainReg The regular expression for the domain or the function that will check if the route will be resolved.
-     * @param {string[]|string=} statics The static routes to assign before anything. Note: These routes are directories matching the context of the folders within the application.
-     * @param {boolean=} bind404 If we should bind a 404 route after all the controllers are bound to avoid continuing to any other applications.
-     * @param {string|undefined=} customErrorDir The custom error directory where the application can find [error-status].html files.
-     * @param {Function|Function[]=} globalMiddleware The global middleware to use on this and all other bound MVC applications.
-     * @param {express=} expressDependency The express instance to be used if a certain version is required.
+     * @param {string} directory The directory of the mvc sources.
+     * @param {Function|Function[]} middleware Any middleware that's required.
+     * @param {function({HttpBasics}):boolean} requestFilter The filter function that decides if this instance of the MVC application will handle the request.
+     * @param {RegExp} domainReg The regular expression for the domain or the function that will check if the route will be resolved.
+     * @param {string[]|string} statics The static routes to assign before anything. Note: These routes are directories matching the context of the folders within the application.
+     * @param {boolean} bind404 If we should bind a 404 route after all the controllers are bound to avoid continuing to any other applications.
+     * @param {string} customErrorDir The custom error directory where the application can find [error-status].html files.
+     * @param {Function|Function[]} globalMiddleware The global middleware to use on this and all other bound MVC applications.
+     * @param {express} expressDependency The express instance to be used if a certain version is required.
      * @param {string} partials The name of the partials directories.
      * @param {string} layouts The name of the layouts directories.
      * @param {string} helpersFile The file containing handlebars helpers.
@@ -75,6 +76,7 @@ class ExpressMvc {
       domainReg: /.*/,
       statics: undefined,
       bind404: false,
+      requestFilter: undefined,
       customErrorDir: 'errors',
       globalMiddleware: undefined,
       expressDependency: undefined,
@@ -90,10 +92,13 @@ class ExpressMvc {
       ['directory:string'],
       ['directory:string', 'bind404:boolean'],
       ['directory:string', 'middleware:array'],
-      ['directory:string', 'domainReg:regexp|function'],
+      ['directory:string', 'domainReg:regexp'],
+      ['directory:string', 'requestFilter:function'],
       ['directory:string', 'middleware:array', 'bind404:boolean'],
-      ['directory:string', 'domainReg:regexp|function', 'statics:string'],
-      ['directory:string', 'domainReg:regexp|function', 'bind404:boolean'],
+      ['directory:string', 'domainReg:regexp', 'statics:string'],
+      ['directory:string', 'requestFilter:function', 'statics:string'],
+      ['directory:string', 'domainReg:regexp', 'bind404:boolean'],
+      ['directory:string', 'requestFilter:function', 'bind404:boolean'],
       [
         'directory:string',
         'middleware:array|function',
@@ -103,7 +108,7 @@ class ExpressMvc {
       [
         'directory: string',
         'middleware: array | object | undefined',
-        'domainReg: regexp | function | undefined',
+        'domainReg: regexp | undefined',
         'statics: array | string | undefined',
         'bind404: boolean?',
         'customErrorDir: errors?',
@@ -122,18 +127,14 @@ class ExpressMvc {
       partials,
       layouts,
       helpersFile,
+      requestFilter,
+      bind404,
       partialsDirectories,
       layoutsDirectories
     } = config;
-    let {bind404} = config;
 
-    if(!directory){
+    if (!directory) {
       throw new Error('No directory was defined in the configuration.');
-    }
-
-    // Bind the 404 route if we are auto checking for a different domain.
-    if (bind404 === undefined) {
-      bind404 = typeof domainReg !== 'function';
     }
 
     logger.debug({
@@ -155,7 +156,14 @@ class ExpressMvc {
      * @type {RegExp}
      * @private
      */
-    this._domainReg = domainReg;
+    this._domainReg = requestFilter ? /.*/ : domainReg;
+
+    /**
+     * The request filter.
+     * @type {function({HttpBasics}):boolean}
+     * @private
+     */
+    this._requestFilter = requestFilter || (() => true);
 
     /**
      * The directory where we'll be looking for controllers and apis.
@@ -415,10 +423,9 @@ class ExpressMvc {
      * @private
      */
     this._notFound = !bind404 ? allFiles : allFiles.then(() => {
-      this.expressBasics
-        .use(basics => this
-          ._domainHandle(basics, basics => Request.inst.notFoundError(basics)));
-      logger.debug('404', `Not found route on ${this._domainReg}`);
+      this.expressBasics.use(basics => this
+        ._domainHandle(basics, basics => Request.inst.notFoundError(basics)));
+      logger.debug('404', `Route not found in ${this.constructor.name}.`);
     });
 
   }
@@ -777,14 +784,12 @@ class ExpressMvc {
    * @private
    */
   _domainHandle(basics, handler) {
-    let triggerRoute = true;
     const {hostname} = basics.request;
-    if (typeof this._domainReg === 'function') {
-      triggerRoute = this._domainReg(basics);
+    if (this._domainReg.test(hostname) && this._requestFilter(basics)) {
+      return handler(basics);
     } else {
-      triggerRoute = this._domainReg.test(hostname);
+      return basics.next();
     }
-    return !triggerRoute ? basics.next() : handler(basics);
   }
 
   /**

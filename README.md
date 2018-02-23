@@ -42,34 +42,36 @@ new ExpressMvc(__dirname + '/src')
 ## Constructor Configuration
 
 ```javascript
-/**
- * @param {string=} directory The directory of the mvc sources.
- * @param {Function|Function[]=} middleware Any middleware that's required.
- * @param {RegExp|Function=} domainReg The regular expression for the domain or the function that will check if the route will be resolved.
- * @param {string[]|string=} statics The static routes to assign before anything. Note: These routes are directories matching the context of the folders within the application.
- * @param {boolean=} bind404 If we should bind a 404 route after all the controllers are bound to avoid continuing to any other applications.
- * @param {string|undefined=} customErrorDir The custom error directory where the application can find [error-status].html files.
- * @param {Function|Function[]=} globalMiddleware The global middleware to use on this and all other bound MVC applications.
- * @param {express=} expressDependency The express instance to be used if a certain version is required.
- * @param {string} partials The name of the partials directories.
- * @param {string} layouts The name of the layouts directories.
- * @param {string} helpersFile The file containing handlebars helpers.
- * @param {string[]} partialsDirectories Any additional directories to look for partials.
- * @param {string[]} layoutsDirectories Any additional directories to look for layouts.
- */
-const config = {
-  directory,
-  middleware,
-  domainReg,
-  statics,
-  bind404,
-  customErrorDir,
-  globalMiddleware,
-  expressDependency,
-  partials,
-  layouts,
-  helpersFile,
-  partialsDirectories,
-  layoutsDirectories
-};
+    /**
+     * @param {string} directory The directory of the mvc sources.
+     * @param {Function|Function[]} middleware Any middleware that's required.
+     * @param {function({HttpBasics}):boolean} requestFilter The filter function that decides if this instance of the MVC application will handle the request.
+     * @param {RegExp} domainReg The regular expression for the domain or the function that will check if the route will be resolved.
+     * @param {string[]|string} statics The static routes to assign before anything. Note: These routes are directories matching the context of the folders within the application.
+     * @param {boolean} bind404 If we should bind a 404 route after all the controllers are bound to avoid continuing to any other applications.
+     * @param {string} customErrorDir The custom error directory where the application can find [error-status].html files.
+     * @param {Function|Function[]} globalMiddleware The global middleware to use on this and all other bound MVC applications.
+     * @param {express} expressDependency The express instance to be used if a certain version is required.
+     * @param {string} partials The name of the partials directories.
+     * @param {string} layouts The name of the layouts directories.
+     * @param {string} helpersFile The file containing handlebars helpers.
+     * @param {string[]} partialsDirectories Any additional directories to look for partials.
+     * @param {string[]} layoutsDirectories Any additional directories to look for layouts.
+     */
+    const defaultConfig = {
+      directory: undefined,
+      middleware: undefined,
+      domainReg: /.*/,
+      statics: undefined,
+      bind404: false,
+      requestFilter: undefined,
+      customErrorDir: 'errors',
+      globalMiddleware: undefined,
+      expressDependency: undefined,
+      partials: undefined,
+      layouts: undefined,
+      helpersFile: undefined,
+      partialsDirectories: [],
+      layoutsDirectories: []
+    };
 ```
