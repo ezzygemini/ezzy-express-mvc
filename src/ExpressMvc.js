@@ -652,8 +652,11 @@ class ExpressMvc {
   _bindStaticAssets(dir) {
     const context = this._getAbsPath(dir) + '/';
     const staticApp = this._static(dir);
-    this.expressBasics.use(['/:version' + context, context], basics =>
-      this._domainHandle(basics, staticApp));
+    const routes = ['/:version' + context, context];
+    this.expressBasics.use(routes,
+        basics => this._domainHandle(basics, staticApp));
+    this.expressBasics.use(routes,
+        basics => Request.inst.notFoundError(basics));
     logger.debug('Assets', 'Static assets bound to route: ' +
       context + ' & /:version' + context + ' on directory ' + dir +
       ' on domain ' + this._domainReg);
