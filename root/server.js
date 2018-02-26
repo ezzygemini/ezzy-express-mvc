@@ -10,6 +10,9 @@ const express = new ExpressMvc({
   partialsDirectories: [
     __dirname + '/someRandomDirectory',
     __dirname + '/../root2/anotherRandomDirectory'
+  ],
+  otherStatics: [
+    '/root3/someStaticDirectory/'
   ]
 });
 express.listen(3000);

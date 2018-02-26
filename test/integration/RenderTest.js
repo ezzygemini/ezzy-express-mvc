@@ -7,7 +7,13 @@ describe('Render', () => {
 
   beforeAll(() => {
     logger.silence();
-    app = new ExpressMvc(__dirname + '/../../root');
+    app = new ExpressMvc({
+      directory: __dirname + '/../../root',
+      statics: '/assets/',
+      otherStatics: [
+        '/root3/someStaticDirectory/'
+      ]
+    });
     app.listen(9001);
   });
 
@@ -19,6 +25,26 @@ describe('Render', () => {
         .expect(/src=".*\/anotherDependency\.js"/)
         .expect(/href=".*\/someDependency\.css"/)
         .expect(/href=".*\/anotherDependency\.css"/)
+        .end(e => e ? fail(e) : done());
+    });
+  });
+
+  it('should have bound static assets before the application', done => {
+    app.listener.then(listener => {
+      request(listener)
+        .get('/assets/someDir/test.json')
+        .expect(200, {
+          hello: "world"
+        })
+        .end(e => e ? fail(e) : done());
+    });
+  });
+
+  it('should have bound other static directories before the app', done => {
+    app.listener.then(listener => {
+      request(listener)
+        .get('/root3/someStaticDirectory/helloWorld.html')
+        .expect(/Hello world from a static directory/)
         .end(e => e ? fail(e) : done());
     });
   });

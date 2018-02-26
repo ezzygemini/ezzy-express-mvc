@@ -22,6 +22,7 @@ const CSS_REG = /\.css(\?.*)?$/;
 const fs = require('ezzy-fs');
 const getHandlebars = require('./handlebars');
 const configSetup = require('ezzy-config-setup');
+const rootDir = require('./rootDir');
 
 /**
  * The context parameters available.
@@ -69,6 +70,7 @@ class ExpressMvc {
      * @param {string} helpersFile The file containing handlebars helpers.
      * @param {string[]} partialsDirectories Any additional directories to look for partials.
      * @param {string[]} layoutsDirectories Any additional directories to look for layouts.
+     * @param {string[]} otherStatics Any additional directories to use as static files.
      */
     const defaultConfig = {
       directory: undefined,
@@ -84,7 +86,8 @@ class ExpressMvc {
       layouts: undefined,
       helpersFile: undefined,
       partialsDirectories: [],
-      layoutsDirectories: []
+      layoutsDirectories: [],
+      otherStatics: []
     };
 
     const config = configSetup(defaultConfig, args,
@@ -130,7 +133,8 @@ class ExpressMvc {
       requestFilter,
       bind404,
       partialsDirectories,
-      layoutsDirectories
+      layoutsDirectories,
+      otherStatics
     } = config;
 
     if (!directory) {
@@ -310,15 +314,31 @@ class ExpressMvc {
         .forEach(handler => this.expressBasics.use(handler));
     }
 
+    let allStatics = [path.normalize(rootDir + '/node_modules')];
+    // Bind other static paths
+    if (otherStatics) {
+      allStatics = allStatics
+        .concat((Array.isArray(otherStatics) ? otherStatics : [otherStatics])
+          .map(route => path.normalize(rootDir + route)))
+    }
     // Bind static paths
     if (statics) {
-      (Array.isArray(statics) ? statics : [statics]).forEach(context => {
-        const fullPath = path.normalize(this._directory + '/' + context);
-        logger.debug('Static Route', `Binding ${fullPath} to ${context}`);
-        this._express.use(context, expr.static(fullPath));
-        this._express.use(context, (req, res) => res.status(404).end());
-      });
+      allStatics = allStatics
+        .concat((Array.isArray(statics) ? statics : [statics])
+          .map(route => path.normalize(directory + '/' + route)))
     }
+    allStatics.forEach(dir => {
+      let context =
+        '/' + path.relative(directory, dir).replace(/\.\.\//g, '');
+      context = ['/:version' + context + '/', context + '/'];
+      logger.debug('Static Route', `Binding ${context.join(' & ')} to ${dir}`);
+      // Bind the local assets.
+      this.expressBasics.use(context,
+        basics => this._domainHandle(basics, this._static(dir)));
+      // Bind a 404 route for missing assets.
+      this.expressBasics.use(context, basics => this
+        ._domainHandle(basics, basics => Request.inst.notFoundError(basics)));
+    });
 
     // Bind any middleware that's required.
     this._middleware = !middleware ? Promise.resolve(true) : allFiles
@@ -354,22 +374,6 @@ class ExpressMvc {
           }
         })
         .filter(ctrl => ctrl instanceof Api));
-
-    /**
-     * Node modules route.
-     * @type {Promise.<void>}
-     * @private
-     */
-    this._nodeModules = allFiles.then(() => {
-      const context = this._getAbsPath(this._directory + '/node_modules') + '/';
-      const staticApp = this._static(environment.nodeModules);
-      this.expressBasics.use(['/:version' + context, context], basics =>
-        this._domainHandle(basics, staticApp));
-      logger.debug('Assets',
-        'Node modules bound to route: ' + context +
-        ' & /:version' + context +
-        ' on directory ' + environment.nodeModules);
-    });
 
     /**
      * The controllers found in the directory.
@@ -653,10 +657,15 @@ class ExpressMvc {
     const context = this._getAbsPath(dir) + '/';
     const staticApp = this._static(dir);
     const routes = ['/:version' + context, context];
+
+    // Bind the local assets.
     this.expressBasics.use(routes,
-        basics => this._domainHandle(basics, staticApp));
+      basics => this._domainHandle(basics, staticApp));
+
+    // Bind a 404 route for missing assets.
     this.expressBasics.use(routes,
-        basics => Request.inst.notFoundError(basics));
+      basics => Request.inst.notFoundError(basics));
+
     logger.debug('Assets', 'Static assets bound to route: ' +
       context + ' & /:version' + context + ' on directory ' + dir +
       ' on domain ' + this._domainReg);
@@ -964,7 +973,6 @@ class ExpressMvc {
       this._middleware,
       this._controllers,
       this._apis,
-      this._nodeModules,
       this._notFound,
       this._errors
     ]).then(() => this);

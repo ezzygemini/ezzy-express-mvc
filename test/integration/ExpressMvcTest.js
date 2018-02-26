@@ -55,17 +55,6 @@ describe('ExpressMvc', () => {
     });
   });
 
-  it('should have bound static assets before the application', done => {
-    app.listener.then(listener => {
-      request(listener)
-        .get('/assets/someDir/test.json')
-        .expect(200, {
-          hello: "world"
-        })
-        .end(e => e ? fail(e) : done());
-    });
-  });
-
   it('should bind a 404 response when assets are not found', done => {
     app.listener.then(listener => {
       request(listener)
