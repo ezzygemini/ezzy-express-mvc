@@ -329,7 +329,7 @@ class ExpressMvc {
     }
     allStatics.forEach(dir => {
       let context =
-        '/' + path.relative(directory, dir).replace(/\.\.\//g, '');
+        '/' + path.relative(directory, dir).replace(/\.\.\//g, '__/');
       context = ['/:version' + context + '/', context + '/'];
       logger.debug('Static Route', `Binding ${context.join(' & ')} to ${dir}`);
       // Bind the local assets.

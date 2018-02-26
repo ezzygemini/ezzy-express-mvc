@@ -43,7 +43,7 @@ describe('Render', () => {
   it('should have bound other static directories before the app', done => {
     app.listener.then(listener => {
       request(listener)
-        .get('/root3/someStaticDirectory/helloWorld.html')
+        .get('/__/root3/someStaticDirectory/helloWorld.html')
         .expect(/Hello world from a static directory/)
         .end(e => e ? fail(e) : done());
     });
