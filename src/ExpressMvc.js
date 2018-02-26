@@ -329,8 +329,12 @@ class ExpressMvc {
     }
     allStatics.forEach(dir => {
       let context =
-        '/' + path.relative(directory, dir).replace(/\.\.\//g, '__/');
-      context = ['/:version' + context + '/', context + '/'];
+        ['/' + path.relative(directory, dir).replace(/\.\.\//g, '__/')];
+      context.unshift('/:version' + context);
+      if (/^(\/__)+\/node_modules\/?$/.test(context[1])) {
+        const nodeStatics = context[1].replace(/(__\/)/g, '');
+        context.unshift('/:version' + nodeStatics, nodeStatics);
+      }
       logger.debug('Static Route', `Binding ${context.join(' & ')} to ${dir}`);
       // Bind the local assets.
       this.expressBasics.use(context,
