@@ -1,5 +1,5 @@
-const PARTIAL_FIND_REG = /{{~?>\s+[\w\d\/_\-.]+}}/g;
-const PARTIAL_NAME_REG = /^{{~?>\s+(.*)}}$/;
+const PARTIAL_FIND_REG = /{{~?>\s+([^\s\}"']+).*}}/g;
+const PARTIAL_NAME_REG = /{{~?>\s+([^\s\}"']+).*}}/;
 
 /**
  * Extracts the names of the partials from the handlebars source code.
