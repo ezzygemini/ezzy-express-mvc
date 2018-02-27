@@ -2,21 +2,46 @@
 [![Build Status](https://travis-ci.org/ezzygemini/ezzy-express-mvc.svg?branch=master)](https://travis-ci.org/ezzygemini/ezzy-express-mvc)
 [![Coverage Status](https://coveralls.io/repos/github/ezzy-ezzygemini/express-mvc/badge.svg?branch=master)](https://coveralls.io/github/ezzygemini/ezzy-express-mvc?branch=master)
 
-A complete mvc infrastructure to render pages from a specific directory based.
+A complete mvc infrastructure to render pages from a specific directory.
 
 You can use this class to recurse through a directory that contains 
 Controllers, Models and Views to prepare an application with multiple
-routes mapped accordingly.
+routes mapped accordingly. This utility maps all controllers to their
+respective views and provides the necessary models to generate the response.
+
+When the application initializes, an instance to the controller is
+registered in the express application. Then, at the time of the request,
+an instance of the respective model gets injected into the view of the
+application. While the model is injected, the code checks for any JS and CSS
+assets that exist in the respective assets directory. During production,
+this directory is only checked once, but in development, the directory
+is checked on every request. Additionally, sass and compass have been
+implemented to allow dynamic CSS generation to the corresponding `/css` folder.
 
 For example, you can structure your directory in this manner:
 
 - /src/ _(root)_
-- /src/HomeController.js _(home app)_
+
+#### http://localhost:9000/
+- /src/HomeController.js ___(home app)___
 - /src/HomeModel.js
 - /src/homeView.hbs
-- /src/login/LoginController.js _(login app)_
+- /src/homeAssets/ _(home app static assets)_
+- /src/homeAssets/js/
+- /src/homeAssets/css/
+- /src/homeAssets/images/
+- /src/homeAssets/scss/ _(home app sass/compass sources)_
+
+#### http://localhost:9000/login/
+- /src/login/LoginController.js ___(login app)___
 - /src/login/LoginModel.js
 - /src/login/loginView.hbs
+- /src/login/loginAssets/ _(login app static assets)_
+- /src/login/loginAssets/js/
+- /src/login/loginAssets/css/
+- /src/login/loginAssets/images/
+
+#### Other Utilities
 - /src/partials/customPartial.hbs _(other handlebars tools)_
 - /src/layouts/baseLayout.hbs
 - /src/helpers/customHelper.hbs
@@ -57,6 +82,7 @@ new ExpressMvc(__dirname + '/src')
      * @param {string} helpersFile The file containing handlebars helpers.
      * @param {string[]} partialsDirectories Any additional directories to look for partials.
      * @param {string[]} layoutsDirectories Any additional directories to look for layouts.
+     * @param {string[]} otherStatics Any additional directories to use as static files.
      */
     const defaultConfig = {
       directory: undefined,
@@ -72,6 +98,7 @@ new ExpressMvc(__dirname + '/src')
       layouts: undefined,
       helpersFile: undefined,
       partialsDirectories: [],
-      layoutsDirectories: []
+      layoutsDirectories: [],
+      otherStatics: []
     };
 ```
