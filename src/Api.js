@@ -59,7 +59,7 @@ class Api extends Request {
     try {
       basics.response.json(data);
     } catch (e) {
-      logger.error('Response', e);
+      logger.error(basics, 'Response', e);
     }
   }
 

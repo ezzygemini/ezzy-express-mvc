@@ -136,8 +136,7 @@ class Controller extends Request {
         assets = await this.assetParser(basics, assets);
         Object.assign(data, model, {config, assets});
       } catch (e) {
-        logger.error(e);
-        console.error(e);
+        logger.error(basics, e);
         data = basics;
       }
     } else {
@@ -256,7 +255,7 @@ class Controller extends Request {
       }
       return renderedValue;
     } catch (e) {
-      logger.error(e);
+      logger.error(basics, e);
       return e;
     }
   }
@@ -273,7 +272,7 @@ class Controller extends Request {
         basics.response.send(parsed);
       },
       e => {
-        logger.error(e);
+        logger.error(basics, e);
         this.internalServerError(basics);
       }
     );

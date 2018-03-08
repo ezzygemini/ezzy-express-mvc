@@ -69,14 +69,14 @@ class Request {
   doRequest(basics) {
     const {method, hostname, originalUrl} = basics.request;
 
-    logger.deepDebug('Interception',
+    logger.deepDebug(basics, 'Interception',
       `Request intercepted by ${this.constructor.name}`);
 
     if (!this.isRequestOk(basics)) {
       return this.requestNotOk(basics);
     } else {
-      logger.debug('Request', `${method} ${hostname} ${originalUrl}`);
-      logger.deepDebug('Headers', basics.request.headers);
+      logger.debug(basics, 'Request', `${method} ${hostname} ${originalUrl}`);
+      logger.deepDebug(basics, 'Headers', basics.request.headers);
     }
 
     const auth = this.auth(basics);
@@ -456,12 +456,12 @@ class Request {
       return;
     }
     if (status !== 200) {
-      logger.warn(`StatusCode ${status}`, this._getRequestDetails(basics));
+      logger.warn(basics, `StatusCode ${status}`, this._getRequestDetails(basics));
     }
     try {
       basics.response.status(status);
     } catch (e) {
-      logger.error('Status Code', e);
+      logger.error(basics, 'Status Code', e);
     }
   }
 
@@ -977,8 +977,8 @@ class Request {
         }
       }
     } catch (e) {
-      logger.error('Headers', this._getRequestDetails(basics));
-      logger.error('Headers', e);
+      logger.error(basics, 'Headers', this._getRequestDetails(basics));
+      logger.error(basics, 'Headers', e);
     }
   }
 

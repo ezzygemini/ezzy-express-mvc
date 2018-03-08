@@ -300,7 +300,7 @@ class ExpressMvc {
           .sort((a, b) => b.rank - a.rank)
           .map(item => item.file);
         if (files) {
-          logger.debug({title: 'All Files', message: files});
+          logger.debug('All Files', files);
         }
         resolve({files, dirs});
       });
@@ -370,7 +370,6 @@ class ExpressMvc {
             cache.getLibrary('apis').add(apiKey, subApi);
             this._bindApi(subApi, file);
             return subApi;
-
           } catch (e) {
             logger.error(e);
             logger.error(file.toString() + ' could not be bound as an Api');
@@ -390,7 +389,6 @@ class ExpressMvc {
         .map(file => {
           file = file.toString();
           try {
-
             const matches = file.match(CONTROLLER_REG);
             const modelName = matches[3].toLowerCase() + matches[4] + 'Model';
             let viewFile =
@@ -453,7 +451,7 @@ class ExpressMvc {
         .getOrElse(file, () => {
           return this._getAssets(file)
             .then(assets => {
-              logger.debug('Assets', assets);
+              logger.debug(basics, 'Assets', assets);
               return basics, assets;
             });
         }, IO_CACHE_TIMEOUT)
@@ -702,9 +700,9 @@ class ExpressMvc {
           }
           exec(COMPASS_CMD, {cwd: dir}, (e, output) => {
             if (e) {
-              logger.error({title: 'Compass', message: e});
+              logger.error(basics, 'Compass', e);
             } else if (output) {
-              logger.debug({title: 'Compass', message: output});
+              logger.debug(basics, 'Compass', output);
             }
             basics.next();
           });
