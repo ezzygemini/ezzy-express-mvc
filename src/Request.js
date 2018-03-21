@@ -969,8 +969,9 @@ class Request {
         for (let prop in headers) {
           if (headers.hasOwnProperty(prop)) {
             if (prop.toLowerCase() !== 'access-control-allow-origin') {
-              basics.response
-                .set(`x-${prop.replace(/[^a-zA-Z0-9]/gi, '')}`, headers[prop]);
+              basics.response.set(
+                `x-${prop.replace(/[^a-zA-Z0-9\-]/gi, '')}`,
+                headers[prop].replace(/\n/g, ''));
             } else {
               basics.response.set(prop, headers[prop]);
             }
