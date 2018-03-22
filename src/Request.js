@@ -966,6 +966,7 @@ class Request {
       if (this.sendHeaders && !basics.response.headersSent) {
         basics.response.set('x-version-requested',
           basics.request.params.version || 'latest');
+        logger.debug('Request Headers Decoration', headers);
         for (let prop in headers) {
           if (headers.hasOwnProperty(prop)) {
             if (prop.toLowerCase() !== 'access-control-allow-origin') {
