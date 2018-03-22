@@ -300,7 +300,7 @@ class ExpressMvc {
           .sort((a, b) => b.rank - a.rank)
           .map(item => item.file);
         if (files) {
-          logger.debug('All Files', files);
+          logger.deepDebug('All Files', files);
         }
         resolve({files, dirs});
       });
