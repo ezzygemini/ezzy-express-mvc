@@ -16,10 +16,12 @@ const exec = require('child_process').exec;
 const SKIP_COMPASS = environment.argument('SKIP_COMPASS', false);
 const COMPASS = environment.argument('COMPASS', 'compass');
 const rootDir = require('./rootDir');
-const COMPASS_CMD = COMPASS +
+const COMPASS_CMD =
+  COMPASS +
   ' compile --relative-assets --output-style=expanded ' +
   '--css-dir=css --sass-dir=scss --images-dir=images --trace ' +
-  '--import-path=' + rootDir;
+  '--import-path=' +
+  rootDir;
 const CSS_REG = /\.css(\?.*)?$/;
 const fs = require('ezzy-fs');
 const getHandlebars = require('./handlebars');
@@ -29,7 +31,8 @@ const configSetup = require('ezzy-config-setup');
  * The context parameters available.
  * @type {string}
  */
-const CONTEXT_PARAMS = '/:a?/:b?/:c?/:d?/:e?/:f?/:g?/:h?/:i?/:j?/:k?/:l?/:m?' +
+const CONTEXT_PARAMS =
+  '/:a?/:b?/:c?/:d?/:e?/:f?/:g?/:h?/:i?/:j?/:k?/:l?/:m?' +
   '/:n?/:o?/:p?/:q?/:r?/:s?/:t?/:u?/:v?/:w?/:x?/:y?/:z?';
 
 /**
@@ -44,18 +47,50 @@ const IO_CACHE_TIMEOUT = environment.development ? 100 : 0;
  * @type {Number[]}
  */
 const ERROR_CODES = [
-  400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414,
-  415, 416, 417, 422, 423, 424, 425, 426, 428, 429, 431, 500, 501, 502, 503,
-  504, 505, 406, 507, 509, 510, 511
+  400,
+  401,
+  402,
+  403,
+  404,
+  405,
+  406,
+  407,
+  408,
+  409,
+  410,
+  411,
+  412,
+  413,
+  414,
+  415,
+  416,
+  417,
+  422,
+  423,
+  424,
+  425,
+  426,
+  428,
+  429,
+  431,
+  500,
+  501,
+  502,
+  503,
+  504,
+  505,
+  406,
+  507,
+  509,
+  510,
+  511
 ];
 
 class ExpressMvc {
-
   /**
    * @param {*} args The configuration arguments.
    */
   constructor(...args) {
-
     /**
      * @param {string} directory The directory of the mvc sources.
      * @param {Function|Function[]} middleware Any middleware that's required.
@@ -91,7 +126,9 @@ class ExpressMvc {
       otherStatics: []
     };
 
-    const config = configSetup(defaultConfig, args,
+    const config = configSetup(
+      defaultConfig,
+      args,
       ['this:object'],
       ['directory:string'],
       ['directory:string', 'bind404:boolean'],
@@ -118,7 +155,8 @@ class ExpressMvc {
         'customErrorDir: errors?',
         'globalMiddleware: array | object | undefined',
         'expressDependency: *'
-      ]);
+      ]
+    );
 
     const {
       directory,
@@ -245,8 +283,9 @@ class ExpressMvc {
      * @private
      */
     this._errors = new Promise((resolve, reject) => {
-      const generalErrorPromise = fs
-        .readFilePromise(path.normalize(__dirname + '/../errors/general.hbs'));
+      const generalErrorPromise = fs.readFilePromise(
+        path.normalize(__dirname + '/../errors/general.hbs')
+      );
 
       const errorDirs = [
         path.normalize(directory + '/' + customErrorDir + '/'),
@@ -254,33 +293,43 @@ class ExpressMvc {
       ];
 
       // Loop through the codes and find the custom error files.
-      Promise.all(ERROR_CODES.map(code => {
-        return fs
-        // Check if the custom file exists.
-          .existsPromise(`${errorDirs[0]}${code}.hbs`)
-          .then(exists => exists ?
-            fs.readFilePromise(`${errorDirs[0]}${code}.hbs`) :
-            // Otherwise, check if default file exists (cached for other MVCs).
-            fs.existsPromise(`${errorDirs[1]}${code}.hbs`)
-              .then(exists => exists ?
-                fs.readFilePromise(`${errorDirs[1]}${code}.hbs`) :
-                // Finally, deliver a general error.
-                generalErrorPromise))
-      }))
+      Promise.all(
+        ERROR_CODES.map(code => {
+          return (
+            fs
+            // Check if the custom file exists.
+              .existsPromise(`${errorDirs[0]}${code}.hbs`)
+              .then(
+                exists =>
+                  exists
+                    ? fs.readFilePromise(`${errorDirs[0]}${code}.hbs`)
+                    : // Otherwise, check if default file exists (cached for other MVCs).
+                    fs.existsPromise(`${errorDirs[1]}${code}.hbs`).then(
+                      exists =>
+                        exists
+                          ? fs.readFilePromise(`${errorDirs[1]}${code}.hbs`)
+                          : // Finally, deliver a general error.
+                          generalErrorPromise
+                    )
+              )
+          );
+        })
+      )
       // Reduce the hbs file contents into compiled templates.
         .then(
           errorContents => {
             const errors = {};
             errorContents.forEach((content, i) => {
-              errors[ERROR_CODES[i]] =
-                handlebarsCore.compile(content.toString());
+              errors[ERROR_CODES[i]] = handlebarsCore.compile(
+                content.toString()
+              );
             });
-            return generalErrorPromise
-              .then(generalErrorContent => {
-                errors.general =
-                  handlebarsCore.compile(generalErrorContent.toString());
-                resolve(errors);
-              });
+            return generalErrorPromise.then(generalErrorContent => {
+              errors.general = handlebarsCore.compile(
+                generalErrorContent.toString()
+              );
+              resolve(errors);
+            });
           },
           e => reject(e)
         );
@@ -297,40 +346,46 @@ class ExpressMvc {
           logger.error(e);
           return reject(e);
         }
-        files = files.map(file => ({file, rank: file.split(/[\\/]/).length}))
+        files = files
+          .map(file => ({ file, rank: file.split(/[\\/]/).length }))
           .sort((a, b) => b.rank - a.rank)
           .map(item => item.file);
         if (files) {
           logger.deepDebug('All Files', files);
         }
-        resolve({files, dirs});
+        resolve({ files, dirs });
       });
-
     });
 
     // Bind all the global middleware regardless of domain or context.
     if (globalMiddleware) {
-      (Array.isArray(globalMiddleware) ?
-        globalMiddleware : [globalMiddleware])
-        .forEach(handler => this.expressBasics.use(handler));
+      (Array.isArray(globalMiddleware)
+          ? globalMiddleware
+          : [globalMiddleware]
+      ).forEach(handler => this.expressBasics.use(handler));
     }
 
     let allStatics = [path.normalize(rootDir + '/node_modules')];
     // Bind other static paths
     if (otherStatics) {
-      allStatics = allStatics
-        .concat((Array.isArray(otherStatics) ? otherStatics : [otherStatics])
-          .map(route => path.normalize(rootDir + route)))
+      allStatics = allStatics.concat(
+        (Array.isArray(otherStatics) ? otherStatics : [otherStatics]).map(
+          route => path.normalize(rootDir + route)
+        )
+      );
     }
     // Bind static paths
     if (statics) {
-      allStatics = allStatics
-        .concat((Array.isArray(statics) ? statics : [statics])
-          .map(route => path.normalize(directory + '/' + route)))
+      allStatics = allStatics.concat(
+        (Array.isArray(statics) ? statics : [statics]).map(route =>
+          path.normalize(directory + '/' + route)
+        )
+      );
     }
     allStatics.forEach(dir => {
-      let context =
-        ['/' + path.relative(directory, dir).replace(/\.\.\//g, '__/')];
+      let context = [
+        '/' + path.relative(directory, dir).replace(/\.\.\//g, '__/')
+      ];
       context.unshift('/:version' + context);
       if (/^(\/__)+\/node_modules\/?$/.test(context[1])) {
         const nodeStatics = context[1].replace(/(__\/)/g, '');
@@ -338,22 +393,27 @@ class ExpressMvc {
       }
       logger.debug('Static Route', `Binding ${context.join(' & ')} to ${dir}`);
       // Bind the local assets.
-      this.expressBasics.use(context,
-        basics => this._domainHandle(basics, this._static(dir)));
+      this.expressBasics.use(context, basics =>
+        this._domainHandle(basics, this._static(dir))
+      );
       // Bind a 404 route for missing assets.
-      this.expressBasics.use(context, basics => this
-        ._domainHandle(basics, basics => Request.inst.notFoundError(basics)));
+      this.expressBasics.use(context, basics =>
+        this._domainHandle(basics, basics => Request.inst.notFoundError(basics))
+      );
     });
 
     // Bind any middleware that's required.
-    this._middleware = !middleware ? Promise.resolve(true) : allFiles
-      .then(() => {
-        (Array.isArray(middleware) ? middleware : [middleware])
-          .forEach(handle => {
+    this._middleware = !middleware
+      ? Promise.resolve(true)
+      : allFiles.then(() => {
+        (Array.isArray(middleware) ? middleware : [middleware]).forEach(
+          handle => {
             logger.debug('Middleware', 'Binding middleware on ' + domainReg);
-            this.expressBasics
-              .use(basics => this._domainHandle(basics, handle));
-          });
+            this.expressBasics.use(basics =>
+              this._domainHandle(basics, handle)
+            );
+          }
+        );
       });
 
     /**
@@ -361,8 +421,9 @@ class ExpressMvc {
      * @type {Promise.<Api[]>}
      * @private
      */
-    this._apis = allFiles
-      .then(({files}) => files.filter(file => /Api\.js$/.test(file))
+    this._apis = allFiles.then(({ files }) =>
+      files
+        .filter(file => /Api\.js$/.test(file))
         .map(file => {
           try {
             const apiKey = path.basename(file).replace(JS_EXT_REG, '');
@@ -377,15 +438,16 @@ class ExpressMvc {
             return null;
           }
         })
-        .filter(ctrl => ctrl instanceof Api));
+        .filter(ctrl => ctrl instanceof Api)
+    );
 
     /**
      * The controllers found in the directory.
      * @type {Promise.<Controller[]>}
      * @private
      */
-    this._controllers = allFiles
-      .then(({files}) => files
+    this._controllers = allFiles.then(({ files }) =>
+      files
         .filter(file => CONTROLLER_REG.test(file))
         .map(file => {
           file = file.toString();
@@ -407,8 +469,15 @@ class ExpressMvc {
             }
 
             const Ctrl = require(file);
-            const ctrl = new Ctrl(viewFile, Model, modelName,
-              this._hbs, this._hbsDir, this._errors, this._extraConfig);
+            const ctrl = new Ctrl(
+              viewFile,
+              Model,
+              modelName,
+              this._hbs,
+              this._hbsDir,
+              this._errors,
+              this._extraConfig
+            );
             const ctrlKey = path.basename(file).replace(JS_EXT_REG, '');
 
             cache.getLibrary('controllers').add(ctrlKey, ctrl);
@@ -416,25 +485,29 @@ class ExpressMvc {
             this._bindController(ctrl, file);
 
             return ctrl;
-
           } catch (e) {
             logger.error(e);
             return null;
           }
         })
-        .filter(ctrl => ctrl instanceof Controller));
+        .filter(ctrl => ctrl instanceof Controller)
+    );
 
     /**
      * Route not found.
      * @type {Promise.<void>}
      * @private
      */
-    this._notFound = !bind404 ? allFiles : allFiles.then(() => {
-      this.expressBasics.use(basics => this
-        ._domainHandle(basics, basics => Request.inst.notFoundError(basics)));
-      logger.debug('404', `Route not found in ${this.constructor.name}.`);
-    });
-
+    this._notFound = !bind404
+      ? allFiles
+      : allFiles.then(() => {
+        this.expressBasics.use(basics =>
+          this._domainHandle(basics, basics =>
+            Request.inst.notFoundError(basics)
+          )
+        );
+        logger.debug('404', `Route not found in ${this.constructor.name}.`);
+      });
   }
 
   /**
@@ -444,22 +517,27 @@ class ExpressMvc {
    * @private
    */
   _bindController(controller, file) {
-
     this._bindControllerAssets(file);
 
     const handler = basics =>
-      this._domainHandle(basics, (basics) => cache.getLibrary('assets')
-        .getOrElse(file, () => {
-          return this._getAssets(file)
-            .then(assets => {
-              logger.debug(basics, 'Assets', assets);
-              return basics, assets;
-            });
-        }, IO_CACHE_TIMEOUT)
-        .then(assets => {
-          basics.request.assets = assets;
-          controller.doRequest(basics);
-        }));
+      this._domainHandle(basics, basics =>
+        cache
+          .getLibrary('assets')
+          .getOrElse(
+            file,
+            () => {
+              return this._getAssets(file).then(assets => {
+                logger.debug(basics, 'Assets', assets);
+                return basics, assets;
+              });
+            },
+            IO_CACHE_TIMEOUT
+          )
+          .then(assets => {
+            basics.request.assets = assets;
+            controller.doRequest(basics);
+          })
+      );
 
     const context = this._getAbsPath(path.dirname(file));
 
@@ -468,10 +546,7 @@ class ExpressMvc {
     const pathVars = controller.path || CONTEXT_PARAMS;
 
     if (context) {
-      args.push([
-        `${context}${pathVars}`,
-        context
-      ]);
+      args.push([`${context}${pathVars}`, context]);
       controller.context = context;
     }
 
@@ -488,8 +563,11 @@ class ExpressMvc {
 
     this.expressBasics.use(...args);
 
-    logger.debug('Controller', `Controller bound to express on route: ` +
-      `'${context}' on domain ${this._domainReg}`);
+    logger.debug(
+      'Controller',
+      `Controller bound to express on route: ` +
+      `'${context}' on domain ${this._domainReg}`
+    );
   }
 
   /**
@@ -499,7 +577,7 @@ class ExpressMvc {
    * @private
    */
   async _getAssets(file) {
-    const {assetsDir, configFile} = this._getControllerAssetNames(file);
+    const { assetsDir, configFile } = this._getControllerAssetNames(file);
 
     let css;
     let js;
@@ -511,9 +589,9 @@ class ExpressMvc {
       js = [];
     } else {
       logger.debug('Looking for assets in ' + assetsDir);
-      const promise = environment.development ?
-        this._getDevelopmentAssets(assetsDir) :
-        this._getProductionAssets(assetsDir);
+      const promise = environment.development
+        ? this._getDevelopmentAssets(assetsDir)
+        : this._getProductionAssets(assetsDir);
       const [cssAssets, jsAssets] = await promise;
       css = cssAssets;
       js = jsAssets;
@@ -539,8 +617,8 @@ class ExpressMvc {
       js = configJs.concat(js);
     }
 
-    logger.debug('Assets', {js, css});
-    return {js, css, config};
+    logger.debug('Assets', { js, css });
+    return { js, css, config };
   }
 
   /**
@@ -550,9 +628,10 @@ class ExpressMvc {
    * @private
    */
   _getConfiguration(configFile) {
-    return cache.getLibrary('configurations')
-      .getOrElse(configFile, () => fs.readFilePromise(configFile)
-        .then(
+    return cache.getLibrary('configurations').getOrElse(
+      configFile,
+      () =>
+        fs.readFilePromise(configFile).then(
           config => {
             config = JSON.parse(config.toString());
             if (config[environment.name]) {
@@ -566,7 +645,9 @@ class ExpressMvc {
             logger.warn(`No configuration file ${configFile}`);
             return {};
           }
-        ), IO_CACHE_TIMEOUT);
+        ),
+      IO_CACHE_TIMEOUT
+    );
   }
 
   /**
@@ -578,29 +659,34 @@ class ExpressMvc {
   _getDevelopmentAssets(assetsDir) {
     return Promise.all([
       new Promise(resolve => {
-        recursive.readdirr(path.normalize(assetsDir + '/scss/'),
+        recursive.readdirr(
+          path.normalize(assetsDir + '/scss/'),
           (e, dirs, files) => {
             if (e) {
               logger.warn(e);
               return resolve([]);
             }
-            resolve(files.filter(file =>
-              /\.scss/.test(file) && !/[\/\\]_.*/.test(file))
-              .map(file => this._getAbsPath(file)
-                .replace(/scss/g, 'css')));
-          });
+            const cssFiles = files
+              .filter(file => /\.scss/.test(file) && !/[\/\\]_.*/.test(file))
+              .map(file => this._getAbsPath(file).replace(/scss/g, 'css'));
+            resolve(cssFiles);
+          }
+        );
       }),
       new Promise(resolve => {
-        recursive.readdirr(path.normalize(assetsDir + '/js/'),
+        recursive.readdirr(
+          path.normalize(assetsDir + '/js/'),
           (e, dirs, files) => {
             if (e) {
               logger.warn(e);
               return resolve([]);
             }
-            resolve(files
+            const jsFiles = files
               .filter(file => /\.js$/.test(file) && !/\.min\./.test(file))
-              .map(file => this._getAbsPath(file)));
-          });
+              .map(file => this._getAbsPath(file));
+            resolve(jsFiles);
+          }
+        );
       })
     ]);
   }
@@ -614,28 +700,44 @@ class ExpressMvc {
   _getProductionAssets(assetsDir) {
     return Promise.all([
       new Promise(resolve => {
-        recursive.readdirr(path.normalize(assetsDir + '/css/'),
+        recursive.readdirr(
+          path.normalize(assetsDir + '/css/'),
           (e, dirs, files) => {
             if (e) {
               logger.warn(e);
               return resolve([]);
             }
-            resolve(files.filter(file => /\.min\.css$/.test(file))
-              .map(file => '/' + path.relative(this._directory, file)
-                .replace(/\\/g, '/')));
-          });
+            resolve(
+              files
+                .filter(file => /\.min\.css$/.test(file))
+                .map(
+                  file =>
+                    '/' +
+                    path.relative(this._directory, file).replace(/\\/g, '/')
+                )
+            );
+          }
+        );
       }),
       new Promise(resolve => {
-        recursive.readdirr(path.normalize(assetsDir + '/js/'),
+        recursive.readdirr(
+          path.normalize(assetsDir + '/js/'),
           (e, dirs, files) => {
             if (e) {
               logger.warn(e);
               return resolve([]);
             }
-            resolve(files.filter(file => /\.min\.js$/.test(file))
-              .map(file => '/' + path.relative(this._directory, file)
-                .replace(/\\/g, '/')));
-          });
+            resolve(
+              files
+                .filter(file => /\.min\.js$/.test(file))
+                .map(
+                  file =>
+                    '/' +
+                    path.relative(this._directory, file).replace(/\\/g, '/')
+                )
+            );
+          }
+        );
       })
     ]);
   }
@@ -646,7 +748,7 @@ class ExpressMvc {
    * @private
    */
   _bindControllerAssets(file) {
-    const {assetsDir} = this._getControllerAssetNames(file);
+    const { assetsDir } = this._getControllerAssetNames(file);
     this._bindCompass(assetsDir);
     this._bindStaticAssets(assetsDir);
   }
@@ -662,16 +764,26 @@ class ExpressMvc {
     const routes = ['/:version' + context, context];
 
     // Bind the local assets.
-    this.expressBasics.use(routes,
-      basics => this._domainHandle(basics, staticApp));
+    this.expressBasics.use(routes, basics =>
+      this._domainHandle(basics, staticApp)
+    );
 
     // Bind a 404 route for missing assets.
-    this.expressBasics.use(routes,
-      basics => Request.inst.notFoundError(basics));
+    this.expressBasics.use(routes, basics =>
+      Request.inst.notFoundError(basics)
+    );
 
-    logger.debug('Assets', 'Static assets bound to route: ' +
-      context + ' & /:version' + context + ' on directory ' + dir +
-      ' on domain ' + this._domainReg);
+    logger.debug(
+      'Assets',
+      'Static assets bound to route: ' +
+      context +
+      ' & /:version' +
+      context +
+      ' on directory ' +
+      dir +
+      ' on domain ' +
+      this._domainReg
+    );
   }
 
   /**
@@ -699,7 +811,7 @@ class ExpressMvc {
           if (!CSS_REG.test(basics.request.originalUrl)) {
             return basics.next();
           }
-          exec(COMPASS_CMD, {cwd: dir}, (e, output) => {
+          exec(COMPASS_CMD, { cwd: dir }, (e, output) => {
             if (e) {
               logger.error(basics, 'Compass', e);
             } else if (output) {
@@ -707,11 +819,18 @@ class ExpressMvc {
             }
             basics.next();
           });
-
-        }));
-      logger.debug('Compass', 'Compass compilation bound to route: ' +
-        context + ' & ' + '/:version' + context +
-        ' on domain ' + this._domainReg);
+        })
+      );
+      logger.debug(
+        'Compass',
+        'Compass compilation bound to route: ' +
+        context +
+        ' & ' +
+        '/:version' +
+        context +
+        ' on domain ' +
+        this._domainReg
+      );
     }
   }
 
@@ -738,9 +857,15 @@ class ExpressMvc {
    * @private
    */
   _getAbsPath(destination) {
-    return '/' +
-      path.relative(this._directory, path.normalize(destination))
+    const fullPath =
+      '/' +
+      path
+        .relative(this._directory, path.normalize(destination))
         .replace(/\\/g, '/');
+    return fullPath
+      .split('/')
+      .map(section => encodeURIComponent(section))
+      .join('/');
   }
 
   /**
@@ -750,13 +875,15 @@ class ExpressMvc {
    * @private
    */
   _bindApi(api, file) {
-
     const dirName = path.dirname(this._getAbsPath(file));
 
     let args = [];
 
-    const context = dirName + (!dirName || dirName === '/' ? '' : '/') +
-      path.basename(file)
+    const context =
+      dirName +
+      (!dirName || dirName === '/' ? '' : '/') +
+      path
+        .basename(file)
         .replace(/^(.)(.*)Api\.js$/i, (a, b, c) => b.toLowerCase() + c);
 
     const pathVars = api.path || CONTEXT_PARAMS;
@@ -782,7 +909,8 @@ class ExpressMvc {
     }
 
     args.push(basics =>
-      this._domainHandle(basics, basics => api.doRequest(basics)));
+      this._domainHandle(basics, basics => api.doRequest(basics))
+    );
 
     this.expressBasics.use(...args);
     logger.debug({
@@ -799,7 +927,7 @@ class ExpressMvc {
    * @private
    */
   _domainHandle(basics, handler) {
-    const {hostname} = basics.request;
+    const { hostname } = basics.request;
     if (this._domainReg.test(hostname) && this._requestFilter(basics)) {
       return handler(basics);
     } else {
@@ -829,8 +957,9 @@ class ExpressMvc {
    * @returns {Promise.<Controller>}}
    */
   getController(name) {
-    return this._controllers
-      .then(() => cache.getLibrary('controllers').get(name));
+    return this._controllers.then(() =>
+      cache.getLibrary('controllers').get(name)
+    );
   }
 
   /**
@@ -852,17 +981,25 @@ class ExpressMvc {
       logger.error('Application already listening.');
       return Promise.resolve(this);
     }
-    return this.promise.then(() => {
-      this.expressBasics.use(basics => this._domainHandle(basics,
-        basics => Request.inst.notFoundError(basics)));
-      this._listener =
-        this.expressBasics.listen.apply(this.expressBasics, args);
-      logger.highlight('SERVER', `Listening on port ${args[0]}`);
-      return this;
-    }, e => {
-      logger.error(e);
-      return this;
-    });
+    return this.promise.then(
+      () => {
+        this.expressBasics.use(basics =>
+          this._domainHandle(basics, basics =>
+            Request.inst.notFoundError(basics)
+          )
+        );
+        this._listener = this.expressBasics.listen.apply(
+          this.expressBasics,
+          args
+        );
+        logger.highlight('SERVER', `Listening on port ${args[0]}`);
+        return this;
+      },
+      e => {
+        logger.error(e);
+        return this;
+      }
+    );
   }
 
   /**
@@ -871,10 +1008,16 @@ class ExpressMvc {
    * @returns {ExpressMvc}
    */
   bindI18n(options) {
-    i18n.expressBind(this._express, Object.assign({
-      locales: ['en']
-    }, options));
-    this.expressBasics.use((basics) => {
+    i18n.expressBind(
+      this._express,
+      Object.assign(
+        {
+          locales: ['en']
+        },
+        options
+      )
+    );
+    this.expressBasics.use(basics => {
       basics.request.i18n.setLocaleFromCookie(basics.request);
       basics.next();
     });
@@ -1014,7 +1157,6 @@ class ExpressMvc {
     this._listeners = [];
     return this;
   }
-
 }
 
 module.exports = ExpressMvc;
