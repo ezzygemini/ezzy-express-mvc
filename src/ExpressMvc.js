@@ -15,14 +15,15 @@ const environment = require('ezzy-environment');
 const exec = require('child_process').exec;
 const SKIP_COMPASS = environment.argument('SKIP_COMPASS', false);
 const COMPASS = environment.argument('COMPASS', 'compass');
+const rootDir = require('./rootDir');
 const COMPASS_CMD = COMPASS +
   ' compile --relative-assets --output-style=expanded ' +
-  '--css-dir=css --sass-dir=scss --images-dir=images --trace';
+  '--css-dir=css --sass-dir=scss --images-dir=images --trace ' +
+  '--import-path=' + rootDir;
 const CSS_REG = /\.css(\?.*)?$/;
 const fs = require('ezzy-fs');
 const getHandlebars = require('./handlebars');
 const configSetup = require('ezzy-config-setup');
-const rootDir = require('./rootDir');
 
 /**
  * The context parameters available.
