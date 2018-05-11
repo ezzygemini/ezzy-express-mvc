@@ -132,8 +132,8 @@ class Controller extends Request {
         }
         let {assets} = basics.request;
         const config = await this.configParser(basics,
-          Object.assign(data.config || {}, assets.config));
-        assets = await this.assetParser(basics, assets);
+          Object.assign(data.config || {}, assets.config), data);
+        assets = await this.assetParser(basics, assets, data);
         Object.assign(data, model, {config, assets});
       } catch (e) {
         logger.error(basics, e);
@@ -153,10 +153,11 @@ class Controller extends Request {
    * and parse the assets as needed.
    * @param {HttpBasics} basics The http basics.
    * @param {{js:string[], css:string[]}} assets The assets.
+   * @param {*} data The data being injected to the model.
    * @returns {{js:string[], css:string[]}}
    * @private
    */
-  assetParser(basics, assets) {
+  assetParser(basics, assets, data) {
     return assets;
   }
 
@@ -166,11 +167,12 @@ class Controller extends Request {
    * NOTE: This method is important so other controllers can override it and
    * parse the configuration as needed.
    * @param {HttpBasics} basics The http basics.
-   * @param {{js:string[], css:string[]}} assets The assets.
+   * @param {object} config The assets.
+   * @param {*} data The data being injected to the model.
    * @returns {{js:string[], css:string[]}}
    * @private
    */
-  configParser(basics, config) {
+  configParser(basics, config, data) {
     return config || {};
   }
 
