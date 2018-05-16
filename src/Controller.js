@@ -1,12 +1,12 @@
-const Request = require('./Request');
-const fsPlus = require('ezzy-fs');
-const logger = require('ezzy-logger').logger;
-const environment = require('ezzy-environment');
-const trueTypeof = require('ezzy-typeof');
-const cache = require('./cache');
-const getHandlebars = require('./handlebars');
-const extractLayout = require('./utils/extractLayout');
-const extractPartialNames = require('./utils/extractPartialNames');
+const Request = require("./Request");
+const fsPlus = require("ezzy-fs");
+const logger = require("ezzy-logger").logger;
+const environment = require("ezzy-environment");
+const trueTypeof = require("ezzy-typeof");
+const cache = require("./cache");
+const getHandlebars = require("./handlebars");
+const extractLayout = require("./utils/extractLayout");
+const extractPartialNames = require("./utils/extractPartialNames");
 
 /**
  * The timeout to read files from the disk. In production is a permanent cache
@@ -16,10 +16,16 @@ const extractPartialNames = require('./utils/extractPartialNames');
 const IO_CACHE_TIMEOUT = environment.development ? 100 : 0;
 
 /**
+ * The regular expression to check and see if the user requested a json
+ * representation of the model.
+ * @type {RegExp}
+ */
+const JSON_REQUEST_REG = /[Mm]odel\.json$/;
+
+/**
  * Controller.
  */
 class Controller extends Request {
-
   /**
    * An initializer of the controller.
    * @param {string} viewFile The raw path of the view template.
@@ -127,14 +133,17 @@ class Controller extends Request {
         const Model = this._model;
         const model = new Model(basics);
         data = await model.getData(basics);
-        if (!(data instanceof Model) && trueTypeof(data) !== 'object') {
-          data = {data};
+        if (!(data instanceof Model) && trueTypeof(data) !== "object") {
+          data = { data };
         }
-        let {assets} = basics.request;
-        const config = await this.configParser(basics,
-          Object.assign(data.config || {}, assets.config), data);
+        let { assets } = basics.request;
+        const config = await this.configParser(
+          basics,
+          Object.assign(data.config || {}, assets.config),
+          data
+        );
         assets = await this.assetParser(basics, assets, data);
-        Object.assign(data, model, {config, assets});
+        Object.assign(data, model, { config, assets });
       } catch (e) {
         logger.error(basics, e);
         data = basics;
@@ -144,7 +153,6 @@ class Controller extends Request {
     }
     return await this._parseTemplate(basics, data);
   }
-
 
   /**
    * Manipulates the assets found (if necessary) and populates them into
@@ -198,7 +206,7 @@ class Controller extends Request {
    * @param {string[]} partials The view partials.
    * @returns {*}
    */
-  dataParser(basics, data, partials){
+  dataParser(basics, data, partials) {
     return data;
   }
 
@@ -210,23 +218,45 @@ class Controller extends Request {
    * @private
    */
   async _parseTemplate(basics, data) {
+    // Check if the user requested the json representation of the model.
+    if (JSON_REQUEST_REG.test(basics.request.originalUrl)) {
+      const obj = {};
+      for (const key of Object.keys(data)) {
+        if (key === "basics" || data[key].constructor.name === "Socket") {
+          continue;
+        }
+        obj[key] = data[key];
+      }
+      return JSON.stringify(obj);
+    }
 
     // Get the instance of handlebars.
-    const hbs = !environment.development ? this._hbs :
-      cache.getLibrary('handlebars')
-        .getOrElse('inst', () => getHandlebars(Object.assign({
-          directory: this._hbsDir,
-        }, this._extraConfig)), IO_CACHE_TIMEOUT);
+    const hbs = !environment.development
+      ? this._hbs
+      : cache.getLibrary("handlebars").getOrElse(
+          "inst",
+          () =>
+            getHandlebars(
+              Object.assign(
+                {
+                  directory: this._hbsDir
+                },
+                this._extraConfig
+              )
+            ),
+          IO_CACHE_TIMEOUT
+        );
 
     // Wait for it to start loading.
-    const {handlebars, layouts} = await hbs;
+    const { handlebars, layouts } = await hbs;
 
     // Get the view file.
-    let cachedView = await cache.getLibrary('hbsViews')
-      .getOrElse(this._viewFile, async () => {
+    let cachedView = await cache.getLibrary("hbsViews").getOrElse(
+      this._viewFile,
+      async () => {
         let source;
         if (!this._viewFile) {
-          source = '';
+          source = "";
         } else {
           source = await fsPlus.readFilePromise(this._viewFile);
           source = source.toString();
@@ -236,10 +266,12 @@ class Controller extends Request {
           view: handlebars.compile(source),
           layout: extractLayout(source)
         };
-      }, IO_CACHE_TIMEOUT);
+      },
+      IO_CACHE_TIMEOUT
+    );
 
     let renderedValue;
-    const {view, layout, partials} = cachedView;
+    const { view, layout, partials } = cachedView;
     try {
       data = await this.dataParser(basics, data, partials);
       renderedValue = await this.viewParser(basics, view(data), data, partials);
@@ -247,10 +279,14 @@ class Controller extends Request {
       if (layout) {
         let currentLayout = layout;
         while (currentLayout) {
-          data = await this.dataParser(basics, Object.assign(data, {
-            content: renderedValue,
-            body: renderedValue
-          }), layouts[currentLayout].partials);
+          data = await this.dataParser(
+            basics,
+            Object.assign(data, {
+              content: renderedValue,
+              body: renderedValue
+            }),
+            layouts[currentLayout].partials
+          );
           renderedValue = layouts[currentLayout].render(data);
           currentLayout = layouts[currentLayout].parent;
         }
@@ -279,7 +315,6 @@ class Controller extends Request {
       }
     );
   }
-
 }
 
 module.exports = Controller;
