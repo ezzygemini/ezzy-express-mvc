@@ -151,7 +151,9 @@ class Controller extends Request {
     } else {
       data = basics;
     }
-    return await this._parseTemplate(basics, data);
+    if (!basics.response.headersSent) {
+      return await this._parseTemplate(basics, data);
+    }
   }
 
   /**
