@@ -1,7 +1,7 @@
 {
   "name": "ezzy-express-mvc",
   "description": "A complete mvc infrastructure to render pages from a specific directory based.",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "author": {
     "name": "Moises Romero",
     "url": "http://ezzygemini.com",
