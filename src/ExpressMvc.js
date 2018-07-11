@@ -598,8 +598,8 @@ class ExpressMvc {
     } else {
       logger.debug("Looking for assets in " + assetsDir);
       const promise = environment.minifyAssets
-        ? this._getExpandedAssets(assetsDir)
-        : this._getMinifiedAssets(assetsDir);
+        ? this._getMinifiedAssets(assetsDir)
+        : this._getExpandedAssets(assetsDir);
       const [cssAssets, jsAssets] = await promise;
       css = cssAssets;
       js = jsAssets;
