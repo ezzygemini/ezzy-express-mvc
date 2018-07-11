@@ -597,9 +597,9 @@ class ExpressMvc {
       js = [];
     } else {
       logger.debug("Looking for assets in " + assetsDir);
-      const promise = environment.development
-        ? this._getDevelopmentAssets(assetsDir)
-        : this._getProductionAssets(assetsDir);
+      const promise = environment.minifyAssets
+        ? this._getExpandedAssets(assetsDir)
+        : this._getMinifiedAssets(assetsDir);
       const [cssAssets, jsAssets] = await promise;
       css = cssAssets;
       js = jsAssets;
@@ -664,7 +664,7 @@ class ExpressMvc {
    * @returns {Promise.<Array[]>}
    * @private
    */
-  _getDevelopmentAssets(assetsDir) {
+  _getExpandedAssets(assetsDir) {
     return Promise.all([
       new Promise(resolve => {
         recursive.readdirr(
@@ -705,7 +705,7 @@ class ExpressMvc {
    * @returns {Promise.<Array[]>}
    * @private
    */
-  _getProductionAssets(assetsDir) {
+  _getMinifiedAssets(assetsDir) {
     return Promise.all([
       new Promise(resolve => {
         recursive.readdirr(
