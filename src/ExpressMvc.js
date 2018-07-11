@@ -642,6 +642,21 @@ class ExpressMvc {
         fs.readFilePromise(configFile).then(
           config => {
             config = JSON.parse(config.toString());
+            if (environment.minifyAssets) {
+              for (const scope of ["minifyAssets", "minified", "minify", "min"]) {
+                if (config[scope]) {
+                  Object.assign(config, config[scope]);
+                  delete config[scope];
+                }
+              }
+            } else {
+              for (const scope of ["expandAssets", "expanded", "expand", "exp"]) {
+                if (config[scope]) {
+                  Object.assign(config, config[scope]);
+                  delete config[scope];
+                }
+              }
+            }
             if (config[environment.name]) {
               Object.assign(config, config[environment.name]);
               delete config[environment.name];
