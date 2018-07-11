@@ -643,14 +643,24 @@ class ExpressMvc {
           config => {
             config = JSON.parse(config.toString());
             if (environment.minifyAssets) {
-              for (const scope of ["minifyAssets", "minified", "minify", "min"]) {
+              for (const scope of [
+                "minifyAssets",
+                "minified",
+                "minify",
+                "min"
+              ]) {
                 if (config[scope]) {
                   Object.assign(config, config[scope]);
                   delete config[scope];
                 }
               }
             } else {
-              for (const scope of ["expandAssets", "expanded", "expand", "exp"]) {
+              for (const scope of [
+                "expandAssets",
+                "expanded",
+                "expand",
+                "exp"
+              ]) {
                 if (config[scope]) {
                   Object.assign(config, config[scope]);
                   delete config[scope];
