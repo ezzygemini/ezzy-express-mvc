@@ -471,6 +471,7 @@ class ExpressMvc {
               Model = require(modelFile);
               logger.debug("Model Lookup", `Looking for model ${modelFile}`);
             } catch (e) {
+              logger.deepDebug(e);
               logger.warn(`No model found ${modelFile}. Using generic model.`);
               viewFile = null;
               Model = null;
