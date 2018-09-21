@@ -1,13 +1,12 @@
-const logger = require('ezzy-logger').logger;
-const DEFAULT_CONTENT_TYPE = '*/*';
-const {version, name, description} = require('./package');
+const logger = require("ezzy-logger").logger;
+const DEFAULT_CONTENT_TYPE = "*/*";
+const { version, name, description } = require("./package");
 let inst;
 
 /**
  * Base class that handles a request.
  */
 class Request {
-
   /**
    * Constructor.
    */
@@ -67,16 +66,19 @@ class Request {
    * @param {HttpBasics} basics The HTTP Basics.
    */
   doRequest(basics) {
-    const {method, hostname, originalUrl} = basics.request;
+    const { method, hostname, originalUrl } = basics.request;
 
-    logger.deepDebug(basics, 'Interception',
-      `Request intercepted by ${this.constructor.name}`);
+    logger.deepDebug(
+      basics,
+      "Interception",
+      `Request intercepted by ${this.constructor.name}`
+    );
 
     if (!this.isRequestOk(basics)) {
       return this.requestNotOk(basics);
     } else {
-      logger.debug(basics, 'Request', `${method} ${hostname} ${originalUrl}`);
-      logger.deepDebug(basics, 'Headers', basics.request.headers);
+      logger.debug(basics, "Request", `${method} ${hostname} ${originalUrl}`);
+      logger.deepDebug(basics, "Headers", basics.request.headers);
     }
 
     const auth = this.auth(basics);
@@ -86,17 +88,25 @@ class Request {
       return this.forbiddenError(basics);
     }
 
-    const isForm = /multipart/i.test(basics.request.headers['content-type']);
+    const isForm = /multipart/i.test(basics.request.headers["content-type"]);
     const qry = () => {
-      if (basics.request.originalUrl.indexOf('?') > -1) {
+      if (basics.request.originalUrl.indexOf("?") > -1) {
         return [basics.request.query];
       } else {
         const args = [];
         let arg;
-        for (let char of 'abcdefghijklm'.split('')) {
+        for (let char of "abcdefghijklm".split("")) {
           arg = basics.request.params[char];
           if (arg !== undefined) {
-            args.push(isNaN(arg) ? arg : parseFloat(arg));
+            if (arg === "true") {
+              args.push(true);
+            } else if (arg === "false") {
+              args.push(false);
+            } else if (isNaN(arg)) {
+              args.push(arg);
+            } else {
+              args.push(parseFloat(arg));
+            }
           } else {
             break;
           }
@@ -106,13 +116,13 @@ class Request {
     };
 
     switch (method) {
-      case 'POST':
-
+      case "POST":
         if (this.authPost(basics)) {
           if (isForm) {
             return this.doPost(basics);
           } else {
-            return basics.body()
+            return basics
+              .body()
               .then(body => [body], qry)
               .then(args => {
                 try {
@@ -127,13 +137,13 @@ class Request {
         }
 
         break;
-      case 'PATCH':
-
+      case "PATCH":
         if (this.authPatch(basics)) {
           if (isForm) {
             return this.doPatch(basics);
           } else {
-            return basics.body()
+            return basics
+              .body()
               .then(body => [body], qry)
               .then(args => {
                 try {
@@ -148,13 +158,13 @@ class Request {
         }
 
         break;
-      case 'DELETE':
-
+      case "DELETE":
         if (this.authDelete(basics)) {
           if (isForm) {
             return this.doDelete(basics);
           } else {
-            return basics.body()
+            return basics
+              .body()
               .then(body => [body], qry)
               .then(args => {
                 try {
@@ -169,13 +179,13 @@ class Request {
         }
 
         break;
-      case 'PUT':
-
+      case "PUT":
         if (this.authPut(basics)) {
           if (isForm) {
             return this.doPut(basics);
           } else {
-            return basics.body()
+            return basics
+              .body()
               .then(body => [body], qry)
               .then(args => {
                 try {
@@ -190,8 +200,7 @@ class Request {
         }
 
         break;
-      case 'HEAD':
-
+      case "HEAD":
         if (this.authHead(basics)) {
           return this.doHead(basics, ...qry());
         } else {
@@ -199,8 +208,7 @@ class Request {
         }
 
         break;
-      case 'OPTIONS':
-
+      case "OPTIONS":
         if (this.authOptions(basics)) {
           return this.doOptions(basics, ...qry());
         } else {
@@ -209,13 +217,11 @@ class Request {
 
         break;
       default:
-
         if (this.authGet(basics)) {
           return this.doGet(basics, ...qry());
         } else {
           return this.forbiddenError(basics);
         }
-
     }
   }
 
@@ -223,8 +229,7 @@ class Request {
    * Obtains the options of the api.
    * @returns {*}
    */
-  get options() {
-  }
+  get options() {}
 
   /**
    * Checking if the request is ok.
@@ -329,7 +334,7 @@ class Request {
    * @returns {string}
    */
   get path() {
-    return '';
+    return "";
   }
 
   /**
@@ -456,12 +461,16 @@ class Request {
       return;
     }
     if (status !== 200) {
-      logger.warn(basics, `StatusCode ${status}`, this._getRequestDetails(basics));
+      logger.warn(
+        basics,
+        `StatusCode ${status}`,
+        this._getRequestDetails(basics)
+      );
     }
     try {
       basics.response.status(status);
     } catch (e) {
-      logger.error(basics, 'Status Code', e);
+      logger.error(basics, "Status Code", e);
     }
   }
 
@@ -471,8 +480,8 @@ class Request {
    * @private
    */
   _getRequestDetails(basics) {
-    const {hostname, originalUrl, method} = basics.request;
-    const {remoteAddress} = basics.request.connection;
+    const { hostname, originalUrl, method } = basics.request;
+    const { remoteAddress } = basics.request.connection;
     return `${remoteAddress} -> ${method} -> //${hostname}${originalUrl}`;
   }
 
@@ -493,7 +502,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   badRequestError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 400, 'Bad Request');
+    return this._sendErrorStatus(basics, headers, 400, "Bad Request");
   }
 
   /**
@@ -502,7 +511,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   unauthorizedError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 401, 'Unauthorized');
+    return this._sendErrorStatus(basics, headers, 401, "Unauthorized");
   }
 
   /**
@@ -511,7 +520,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   paymentRequiredError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 402, 'Payment Required');
+    return this._sendErrorStatus(basics, headers, 402, "Payment Required");
   }
 
   /**
@@ -520,7 +529,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   forbiddenError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 403, 'Forbidden');
+    return this._sendErrorStatus(basics, headers, 403, "Forbidden");
   }
 
   /**
@@ -529,7 +538,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   notFoundError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 404, 'Not Found');
+    return this._sendErrorStatus(basics, headers, 404, "Not Found");
   }
 
   /**
@@ -538,7 +547,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   methodNotAllowedError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 405, 'Method Not Allowed');
+    return this._sendErrorStatus(basics, headers, 405, "Method Not Allowed");
   }
 
   /**
@@ -547,7 +556,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   notAcceptableError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 406, 'Not Acceptable');
+    return this._sendErrorStatus(basics, headers, 406, "Not Acceptable");
   }
 
   /**
@@ -556,8 +565,12 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   proxyAuthenticationRequiredError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 407,
-      'Proxy Authentication Required');
+    return this._sendErrorStatus(
+      basics,
+      headers,
+      407,
+      "Proxy Authentication Required"
+    );
   }
 
   /**
@@ -566,7 +579,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   requestTimeoutError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 408, 'Request Time-out');
+    return this._sendErrorStatus(basics, headers, 408, "Request Time-out");
   }
 
   /**
@@ -575,7 +588,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   conflictError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 409, 'Conflict');
+    return this._sendErrorStatus(basics, headers, 409, "Conflict");
   }
 
   /**
@@ -584,7 +597,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   goneError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 410, 'Gone');
+    return this._sendErrorStatus(basics, headers, 410, "Gone");
   }
 
   /**
@@ -593,7 +606,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   lengthRequiredError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 411, 'Length Required');
+    return this._sendErrorStatus(basics, headers, 411, "Length Required");
   }
 
   /**
@@ -602,7 +615,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   preconditionFailedError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 412, 'Precondition Failed');
+    return this._sendErrorStatus(basics, headers, 412, "Precondition Failed");
   }
 
   /**
@@ -611,8 +624,12 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   requestEntityTooLargeError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 413,
-      'Request Entity Too Large');
+    return this._sendErrorStatus(
+      basics,
+      headers,
+      413,
+      "Request Entity Too Large"
+    );
   }
 
   /**
@@ -621,7 +638,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   requesturiTooLargeError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 414, 'Request-URI Too Large');
+    return this._sendErrorStatus(basics, headers, 414, "Request-URI Too Large");
   }
 
   /**
@@ -630,8 +647,12 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   unsupportedMediaTypeError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 415,
-      'Unsupported Media Type');
+    return this._sendErrorStatus(
+      basics,
+      headers,
+      415,
+      "Unsupported Media Type"
+    );
   }
 
   /**
@@ -640,8 +661,12 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   requestedRangeNotSatisfiableError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 416,
-      'Requested Range Not Satisfiable');
+    return this._sendErrorStatus(
+      basics,
+      headers,
+      416,
+      "Requested Range Not Satisfiable"
+    );
   }
 
   /**
@@ -650,7 +675,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   expectationFailedError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 417, 'Expectation Failed');
+    return this._sendErrorStatus(basics, headers, 417, "Expectation Failed");
   }
 
   /**
@@ -659,7 +684,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   unprocessableEntityError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 422, 'Unprocessable Entity');
+    return this._sendErrorStatus(basics, headers, 422, "Unprocessable Entity");
   }
 
   /**
@@ -668,7 +693,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   lockedError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 423, 'Locked');
+    return this._sendErrorStatus(basics, headers, 423, "Locked");
   }
 
   /**
@@ -677,7 +702,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   failedDependencyError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 424, 'Failed Dependency');
+    return this._sendErrorStatus(basics, headers, 424, "Failed Dependency");
   }
 
   /**
@@ -686,7 +711,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   unorderedCollectionError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 425, 'Unordered Collection');
+    return this._sendErrorStatus(basics, headers, 425, "Unordered Collection");
   }
 
   /**
@@ -695,7 +720,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   upgradeRequiredError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 426, 'Upgrade Required');
+    return this._sendErrorStatus(basics, headers, 426, "Upgrade Required");
   }
 
   /**
@@ -704,7 +729,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   preconditionRequiredError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 428, 'Precondition Required');
+    return this._sendErrorStatus(basics, headers, 428, "Precondition Required");
   }
 
   /**
@@ -713,7 +738,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   tooManyRequestsError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 429, 'Too Many Requests');
+    return this._sendErrorStatus(basics, headers, 429, "Too Many Requests");
   }
 
   /**
@@ -722,8 +747,12 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   requestHeaderFieldsTooLargeError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 431,
-      'Request Header Fields Too Large');
+    return this._sendErrorStatus(
+      basics,
+      headers,
+      431,
+      "Request Header Fields Too Large"
+    );
   }
 
   /**
@@ -732,7 +761,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   internalServerError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 500, 'Internal Server Error');
+    return this._sendErrorStatus(basics, headers, 500, "Internal Server Error");
   }
 
   /**
@@ -741,7 +770,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   notImplementedError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 501, 'Not Implemented');
+    return this._sendErrorStatus(basics, headers, 501, "Not Implemented");
   }
 
   /**
@@ -750,7 +779,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   badGatewayError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 502, 'Bad Gateway');
+    return this._sendErrorStatus(basics, headers, 502, "Bad Gateway");
   }
 
   /**
@@ -759,7 +788,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   serviceUnavailableError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 503, 'Service Unavailable');
+    return this._sendErrorStatus(basics, headers, 503, "Service Unavailable");
   }
 
   /**
@@ -768,7 +797,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   gatewayTimeoutError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 504, 'Gateway Timeout');
+    return this._sendErrorStatus(basics, headers, 504, "Gateway Timeout");
   }
 
   /**
@@ -777,8 +806,12 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   httpVersionNotSupportedError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 505,
-      'HTTP Version Not Supported');
+    return this._sendErrorStatus(
+      basics,
+      headers,
+      505,
+      "HTTP Version Not Supported"
+    );
   }
 
   /**
@@ -787,8 +820,12 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   variantAlsoNegotiatesError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 406,
-      'Variant Also Negotiates');
+    return this._sendErrorStatus(
+      basics,
+      headers,
+      406,
+      "Variant Also Negotiates"
+    );
   }
 
   /**
@@ -797,7 +834,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   insufficientStorageError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 507, 'Insufficient Storage');
+    return this._sendErrorStatus(basics, headers, 507, "Insufficient Storage");
   }
 
   /**
@@ -806,8 +843,12 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   bandwidthLimitExceededError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 509,
-      'Bandwidth Limit Exceeded');
+    return this._sendErrorStatus(
+      basics,
+      headers,
+      509,
+      "Bandwidth Limit Exceeded"
+    );
   }
 
   /**
@@ -816,7 +857,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   notExtendedError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 510, 'Not Extended');
+    return this._sendErrorStatus(basics, headers, 510, "Not Extended");
   }
 
   /**
@@ -825,8 +866,12 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   networkAuthenticationRequiredError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 511,
-      'Network Authentication Required');
+    return this._sendErrorStatus(
+      basics,
+      headers,
+      511,
+      "Network Authentication Required"
+    );
   }
 
   /**
@@ -835,7 +880,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   badDigestError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 400, 'Bad Request');
+    return this._sendErrorStatus(basics, headers, 400, "Bad Request");
   }
 
   /**
@@ -844,7 +889,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   badMethodError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 405, 'Method Not Allowed');
+    return this._sendErrorStatus(basics, headers, 405, "Method Not Allowed");
   }
 
   /**
@@ -853,7 +898,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   internalError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 500, 'Internal Server Error');
+    return this._sendErrorStatus(basics, headers, 500, "Internal Server Error");
   }
 
   /**
@@ -862,7 +907,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   invalidArgumentError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 409, 'Conflict');
+    return this._sendErrorStatus(basics, headers, 409, "Conflict");
   }
 
   /**
@@ -871,7 +916,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   invalidContentError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 400, 'Bad Request');
+    return this._sendErrorStatus(basics, headers, 400, "Bad Request");
   }
 
   /**
@@ -880,7 +925,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   invalidCredentialsError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 401, 'Unauthorized');
+    return this._sendErrorStatus(basics, headers, 401, "Unauthorized");
   }
 
   /**
@@ -889,7 +934,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   invalidHeaderError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 400, 'Bad Request');
+    return this._sendErrorStatus(basics, headers, 400, "Bad Request");
   }
 
   /**
@@ -898,7 +943,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   invalidVersionError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 400, 'Bad Request');
+    return this._sendErrorStatus(basics, headers, 400, "Bad Request");
   }
 
   /**
@@ -907,7 +952,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   missingParameterError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 409, 'Conflict');
+    return this._sendErrorStatus(basics, headers, 409, "Conflict");
   }
 
   /**
@@ -916,7 +961,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   notAuthorizedError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 403, 'Forbidden');
+    return this._sendErrorStatus(basics, headers, 403, "Forbidden");
   }
 
   /**
@@ -925,7 +970,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   requestExpiredError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 400, 'Bad Request');
+    return this._sendErrorStatus(basics, headers, 400, "Bad Request");
   }
 
   /**
@@ -934,7 +979,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   requestThrottledError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 429, 'Too Many Requests');
+    return this._sendErrorStatus(basics, headers, 429, "Too Many Requests");
   }
 
   /**
@@ -943,7 +988,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   resourceNotFoundError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 404, 'Not Found');
+    return this._sendErrorStatus(basics, headers, 404, "Not Found");
   }
 
   /**
@@ -952,7 +997,7 @@ class Request {
    * @param {object=} headers Additional headers to send.
    */
   wrongAcceptError(basics, headers) {
-    return this._sendErrorStatus(basics, headers, 406, 'Not Acceptable');
+    return this._sendErrorStatus(basics, headers, 406, "Not Acceptable");
   }
 
   /**
@@ -961,15 +1006,17 @@ class Request {
    * @param {Object} headers Additional headers that will be appended.
    */
   decorateRequest(basics, headers = {}) {
-    Object.assign(headers, {name, version, description});
+    Object.assign(headers, { name, version, description });
     try {
       if (this.sendHeaders && !basics.response.headersSent) {
-        basics.response.set('x-version-requested',
-          basics.request.params.version || 'latest');
-        logger.debug('Request Headers Decoration', headers);
+        basics.response.set(
+          "x-version-requested",
+          basics.request.params.version || "latest"
+        );
+        logger.debug("Request Headers Decoration", headers);
         for (let prop in headers) {
           if (headers.hasOwnProperty(prop)) {
-            if (prop.toLowerCase() !== 'access-control-allow-origin') {
+            if (prop.toLowerCase() !== "access-control-allow-origin") {
               basics.response.set(`x-${prop}`, headers[prop]);
             } else {
               basics.response.set(prop, headers[prop]);
@@ -978,8 +1025,8 @@ class Request {
         }
       }
     } catch (e) {
-      logger.error(basics, 'Headers', this._getRequestDetails(basics));
-      logger.error(basics, 'Headers', e);
+      logger.error(basics, "Headers", this._getRequestDetails(basics));
+      logger.error(basics, "Headers", e);
     }
   }
 
@@ -997,30 +1044,31 @@ class Request {
     if (!this.sendHeaders) {
       return;
     }
-    if (typeof headers === 'string') {
+    if (typeof headers === "string") {
       error = headers;
       headers = undefined;
     }
     if (headers) {
-      Object.assign(headers, {status});
+      Object.assign(headers, { status });
     }
     this.decorateRequest(basics, headers);
-    const {accept} = basics.request.headers;
+    const { accept } = basics.request.headers;
     if (this._errors && accept && /(text\/html|text\/plain)/i.test(accept)) {
       this._errors.then(errors => {
         let generatedContent;
         if (errors[status]) {
-          generatedContent = errors[status]({status});
+          generatedContent = errors[status]({ status });
         } else {
           generatedContent = errors.general(status);
         }
         basics.response.end(generatedContent);
       });
     } else {
-      basics.response.json(typeof error === 'string' ? {error, status} : error);
+      basics.response.json(
+        typeof error === "string" ? { error, status } : error
+      );
     }
   }
-
 }
 
 module.exports = Request;
