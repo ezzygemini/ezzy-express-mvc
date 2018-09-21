@@ -1,6 +1,7 @@
-const logger = require("ezzy-logger").logger;
+const { logger } = require("ezzy-logger");
 const DEFAULT_CONTENT_TYPE = "*/*";
 const { version, name, description } = require("./package");
+const configSetup = require("ezzy-config-setup");
 let inst;
 
 /**
@@ -110,6 +111,14 @@ class Request {
           } else {
             break;
           }
+        }
+        const { pathConfig } = this;
+        // Map the values to the positioned params
+        if (Array.isArray(pathConfig)) {
+          Object.assign(
+            basics.request.params,
+            configSetup({}, args, ...pathConfig)
+          );
         }
         return args;
       }
@@ -336,6 +345,21 @@ class Request {
   get path() {
     return "";
   }
+
+  /**
+   * The paths to bind the request to.
+   * @returns {Array}
+   */
+  get paths() {
+    return [];
+  }
+
+  /**
+   * The default path configuration. to use when mapping positional parameters
+   * to named ones using configSetup from require('ezzy-config')
+   * @returns {Array|undefined}
+   */
+  get pathConfig() {}
 
   /**
    * Any number of core middleware functions that will parse the request.
