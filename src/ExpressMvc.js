@@ -517,6 +517,11 @@ class ExpressMvc {
         );
         logger.debug('404', `Route not found in ${this.constructor.name}.`);
       });
+
+    // In various places, we use the default request instance to invoke
+    // some default functions. So, we need to make sure the error
+    // folder has been defined at the default instance.
+    Request.inst._errors = Request.inst._errors || this._errors;
   }
 
   /**
