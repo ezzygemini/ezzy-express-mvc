@@ -922,7 +922,6 @@ class ExpressMvc {
         [CONTEXT_PARAMS]
       )
       .reduce((all, path) => {
-        path = path.startsWith('/') ? path.substr(1) : path;
         if (context) {
           all.push(`${context}${path}`);
           if (version) {
@@ -930,7 +929,8 @@ class ExpressMvc {
           }
         }
         return all;
-      }, []);
+      }, [])
+      .map(path => path.replace('//', '/'));
     if (!context) {
       allPaths.push('');
     }
