@@ -21,20 +21,20 @@
   "license": "MIT",
   "dependencies": {
     "express": "^4.16.3",
-    "ezzy-argument": "^0.1.20",
-    "ezzy-cache": "^0.1.28",
-    "ezzy-config-setup": "^0.1.17",
+    "ezzy-argument": "^0.1.22",
+    "ezzy-cache": "^0.1.29",
+    "ezzy-config-setup": "^0.1.18",
     "ezzy-environment": "^1.0.5",
-    "ezzy-express-basics": "^0.1.23",
+    "ezzy-express-basics": "^0.1.24",
     "ezzy-fs": "^0.1.16",
-    "ezzy-logger": "^1.0.0",
+    "ezzy-logger": "^1.0.15",
     "ezzy-typeof": "^0.1.16",
-    "handlebars": "^4.0.11",
+    "handlebars": "^4.0.12",
     "i18n-2": "^0.7.2",
     "recursive-fs": "^1.0.0",
     "recursive-readdir-sync": "^1.0.6"
   },
   "devDependencies": {
-    "ezzy-testing": "^0.1.24"
+    "ezzy-testing": "^0.1.26"
   }
 }
