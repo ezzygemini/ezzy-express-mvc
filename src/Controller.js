@@ -145,7 +145,7 @@ class Controller extends Request {
         assets = await this.assetParser(basics, assets, data);
         Object.assign(data, model, { config, assets });
       } catch (e) {
-        logger.error(basics, e);
+        logger.error(basics, 'Model Error', e.message || e);
         data = basics;
       }
     } else {
