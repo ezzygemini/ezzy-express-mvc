@@ -81,7 +81,7 @@ class Request {
       // with optional parameters like these:
       // /my/route/:a?/:b?/:c?/:d?/:e?/:f?/:g?/:h?/:i?/:j?/:k?/:l?/:m?
       for (let char of "abcdefghijklm".split("")) {
-        arg = basics.request.params[char];
+        arg = params[char];
         if (arg !== undefined) {
           if (arg === "true") {
             // turn a "true" string to a true boolean
@@ -140,10 +140,8 @@ class Request {
       `Request intercepted by ${this.constructor.name}`
     );
 
-    const { isRequestOk, requestNotOk, auth, forbiddenError } = this;
-
-    if (!(await isRequestOk(basics))) {
-      return requestNotOk(basics);
+    if (!(await this.isRequestOk(basics))) {
+      return this.requestNotOk(basics);
     }
 
     const { headers, method, hostname, originalUrl } = basics.request;
@@ -151,7 +149,7 @@ class Request {
     logger.debug(basics, "Request", `${method} ${hostname} ${originalUrl}`);
     logger.deepDebug(basics, "Headers", headers);
 
-    const isAuth = await auth(basics);
+    const isAuth = await this.auth(basics);
 
     if (!isAuth && !(await this.loggedIn(basics))) {
       return this.unauthorizedError(basics);
