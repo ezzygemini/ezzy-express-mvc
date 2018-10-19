@@ -142,6 +142,8 @@ class Request {
 
     if (!(await this.isRequestOk(basics))) {
       return this.requestNotOk(basics);
+    } else {
+      await this.requestOk(basics);
     }
 
     const { headers, method, hostname, originalUrl } = basics.request;
@@ -180,7 +182,10 @@ class Request {
           return this.doPatch(basics);
         } else {
           try {
-            return this.doPatch(basics, ...(await this._getArgsFromReq(basics)));
+            return this.doPatch(
+              basics,
+              ...(await this._getArgsFromReq(basics))
+            );
           } catch (e) {
             return this.internalServerError(basics);
           }
@@ -193,7 +198,10 @@ class Request {
           return this.doDelete(basics);
         } else {
           try {
-            return this.doDelete(basics, ...(await this._getArgsFromReq(basics)));
+            return this.doDelete(
+              basics,
+              ...(await this._getArgsFromReq(basics))
+            );
           } catch (e) {
             return this.internalServerError(basics);
           }
@@ -258,6 +266,12 @@ class Request {
   requestNotOk(basics) {
     return this.badRequestError(basics);
   }
+
+  /**
+   * Handles the request when it's ok.
+   * @param {HttpBasics} basics The http basics.
+   */
+  requestOk(basics) {}
 
   /**
    * Checks if the user has been logged in.
