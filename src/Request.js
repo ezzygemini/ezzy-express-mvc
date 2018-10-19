@@ -63,171 +63,174 @@ class Request {
   }
 
   /**
+   * Checks a url for named/positioned arguments.
+   * @param {HttpBasics} basics The http basics.
+   * @returns {*[]}
+   * @private
+   */
+  _getArgsFromUrl(basics) {
+    const { originalUrl, query, params } = basics.request;
+    if (originalUrl.includes("?")) {
+      // If a search query has been invoked, just return it as a single string.
+      return [query];
+    } else {
+      const args = [];
+      let arg;
+
+      // We iterate through characters because we have defined routes
+      // with optional parameters like these:
+      // /my/route/:a?/:b?/:c?/:d?/:e?/:f?/:g?/:h?/:i?/:j?/:k?/:l?/:m?
+      for (let char of "abcdefghijklm".split("")) {
+        arg = basics.request.params[char];
+        if (arg !== undefined) {
+          if (arg === "true") {
+            // turn a "true" string to a true boolean
+            args.push(true);
+          } else if (arg === "false") {
+            // turn a "false" string to a false boolean
+            args.push(false);
+          } else if (!isNaN(arg)) {
+            // turn a numeric value to a number
+            args.push(parseFloat(arg));
+          } else {
+            args.push(arg);
+          }
+        } else {
+          break;
+        }
+      }
+
+      // If a path configuration has been defined, we can use it to
+      // map named keys to the values.
+      const { pathConfig } = this;
+      // Map the values to the positioned params
+      if (Array.isArray(pathConfig)) {
+        Object.assign(
+          basics.request.params,
+          configSetup({}, args, ...pathConfig)
+        );
+      }
+
+      return args;
+    }
+  }
+
+  /**
+   * Obtains a set of arguments from either the body or the url.
+   * @param {HttpBasics} basics The http basics.
+   * @returns {Promise<*[]>}
+   * @private
+   */
+  async _getArgsFromReq(basics) {
+    try {
+      return await basics.body().then(body => [body]);
+    } catch (e) {
+      return this._getArgsFromUrl(basics);
+    }
+  }
+
+  /**
    * Handles the request based on method.
    * @param {HttpBasics} basics The HTTP Basics.
    */
-  doRequest(basics) {
-    const { method, hostname, originalUrl } = basics.request;
-
+  async doRequest(basics) {
     logger.deepDebug(
       basics,
       "Interception",
       `Request intercepted by ${this.constructor.name}`
     );
 
-    if (!this.isRequestOk(basics)) {
-      return this.requestNotOk(basics);
-    } else {
-      logger.debug(basics, "Request", `${method} ${hostname} ${originalUrl}`);
-      logger.deepDebug(basics, "Headers", basics.request.headers);
+    const { isRequestOk, requestNotOk, auth, forbiddenError } = this;
+
+    if (!(await isRequestOk(basics))) {
+      return requestNotOk(basics);
     }
 
-    const auth = this.auth(basics);
-    if (!auth && !this.loggedIn(basics)) {
+    const { headers, method, hostname, originalUrl } = basics.request;
+
+    logger.debug(basics, "Request", `${method} ${hostname} ${originalUrl}`);
+    logger.deepDebug(basics, "Headers", headers);
+
+    const isAuth = await auth(basics);
+
+    if (!isAuth && !(await this.loggedIn(basics))) {
       return this.unauthorizedError(basics);
-    } else if (!auth) {
+    } else if (!isAuth) {
       return this.forbiddenError(basics);
     }
 
-    const isForm = /multipart/i.test(basics.request.headers["content-type"]);
-    const qry = () => {
-      if (basics.request.originalUrl.indexOf("?") > -1) {
-        return [basics.request.query];
-      } else {
-        const args = [];
-        let arg;
-        for (let char of "abcdefghijklm".split("")) {
-          arg = basics.request.params[char];
-          if (arg !== undefined) {
-            if (arg === "true") {
-              args.push(true);
-            } else if (arg === "false") {
-              args.push(false);
-            } else if (isNaN(arg)) {
-              args.push(arg);
-            } else {
-              args.push(parseFloat(arg));
-            }
-          } else {
-            break;
-          }
-        }
-        const { pathConfig } = this;
-        // Map the values to the positioned params
-        if (Array.isArray(pathConfig)) {
-          Object.assign(
-            basics.request.params,
-            configSetup({}, args, ...pathConfig)
-          );
-        }
-        return args;
-      }
-    };
+    const isFormRequest = /multipart/i.test(headers["content-type"]);
 
     switch (method) {
       case "POST":
-        if (this.authPost(basics)) {
-          if (isForm) {
-            return this.doPost(basics);
-          } else {
-            return basics
-              .body()
-              .then(body => [body], qry)
-              .then(args => {
-                try {
-                  return this.doPost(basics, ...args);
-                } catch (e) {
-                  return this.internalServerError(basics);
-                }
-              });
-          }
-        } else {
+        if (!(await this.authPost(basics))) {
           return this.forbiddenError(basics);
+        } else if (isFormRequest) {
+          return this.doPost(basics);
+        } else {
+          try {
+            return this.doPost(basics, ...(await this._getArgsFromReq(basics)));
+          } catch (e) {
+            return this.internalServerError(basics);
+          }
         }
 
-        break;
       case "PATCH":
-        if (this.authPatch(basics)) {
-          if (isForm) {
-            return this.doPatch(basics);
-          } else {
-            return basics
-              .body()
-              .then(body => [body], qry)
-              .then(args => {
-                try {
-                  return this.doPatch(basics, ...args);
-                } catch (e) {
-                  return this.internalServerError(basics);
-                }
-              });
-          }
-        } else {
+        if (!(await this.authPatch(basics))) {
           return this.forbiddenError(basics);
+        } else if (isFormRequest) {
+          return this.doPatch(basics);
+        } else {
+          try {
+            return this.doPatch(basics, ...(await this._getArgsFromReq(basics)));
+          } catch (e) {
+            return this.internalServerError(basics);
+          }
         }
 
-        break;
       case "DELETE":
-        if (this.authDelete(basics)) {
-          if (isForm) {
-            return this.doDelete(basics);
-          } else {
-            return basics
-              .body()
-              .then(body => [body], qry)
-              .then(args => {
-                try {
-                  return this.doDelete(basics, ...args);
-                } catch (e) {
-                  return this.internalServerError(basics);
-                }
-              });
-          }
-        } else {
+        if (!(await this.authDelete(basics))) {
           return this.forbiddenError(basics);
+        } else if (isFormRequest) {
+          return this.doDelete(basics);
+        } else {
+          try {
+            return this.doDelete(basics, ...(await this._getArgsFromReq(basics)));
+          } catch (e) {
+            return this.internalServerError(basics);
+          }
         }
 
-        break;
       case "PUT":
-        if (this.authPut(basics)) {
-          if (isForm) {
-            return this.doPut(basics);
-          } else {
-            return basics
-              .body()
-              .then(body => [body], qry)
-              .then(args => {
-                try {
-                  return this.doPut(basics, ...args);
-                } catch (e) {
-                  return this.internalServerError(basics);
-                }
-              });
+        if (!(await this.authPut(basics))) {
+          return this.forbiddenError(basics);
+        } else if (isFormRequest) {
+          return this.doPut(basics);
+        } else {
+          try {
+            return this.doPut(basics, ...(await this._getArgsFromReq(basics)));
+          } catch (e) {
+            return this.internalServerError(basics);
           }
-        } else {
-          return this.forbiddenError(basics);
         }
 
-        break;
       case "HEAD":
-        if (this.authHead(basics)) {
-          return this.doHead(basics, ...qry());
+        if (await this.authHead(basics)) {
+          return this.doHead(basics, ...this._getArgsFromUrl(basics));
         } else {
           return this.forbiddenError(basics);
         }
 
-        break;
       case "OPTIONS":
-        if (this.authOptions(basics)) {
-          return this.doOptions(basics, ...qry());
+        if (await this.authOptions(basics)) {
+          return this.doOptions(basics, ...this._getArgsFromUrl(basics));
         } else {
           return this.forbiddenError(basics);
         }
 
-        break;
       default:
-        if (this.authGet(basics)) {
-          return this.doGet(basics, ...qry());
+        if (await this.authGet(basics)) {
+          return this.doGet(basics, ...this._getArgsFromUrl(basics));
         } else {
           return this.forbiddenError(basics);
         }
