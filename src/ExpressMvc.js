@@ -1,5 +1,6 @@
 const i18n = require("i18n-2");
 const express = require("express");
+const compression = require('compression');
 const logger = require("ezzy-logger").logger;
 const recursive = require("recursive-fs");
 const path = require("path");
@@ -824,7 +825,7 @@ class ExpressMvc {
    * @private
    */
   _static(dir) {
-    const staticApp = express.static(dir);
+    const staticApp = express().use(compression(), express.static(dir));
     return basics => staticApp(basics.request, basics.response, basics.next);
   }
 
@@ -1140,7 +1141,7 @@ class ExpressMvc {
    */
   static(route, dir) {
     logger.debug("Static", `Binding static app on ${dir}`);
-    return this._express.use(route, express.static(dir));
+    return this._express.use(route, compression(), express.static(dir));
   }
 
   /**
