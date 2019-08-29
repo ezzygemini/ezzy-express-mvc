@@ -24,7 +24,7 @@
     "express": "^4.16.4",
     "ezzy-argument": "^0.1.22",
     "ezzy-cache": "^0.1.29",
-    "ezzy-config-setup": "^0.1.18",
+    "ezzy-config-setup": "^3.0.0",
     "ezzy-environment": "^1.1.0",
     "ezzy-express-basics": "^1.3.0",
     "ezzy-fs": "^0.1.16",
