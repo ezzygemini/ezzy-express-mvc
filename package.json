@@ -22,7 +22,7 @@
   "dependencies": {
     "compression": "^1.7.3",
     "express": "^4.16.4",
-    "ezzy-argument": "^0.1.22",
+    "ezzy-argument": "^3.1.2",
     "ezzy-cache": "^0.1.29",
     "ezzy-config-setup": "^0.1.18",
     "ezzy-environment": "^1.1.0",
