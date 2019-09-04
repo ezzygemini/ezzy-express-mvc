@@ -36,6 +36,6 @@
     "recursive-readdir-sync": "^1.0.6"
   },
   "devDependencies": {
-    "ezzy-testing": "^0.1.26"
+    "ezzy-testing": "^3.1.0"
   }
 }
